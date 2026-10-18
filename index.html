@@ -82,35 +82,23 @@ h2{font-size:20px; margin:6px 0 14px}
 .stat{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px}
 .stat:last-child{border-bottom:none}
 .stat b{font-size:16px}
-.tag{
-  display:inline-block; margin:2px 4px 2px 0; padding:4px 10px;
-  border:1px solid var(--border); border-radius:20px;
-  background:var(--panel2); font-size:12px; font-weight:600;
-}
-.ann-card{
-  background:var(--accent); color:var(--accent-text);
-  border-radius:16px; padding:16px; margin-bottom:12px;
-}
-.ann-card .muted{color:inherit; opacity:.6}
-/* ===== ОБЛОЖКИ КЕЙСОВ: квадрат с заглушкой ===== */
 #casesGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
 .tile{
   background:var(--panel); border:1px solid var(--border); border-radius:16px;
   padding:10px; display:flex; flex-direction:column;
 }
-.tile-img{ /* заглушка под картинку — квадрат 1:1 */
+.tile-img{
   width:100%; aspect-ratio:1/1; border-radius:12px;
   background:var(--panel2); border:1px dashed var(--border);
   display:flex; align-items:center; justify-content:center;
-  font-size:48px; margin-bottom:8px;
-  position:relative;
+  font-size:48px; margin-bottom:8px; position:relative;
 }
-.tile-img .badge-stock{ /* «Осталось N» прямо на картинке */
+.tile-img .badge-stock{
   position:absolute; top:6px; left:6px;
   background:var(--accent); color:var(--accent-text);
   font-size:11px; font-weight:700; padding:3px 8px; border-radius:12px;
 }
-.tile-img .badge-time{ /* «до закрытия» прямо на картинке */
+.tile-img .badge-time{
   position:absolute; top:6px; right:6px;
   background:#c0392b; color:#fff;
   font-size:11px; font-weight:700; padding:3px 8px; border-radius:12px;
@@ -126,6 +114,8 @@ h2{font-size:20px; margin:6px 0 14px}
 .btn.ghost{background:transparent; border:1.5px solid var(--border); color:var(--text)}
 .btn:active{transform:scale(.98)}
 .btn:disabled{opacity:.5}
+.ann-card{background:var(--accent); color:var(--accent-text); border-radius:16px; padding:16px; margin-bottom:12px}
+.ann-card .muted{color:inherit; opacity:.6}
 .row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-bottom:1px solid var(--border)}
 .row:last-of-type{border-bottom:none}
 .switch{position:relative; width:52px; height:30px; flex:none}
@@ -139,12 +129,6 @@ h2{font-size:20px; margin:6px 0 14px}
 .switch input:checked + .slider{background:#141414}
 body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
 .switch input:checked + .slider::before{transform:translateX(22px)}
-#nickInput{
-  width:100%; font-size:18px; font-weight:700; color:var(--text);
-  background:transparent; border:none; border-bottom:1.5px dashed var(--border);
-  padding:4px 0; outline:none;
-}
-#nickInput:focus{border-bottom-color:var(--text)}
 .danger{color:#c0392b}
 #invGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px}
 .inv-card{border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--panel2); font-size:13px}
@@ -166,23 +150,47 @@ body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
 .prize-cell{flex:none; width:96px; margin:6px 4px; padding:14px 4px; border:1px solid var(--border); border-radius:12px; text-align:center; font-size:13px; background:var(--panel2)}
 .prize-cell .p-ico{font-size:24px; display:block; margin-bottom:6px}
 .prize-cell.hl{outline:2px solid var(--accent)}
+/* ===== админка ===== */
+.a-label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:10px 0 4px}
 .a-input{
-  width:100%; padding:10px 12px; border-radius:10px; margin-bottom:8px;
+  width:100%; padding:10px 12px; border-radius:10px;
   border:1.5px solid var(--border); background:var(--panel2);
   color:var(--text); font-size:15px; outline:none;
 }
 .a-input:focus{border-color:var(--text)}
-textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
+textarea.a-input{min-height:110px; resize:vertical; font-family:inherit}
+.a-hint{font-size:11px; color:var(--muted); margin:3px 0 6px}
 .a-btn{
   padding:8px 14px; border-radius:10px; border:1px solid var(--border);
   background:var(--panel2); color:var(--text); font-size:14px;
-  font-weight:600; cursor:pointer; margin:4px 6px 0 0;
+  font-weight:600; cursor:pointer; margin:6px 6px 0 0;
 }
 .a-btn.del{border-color:#c0392b; color:#c0392b}
 .a-case{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed var(--border); font-size:14px}
 .a-case .a-info{flex:1; min-width:0}
 .a-case .a-sub{font-size:11px; color:var(--muted)}
 .a-case .a-actions{white-space:nowrap}
+/* ===== тикеты и чат ===== */
+.ticket{border:1px solid var(--border); border-radius:12px; padding:12px; margin-top:10px; font-size:13px}
+.ticket .t-head{display:flex; justify-content:space-between; gap:8px; margin-bottom:6px}
+.t-badge{font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; border:1px solid var(--border)}
+.t-badge.open{color:#b7950b; border-color:#b7950b}
+.t-badge.closed{color:var(--muted)}
+.chat{max-height:260px; overflow-y:auto; margin-top:8px; padding-right:4px}
+.msg{max-width:86%; margin:8px 0; padding:8px 12px; border-radius:14px; font-size:13px; white-space:pre-wrap; word-break:break-word}
+.msg .m-head{ /* строка «имя    время» */
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  font-weight:700; font-size:12px; margin-bottom:4px; padding-bottom:3px;
+  border-bottom:1px dashed currentColor;
+}
+.msg .m-head .m-date{font-weight:400; font-size:10px; opacity:.6; flex:none}
+.msg .m-text{margin-top:2px}
+.msg.user{background:var(--accent); color:var(--accent-text); margin-left:auto; border-bottom-right-radius:4px}
+.msg.admin{background:var(--panel2); border:1px solid var(--border); margin-right:auto; border-bottom-left-radius:4px}
+.chat-input{display:flex; gap:6px; margin-top:8px}
+.chat-input .a-input{margin:0; flex:1}
+.acc-panel{margin-top:10px; padding:10px; border:1px dashed var(--border); border-radius:10px; background:var(--panel2); font-size:12px}
+.acc-panel .stat{padding:6px 0}
 #cloudStatus{font-size:12px; padding:6px 10px; border-radius:8px; background:var(--panel2); border:1px dashed var(--border); margin-bottom:12px}
 </style>
 </head>
@@ -210,11 +218,10 @@ textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
 
 <main id="content">
 
-  <!-- ГЛАВНАЯ: объявление + сетка квадратных обложек -->
   <section class="page on" id="page-home">
     <h2>Главная</h2>
     <div id="cloudStatus">☁️ Подключаемся к Firebase...</div>
-    <div id="annSlot"></div>          <!-- сюда рендерится объявление -->
+    <div id="annSlot"></div>
     <div class="card">
       <b id="homeGreet">Привет!</b>
       <div class="stat" style="margin-top:8px"><span>⭐ Баланс</span><b id="homeStars">0</b></div>
@@ -222,12 +229,12 @@ textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
     <div id="casesGrid"></div>
   </section>
 
-  <!-- ПРОФИЛЬ -->
   <section class="page" id="page-profile">
     <h2>Профиль</h2>
     <div class="card">
-      <div class="muted" style="margin-bottom:6px">Никнейм</div>
-      <input id="nickInput" maxlength="20" placeholder="Ваш ник">
+      <div class="stat"><span>👤 Имя</span><b id="profName">—</b></div>
+      <div class="stat"><span>🔗 Username</span><b id="profUsername">—</b></div>
+      <div class="stat"><span>🆔 Telegram ID</span><b id="profTgId">—</b></div>
     </div>
     <div class="card">
       <div class="stat"><span>⭐ Баланс звёзд</span><b id="statStars">0</b></div>
@@ -235,14 +242,12 @@ textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
     </div>
   </section>
 
-  <!-- ИНВЕНТАРЬ -->
   <section class="page" id="page-inventory">
     <h2>Инвентарь</h2>
     <div id="invGrid"></div>
     <p class="muted" id="invEmpty" style="text-align:center;margin-top:20px">Пока пусто — откройте кейс на главной 🎁</p>
   </section>
 
-  <!-- НАСТРОЙКИ -->
   <section class="page" id="page-settings">
     <h2>Настройки</h2>
     <div class="card">
@@ -254,10 +259,17 @@ textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
         </label>
       </div>
     </div>
+
+    <div class="card">
+      <b>🎧 Поддержка</b>
+      <div id="ticketPanel" style="margin-top:10px"></div>
+    </div>
+
     <div class="card" id="adminCard">
       <b>🛠 Админ-панель</b>
       <div id="adminPanel" style="margin-top:10px"></div>
     </div>
+
     <div class="card">
       <div class="row" style="border:none;padding-bottom:0">
         <span>Сброс прогресса</span>
@@ -268,14 +280,13 @@ textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
 
 </main>
 
-<!-- МОДАЛКА КЕЙСА: сначала шансы + кнопка «Открыть за N», потом рулетка -->
 <div id="overlay">
   <div id="caseModal">
     <div id="caseMenu">
       <b style="font-size:18px" id="modalTitle">🎁 Кейс</b>
       <p class="muted" style="margin:6px 0 12px">Призы и шансы:</p>
       <div id="prizeList"></div>
-      <button class="btn" id="openBtn">Открыть</button>      <!-- «Открыть за N ⭐» / «Открыть бесплатно» -->
+      <button class="btn" id="openBtn">Открыть</button>
       <button class="btn ghost" id="closeMenuBtn">Закрыть</button>
     </div>
     <div id="caseSpin" style="display:none">
@@ -302,50 +313,59 @@ const firebaseConfig = {
   measurementId: "G-QV7MG6M9V4"
 };
 
-/* ---------- АДМИН ---------- */
-const ADMIN_ID   = 8158896250;   // ваш Telegram ID
-const ADMIN_CODE = 'admin123';   // резервный вход кодом
+/* ==================================================================
+   АДМИНЫ: список Telegram ID (несколько через запятую).
+   ADMIN_CODE — резервный вход кодом (тест в браузере).
+   ================================================================== */
+const ADMIN_IDS  = [8158896250];
+const ADMIN_CODE = 'admin123';
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
 const haptic = t => { try { if (tg) tg.HapticFeedback.impactOccurred(t); } catch(e){} };
 
+/* Имя пользователя: @username или имя из Telegram — вручную не вводится */
+const MY_NAME = tgUser
+  ? (tgUser.username ? '@' + tgUser.username : (tgUser.first_name || 'Гость'))
+  : 'Гость';
+
 /* ==================================================================
-   КОНФИГУРАЦИЯ КЕЙСОВ (дефолт — заливается в Firebase, если база пуста)
-   Поля кейса:
-     id     — уникальное число
-     ico    — эмодзи на заглушке обложки
-     name   — название
-     desc   — описание (видно в окне с шансами)
-     cd     — кулдаун в СЕКУНДАХ между открытиями
-     price  — цена в звёздах (0 = бесплатный)
-     stock  — ЛИМИТ ОТПУСКОВ НА ВСЕХ (0 = без лимита).
-              Счётчик живёт в Firebase: caseStock/<id>
-     hours  — срок жизни кейса в ЧАСАХ с момента публикации (0 = бессрочно)
-     prizes — [{name, chance, type:'stars'|'item', value}]
+   КОНФИГУРАЦИЯ КЕЙСОВ (дефолт заливается в Firebase, если база пуста)
    ================================================================== */
 const DEF_CASES = [{
   id: 1, ico: '🎁', name: 'Стартовый кейс', desc: 'Бесплатный кейс для новичков',
   cd: 60, price: 0, stock: 0, hours: 0,
   prizes: [
-    {name:'25 звёзд',    chance:40, type:'stars', value:25},
-    {name:'100 звёзд',   chance:30, type:'stars', value:100},
-    {name:'250 звёзд',   chance:15, type:'stars', value:250},
-    {name:'500 звёзд',   chance:10, type:'stars', value:500},
-    {name:'Подарок 🏆',  chance:5,  type:'item',  value:'🏆'}
+    {name:'25 звёзд',   chance:40, type:'stars', value:25},
+    {name:'100 звёзд',  chance:30, type:'stars', value:100},
+    {name:'250 звёзд',  chance:15, type:'stars', value:250},
+    {name:'500 звёзд',  chance:10, type:'stars', value:500},
+    {name:'Подарок 🏆', chance:5,  type:'item',  value:'🏆'}
   ]
 }];
 
 /* ---------- ЛОКАЛЬНОЕ СОСТОЯНИЕ ---------- */
-const DEF = {nick:'', theme:'light', admin:false, stars:0, items:[], cases:DEF_CASES, lastFree:{}};
+const DEF = {theme:'light', admin:false, stars:0, items:[], cases:DEF_CASES, lastFree:{}};
 let S = {...DEF};
 try { S = {...DEF, ...JSON.parse(localStorage.getItem('starApp') || '{}')}; } catch(e){}
 const saveLocal = () => localStorage.setItem('starApp', JSON.stringify(S));
 const save = () => { saveLocal(); if (USER_REF){ clearTimeout(pushTimer); pushTimer = setTimeout(pushUser, 300); } };
 if (S.theme === 'dark') document.body.dataset.theme = 'dark';
 
+/* чистка битых предметов из старых версий (защита от undefined-баланса) */
+S.items = (Array.isArray(S.items) ? S.items : [])
+  .filter(it => it && it.name)
+  .map(it => ({
+    name: String(it.name),
+    ico:  it.ico || '⭐',
+    type: it.type === 'item' ? 'item' : 'stars',
+    stars: Math.max(0, parseInt(it.stars, 10) || 0),
+    date: it.date || ''
+  }))
+  .filter(it => it.type !== 'stars' || it.stars > 0);
+
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const fmtLeft = ms => { /* «1ч 05м» / «4м» / «30 с» для таймеров */
+const fmtLeft = ms => {
   const s = Math.max(0, Math.ceil(ms/1000));
   if (s >= 3600) return Math.floor(s/3600) + 'ч ' + Math.floor(s%3600/60) + 'м';
   if (s >= 60)   return Math.floor(s/60) + 'м';
@@ -353,22 +373,18 @@ const fmtLeft = ms => { /* «1ч 05м» / «4м» / «30 с» для тайме�
 };
 
 /* ==================================================================
-   FIREBASE: ИНИЦИАЛИЗАЦИЯ И ПОДПИСКИ
-   Ветки базы:
-     users/<ключ>/       — личные данные (nick, stars, items, lastFree)
-     cases/              — общий список кейсов (правит админ)
-     caseStock/<id>/     — ОСТАТОК лимитированных кейсов (общий для всех)
-     announcement/       — текущее объявление (одно; новое заменяет старое)
+   FIREBASE
+   Ветки: users/<ключ>/, cases/, caseStock/<id>/, announcement/, tickets/<id>/
    ================================================================== */
-let USER_REF = null, cloudReady = false, pushTimer = null;
+let USER_REF = null, MY_KEY = '', MY_TG_ID = 0, cloudReady = false, pushTimer = null;
 
 const fbApp = firebase.initializeApp(firebaseConfig);
 const db    = firebase.database();
 
 function pushUser(){
   if (!USER_REF) return;
-  USER_REF.set({ nick:S.nick, stars:S.stars, items:S.items, lastFree:S.lastFree })
-    .catch(e => setCloudStatus('⚠️ Ошибка записи: ' + e.code));
+  USER_REF.set({ name:MY_NAME, tgId:MY_TG_ID||'', stars:S.stars, items:S.items, lastFree:S.lastFree })
+    .catch(e => setCloudStatus('⚠️ Ошибка записи: ' + (e.code || e.message)));
 }
 function setCloudStatus(t){ document.getElementById('cloudStatus').textContent = t; }
 
@@ -376,19 +392,19 @@ async function initCloud(){
   try{
     await firebase.auth().signInAnonymously();
     const uid = firebase.auth().currentUser.uid;
-    const key = tgUser ? 'tg' + tgUser.id : 'a' + uid.replace(/[^a-zA-Z0-9]/g,'');
+    MY_TG_ID = tgUser ? tgUser.id : 0;
+    const key = tgUser ? 'tg' + tgUser.id : 'a' + uid;
+    MY_KEY = key;
     USER_REF = db.ref('users/' + key);
 
     const snap = await USER_REF.get();
     if (snap.exists()){
-      const d = snap.val();
-      S.nick = d.nick || ''; S.stars = d.stars || 0;
-      S.items = Array.isArray(d.items) ? d.items : [];
-      S.lastFree = d.lastFree || {};
-      saveLocal();
+      S.stars = Number(snap.val().stars) || 0;
+      S.items = Array.isArray(snap.val().items) ? snap.val().items : [];
+      S.lastFree = snap.val().lastFree || {};
     } else pushUser();
+    saveLocal();
 
-    /* общий список кейсов; если база пуста — заливаем дефолтные */
     const cs = await db.ref('cases').get();
     if (cs.exists() && cs.val()) S.cases = Object.values(cs.val());
     else await db.ref('cases').set(DEF_CASES);
@@ -396,28 +412,31 @@ async function initCloud(){
     cloudReady = true;
     setCloudStatus('☁️ Данные синхронизированы');
 
-    /* живые подписки: кейсы, остатки лимитов, объявление, личные данные */
     db.ref('cases').on('value', s => {
       S.cases = s.exists() ? Object.values(s.val()) : DEF_CASES;
       saveLocal(); renderAll();
     });
     db.ref('caseStock').on('value', s => { S.stockLive = s.val() || {}; renderCases(); });
     db.ref('announcement').on('value', s => { S.ann = s.val() || null; renderAnn(); });
+    db.ref('tickets').on('value', s => {
+      const v = s.val() || {};
+      S.tickets = Object.entries(v).map(([k, t]) => ({...t, _id: k}));
+      renderTickets(); renderAdmin();
+    });
     USER_REF.on('value', s => {
       if (!s.exists()) return;
-      const d = s.val();
-      S.nick = d.nick || ''; S.stars = d.stars || 0;
-      S.items = Array.isArray(d.items) ? d.items : [];
-      S.lastFree = d.lastFree || {};
-      saveLocal(); nickInput.value = S.nick; renderAll();
+      S.stars = Number(s.val().stars) || 0;
+      S.items = Array.isArray(s.val().items) ? s.val().items : [];
+      S.lastFree = s.val().lastFree || {};
+      saveLocal(); renderAll();
     });
+
+    if (MY_TG_ID && ADMIN_IDS.includes(MY_TG_ID)) { S.admin = true; saveLocal(); }
   } catch(e){
-    setCloudStatus('⚠️ Firebase недоступен — работаем локально (' + e.code + ')');
+    setCloudStatus('⚠️ Firebase недоступен — работаем локально (' + (e.code || e.message) + ')');
   }
   renderAll();
 }
-
-if (tgUser && tgUser.id === ADMIN_ID) { S.admin = true; saveLocal(); }
 
 /* ==================================================================
    МЕНЮ И НАВИГАЦИЯ
@@ -440,29 +459,25 @@ document.querySelectorAll('.menu-item').forEach(btn => {
 });
 
 /* ==================================================================
-   ГЛАВНАЯ: ОБЛОЖКИ КЕЙСОВ (без шансов — только картинка, бейджи, кнопка)
+   ГЛАВНАЯ: ОБЛОЖКИ КЕЙСОВ
    ================================================================== */
 function renderCases(){
   document.getElementById('casesGrid').innerHTML = S.cases.map(c => {
-    const ended = c.hours && c.endsAt && Date.now() > c.endsAt;
+    const ended = c.endsAt && Date.now() > c.endsAt;
     const stock = S.stockLive && S.stockLive[c.id];
     return '<div class="tile">' +
-      /* квадратная заглушка под картинку + иконка */
       '<div class="tile-img">' + esc(c.ico) +
         (stock !== undefined && stock !== null ? '<span class="badge-stock">Осталось ' + stock + '</span>' : '') +
-        (c.hours ? '<span class="badge-time">⏰</span>' : '') +
+        (c.endsAt && !ended ? '<span class="badge-time">⏰</span>' : '') +
       '</div>' +
       '<div class="tile-name">' + esc(c.name) + '</div>' +
-      /* статус: кулдаун / время жизни — обновляется tickFree */
       '<div class="tile-status" id="cd-' + c.id + '"></div>' +
-      /* кнопка «Открыть» — шансы покажутся в следующем окне */
       '<button class="btn" onclick="openCase(' + c.id + ')" ' + (ended ? 'disabled' : '') + '>Открыть</button>' +
     '</div>';
   }).join('');
   tickFree();
 }
 
-/* Таймеры обложек: раз в полсекунды обновляет кулдаун и срок жизни */
 function tickFree(){
   S.cases.forEach(c => {
     const el = document.getElementById('cd-' + c.id);
@@ -470,7 +485,7 @@ function tickFree(){
     if (c.endsAt && Date.now() > c.endsAt){
       el.textContent = '⛔ Время вышло';
     } else {
-      const left = (S.lastFree[c.id] || 0) + (c.cd || 60) * 1000 - Date.now();
+      const left = (S.lastFree[c.id] || 0) + (c.cd || 0) * 1000 - Date.now();
       el.textContent = left > 0
         ? '⏳ Доступно через ' + fmtLeft(left)
         : (c.endsAt ? '✅ Доступен · закроется через ' + fmtLeft(c.endsAt - Date.now()) : '✅ Доступен');
@@ -479,9 +494,6 @@ function tickFree(){
   setTimeout(tickFree, 500);
 }
 
-/* ==================================================================
-   ОБЪЯВЛЕНИЕ НА ГЛАВНОЙ (одно; новое заменяет старое автоматически)
-   ================================================================== */
 function renderAnn(){
   document.getElementById('annSlot').innerHTML = S.ann && S.ann.text
     ? '<div class="ann-card"><b>📢 Объявление</b><p style="margin-top:6px;white-space:pre-wrap">' + esc(S.ann.text) + '</p>' +
@@ -495,7 +507,6 @@ function renderAnn(){
 const overlay = document.getElementById('overlay');
 let currentCase = null;
 
-/* «Открыть» на обложке: показывает окно с шансами и ценой */
 window.openCase = id => {
   const c = S.cases.find(x => x.id === id);
   if (!c) return;
@@ -504,9 +515,8 @@ window.openCase = id => {
   document.getElementById('modalTitle').textContent = c.ico + ' ' + c.name;
   document.getElementById('prizeList').innerHTML = c.prizes.map(p =>
     '<div class="case-item" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:14px">' +
-      '<span>' + esc(p.name) + '</span><b style="color:var(--muted)">' + p.chance + '%</b></div>'
+      '<span>' + esc(p.name) + '</span><b style="color:var(--muted)">' + (Number(p.chance) || 0) + '%</b></div>'
   ).join('');
-  /* кнопка с ценой: «Открыть за N ⭐» или «Открыть бесплатно» */
   document.getElementById('openBtn').textContent =
     c.price > 0 ? 'Открыть за ' + c.price + ' ⭐' : 'Открыть бесплатно';
   overlay.classList.add('on'); haptic('medium');
@@ -523,33 +533,29 @@ function closeCase(){
   document.getElementById('spinResult').textContent = '';
 }
 
-/* Выбор приза по накопленным шансам */
 function spinPrize(caseObj){
   let r = Math.random() * 100, acc = 0;
-  for (const p of caseObj.prizes){ acc += p.chance; if (r <= acc) return p; }
+  for (const p of caseObj.prizes){ acc += (Number(p.chance) || 0); if (r <= acc) return p; }
   return caseObj.prizes[0];
 }
 
-/* Кнопка «Открыть за N ⭐» в окне шансов: все проверки, списание, запуск */
 document.getElementById('openBtn').addEventListener('click', async () => {
   const c = currentCase;
   if (!c) return;
   if (c.endsAt && Date.now() > c.endsAt) return alert('Время акции вышло');
 
-  const left = (S.lastFree[c.id] || 0) + (c.cd || 60) * 1000 - Date.now();
+  const left = (S.lastFree[c.id] || 0) + (c.cd || 0) * 1000 - Date.now();
   if (left > 0) return alert('Подождите ' + Math.ceil(left/1000) + ' с');
 
   if (c.price > 0 && S.stars < c.price)
     return alert('Не хватает звёзд: нужно ' + c.price + ', у вас ' + S.stars);
 
-  /* остаток лимитированного кейса: читаем общий счётчик из Firebase */
   let stock = null;
   if (cloudReady){
     try { const s = await db.ref('caseStock/' + c.id).get(); if (s.exists()) stock = s.val(); } catch(e){}
   }
   if (stock !== null && stock <= 0) return alert('Этот кейс закончился 😢');
 
-  /* списываем цену, фиксируем кулдаун, уменьшаем общий остаток */
   if (c.price > 0) S.stars -= c.price;
   S.lastFree[c.id] = Date.now();
   if (stock !== null) db.ref('caseStock/' + c.id).set(stock - 1).catch(()=>{});
@@ -559,7 +565,6 @@ document.getElementById('openBtn').addEventListener('click', async () => {
   startSpin(c);
 });
 
-/* Прокрутка ленты: генерирует ячейки, докручивает до выигрышной, выдаёт приз */
 function startSpin(c){
   document.getElementById('caseMenu').style.display = 'none';
   document.getElementById('caseSpin').style.display = '';
@@ -593,7 +598,7 @@ function startSpin(c){
       name: prize.name,
       ico: prize.type === 'item' ? prize.value : '⭐',
       type: prize.type,
-      stars: prize.type === 'stars' ? prize.value : 0,
+      stars: prize.type === 'stars' ? (parseInt(prize.value, 10) || 0) : 0,
       date: new Date().toLocaleDateString()
     });
     save(); renderAll();
@@ -614,30 +619,26 @@ function renderInv(){
       '<div><b>' + esc(it.name) + '</b></div>' +
       '<span class="muted">' + esc(it.date) + '</span>' +
       (it.type === 'stars'
-        ? '<button class="claim-btn" onclick="claimStars(' + i + ')">Забрать ' + it.stars + ' ⭐</button>'
+        ? '<button class="claim-btn" onclick="claimStars(' + i + ')">Забрать ' + (parseInt(it.stars,10) || 0) + ' ⭐</button>'
         : '') +
     '</div>'
   ).join('');
   document.getElementById('invEmpty').style.display = S.items.length ? 'none' : '';
 }
 
-/* «Забрать»: зачисляет звёзды и удаляет карточку из инвентаря */
 window.claimStars = i => {
   const it = S.items[i];
   if (!it || it.type !== 'stars') return;
-  S.stars += it.stars;
+  const amount = parseInt(it.stars, 10) || 0;
+  if (amount <= 0){ S.items.splice(i, 1); save(); renderAll(); return; }
+  S.stars += amount;
   S.items.splice(i, 1);
   save(); renderAll(); haptic('heavy');
 };
 
 /* ==================================================================
-   ПРОФИЛЬ И НАСТРОЙКИ
+   НАСТРОЙКИ: тема, сброс
    ================================================================== */
-const nickInput = document.getElementById('nickInput');
-nickInput.value = S.nick;
-nickInput.addEventListener('input', () => { S.nick = nickInput.value.trim(); save(); renderHome(); });
-nickInput.addEventListener('keydown', e => { if (e.key === 'Enter') nickInput.blur(); });
-
 const themeToggle = document.getElementById('themeToggle');
 themeToggle.checked = S.theme === 'dark';
 themeToggle.addEventListener('change', () => {
@@ -649,13 +650,195 @@ themeToggle.addEventListener('change', () => {
 document.getElementById('resetBtn').addEventListener('click', () => {
   if (confirm('Сбросить весь прогресс?')) {
     S = {...DEF, theme: S.theme, admin: S.admin};
-    save(); nickInput.value = ''; renderAll();
+    save(); renderAll();
   }
 });
 
 /* ==================================================================
-   АДМИН-ПАНЕЛЬ: кейсы (цена, лимит, срок) + объявление.
-   Формат призов: Название | шанс% | stars/item | значение
+   ТИКЕТЫ ПОДДЕРЖКИ — ЧАТ
+   tickets/<pushId>/{ userKey, name, tgId, status, date, messages }
+   status: 'open' — переписка идёт, 'closed' — тикет в истории, писать нельзя
+   ================================================================== */
+
+/* Рисует один тикет (для пользователя или админа).
+   Формат сообщения: сверху «имя    время», ниже — текст. */
+function ticketHtml(t, isAdmin){
+  const msgs = t.messages ? Object.values(t.messages) : [];
+  const isOpen = t.status === 'open';
+  return '<div class="ticket">' +
+    '<div class="t-head"><b>' + esc(t.name) + (t.tgId ? ' · ID ' + esc(t.tgId) : '') + '</b>' +
+      '<span class="t-badge ' + (isOpen ? 'open' : 'closed') + '">' + (isOpen ? 'Открыт' : 'Закрыт') + '</span></div>' +
+    '<div class="muted">' + esc(t.date) + '</div>' +
+    '<div class="chat">' +
+      (msgs.length
+        ? msgs.map(m =>
+            '<div class="msg ' + (m.from === 'admin' ? 'admin' : 'user') + '">' +
+              '<div class="m-head">' +
+                '<span class="m-name">' + esc(m.from === 'admin' ? 'Поддержка' : (t.name || 'Вы')) + '</span>' +
+                '<span class="m-date">' + esc(m.date || '') + '</span>' +
+              '</div>' +
+              '<div class="m-text">' + esc(m.text) + '</div>' +
+            '</div>'
+          ).join('')
+        : '<p class="muted">Сообщений пока нет.</p>') +
+    '</div>' +
+    (isOpen
+      ? '<div class="chat-input">' +
+          '<input class="a-input" placeholder="Сообщение...">' +
+          '<button class="a-btn" onclick="sendMsg(\'' + esc(t._id) + '\', this)">➤</button>' +
+        '</div>'
+      : '') +
+    (isAdmin
+      ? '<div class="acc-panel" id="acc-' + esc(t._id) + '"><span class="muted">Нажмите «Показать аккаунт»</span></div>' +
+        '<button class="a-btn" onclick="loadAcc(\'' + esc(t._id) + '\')">📋 Показать аккаунт</button>' +
+        (isOpen ? '<button class="a-btn del" onclick="closeTicket(\'' + esc(t._id) + '\')">🔒 Закрыть тикет</button>' : '')
+      : '') +
+  '</div>';
+}
+
+/* Панель поддержки: форма + открытые тикеты + история */
+function renderTickets(){
+  const wrap = document.getElementById('ticketPanel');
+  if (!cloudReady){
+    wrap.innerHTML = '<p class="muted">Ждём подключения к Firebase…</p>';
+    return;
+  }
+  const mine = (S.tickets || []).filter(t => t.userKey === MY_KEY);
+  const open = mine.filter(t => t.status === 'open');
+  const closed = mine.filter(t => t.status === 'closed');
+
+  wrap.innerHTML =
+    '<textarea class="a-input" id="ticketText" placeholder="Опишите проблему или задайте вопрос" style="min-height:70px"></textarea>' +
+    '<span class="a-hint">Имя и ID подставятся автоматически из Telegram.</span>' +
+    '<button class="a-btn" onclick="sendTicket()">Создать обращение</button>' +
+    (open.length ? '<div class="muted" style="margin-top:10px">Открытые обращения:</div>' : '') +
+    open.map(t => ticketHtml(t, false)).join('') +
+    (closed.length
+      ? '<div class="muted" style="margin-top:14px">История обращений:</div>' +
+        closed.map(t => ticketHtml(t, false)).join('')
+      : '');
+}
+
+/* «Создать обращение» */
+window.sendTicket = () => {
+  const text = document.getElementById('ticketText').value.trim();
+  if (!text) return alert('Напишите, что случилось');
+  db.ref('tickets').push({
+    userKey: MY_KEY,
+    name: MY_NAME,
+    tgId: MY_TG_ID || '',
+    text, status: 'open',
+    date: new Date().toLocaleString(),
+    messages: { first: { from:'user', text, date: new Date().toLocaleTimeString() } }
+  }).then(() => {
+    document.getElementById('ticketText').value = '';
+    alert('Обращение создано! Продолжайте переписку в чате тикета.');
+  }).catch(e => alert('Ошибка: ' + (e.code || e.message)));
+};
+
+/* ➤ в чате: отправка сообщения. Инпут ищем рядом с нажатой кнопкой —
+   дубли id больше не мешают, а ошибки показываются пользователю */
+window.sendMsg = (id, btn) => {
+  const inp = btn && btn.parentElement ? btn.parentElement.querySelector('input') : null;
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  db.ref('tickets/' + id + '/messages').push({
+    from: S.admin ? 'admin' : 'user',
+    text,
+    date: new Date().toLocaleTimeString()
+  }).then(() => inp.value = '')
+    .catch(e => alert('Не отправилось: ' + (e.code || e.message)));
+};
+
+/* 🔒 Закрыть тикет: уезжает в «Историю обращений» у всех */
+window.closeTicket = id => {
+  if (!confirm('Закрыть тикет? Он попадёт в историю обращений.')) return;
+  db.ref('tickets/' + id).update({ status: 'closed', closedAt: new Date().toLocaleString() })
+    .catch(e => alert('Ошибка: ' + (e.code || e.message)));
+};
+
+/* ==================================================================
+   ПАНЕЛЬ АККАНУТА В ТИКЕТЕ (для админа)
+   ================================================================== */
+window.loadAcc = async id => {
+  const t = (S.tickets || []).find(x => x._id === id);
+  if (!t) return;
+  const box = document.getElementById('acc-' + id);
+  if (!box) return;
+  try{
+    const snap = await db.ref('users/' + t.userKey).get();
+    if (!snap.exists()){ box.innerHTML = '<span class="muted">Аккаунт не найден.</span>'; return; }
+    const d = snap.val();
+    const items = Array.isArray(d.items) ? d.items : [];
+
+    box.innerHTML =
+      '<b>Аккаунт автора</b>' +
+      '<div class="stat"><span>👤 Имя</span><b>' + esc(d.name || '—') + '</b></div>' +
+      '<div class="stat"><span>🆔 Telegram ID</span><b>' + esc(d.tgId || '—') + '</b></div>' +
+      '<div class="stat"><span>⭐ Баланс</span><b>' + (Number(d.stars) || 0) + '</b></div>' +
+      '<div class="stat"><span>📦 Предметов</span><b>' + items.length + '</b></div>' +
+      '<div class="chat-input">' +
+        '<input class="a-input" id="accNew-' + id + '" type="number" placeholder="Новый баланс">' +
+        '<button class="a-btn" onclick="setStars(\'' + id + '\')">Установить</button>' +
+      '</div>' +
+      '<div class="chat-input">' +
+        '<input class="a-input" id="accAdd-' + id + '" type="number" placeholder="Сумма ±">' +
+        '<button class="a-btn" onclick="addStars(\'' + id + '\', 1)">+ Начислить</button>' +
+        '<button class="a-btn del" onclick="addStars(\'' + id + '\', -1)">− Списать</button>' +
+      '</div>' +
+      (items.length
+        ? '<div class="muted" style="margin-top:6px">Инвентарь (🗑 — удалить предмет):</div>' +
+          items.map((it, i) =>
+            '<div class="stat"><span>' + esc(it.ico) + ' ' + esc(it.name) + '</span>' +
+            '<span><button class="a-btn del" style="padding:3px 10px;margin:0" onclick="delUserItem(\'' + id + '\', ' + i + ')">🗑</button></span></div>'
+          ).join('')
+        : '<div class="muted" style="margin-top:6px">Инвентарь пуст.</div>');
+  } catch(e){
+    box.innerHTML = '<span class="muted">Ошибка: ' + esc(e.code || e.message) + '</span>';
+  }
+};
+
+/* Установить точное значение баланса автора */
+window.setStars = id => {
+  const t = (S.tickets || []).find(x => x._id === id);
+  const v = parseInt(document.getElementById('accNew-' + id).value, 10);
+  if (!t || isNaN(v) || v < 0) return alert('Введите число от 0');
+  db.ref('users/' + t.userKey + '/stars').set(v)
+    .then(() => alert('Баланс установлен: ' + v))
+    .catch(e => alert('Ошибка: ' + (e.code || e.message)));
+};
+
+/* Начислить (+1) или списать (−1) звёзды у автора */
+window.addStars = (id, sign) => {
+  const t = (S.tickets || []).find(x => x._id === id);
+  const v = parseInt(document.getElementById('accAdd-' + id).value, 10);
+  if (!t || isNaN(v) || v <= 0) return alert('Введите сумму больше нуля');
+  db.ref('users/' + t.userKey + '/stars').transaction(cur => Math.max(0, (Number(cur) || 0) + sign * v))
+    .then(() => alert(sign > 0 ? 'Начислено: +' + v : 'Списано: −' + v))
+    .catch(e => alert('Ошибка: ' + (e.code || e.message)));
+};
+
+/* Удалить предмет из инвентаря автора (с защитой от отсутствия аккаунта) */
+window.delUserItem = async (id, idx) => {
+  const t = (S.tickets || []).find(x => x._id === id);
+  if (!t) return;
+  try{
+    const snap = await db.ref('users/' + t.userKey).get();
+    if (!snap.exists()) return alert('Аккаунт не найден');
+    const items = Array.isArray(snap.val().items) ? snap.val().items : [];
+    if (!items[idx]) return;
+    items.splice(idx, 1);
+    await db.ref('users/' + t.userKey + '/items').set(items);
+    alert('Предмет удалён');
+    loadAcc(id);
+  } catch(e){
+    alert('Ошибка: ' + (e.code || e.message));
+  }
+};
+
+/* ==================================================================
+   АДМИН-ПАНЕЛЬ: объявление, кейсы, тикеты
    ================================================================== */
 let editingId = null;
 
@@ -674,16 +857,18 @@ function renderAdmin(){
     return;
   }
 
-  /* --- секция объявлений --- */
-  let html = '<div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">' +
+  /* --- объявление --- */
+  let html = '<div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:6px">' +
     '<b>📢 Объявление</b>' +
-    (S.ann && S.ann.text ? '<p class="muted">Сейчас на главной: «' + esc(S.ann.text) + '»</p>' : '<p class="muted">Сейчас объявления нет.</p>') +
-    '<textarea class="a-input" id="annText" placeholder="Текст объявления">' + (S.ann ? esc(S.ann.text) : '') + '</textarea>' +
-    '<button class="a-btn" onclick="publishAnn()">Опубликовать (заменит старое)</button>' +
-    '<button class="a-btn del" onclick="removeAnn()">Убрать объявление</button>' +
+    (S.ann && S.ann.text ? '<p class="a-hint">Сейчас на главной: «' + esc(S.ann.text) + '»</p>' : '<p class="a-hint">Сейчас объявления нет.</p>') +
+    '<textarea class="a-input" id="annText" placeholder="Текст объявления"></textarea>' +
+    '<button class="a-btn" onclick="publishAnn()">Опубликовать</button>' +
+    (S.ann && S.ann.text ? '<button class="a-btn del" onclick="removeAnn()">Убрать</button>' : '') +
   '</div>';
 
-  /* --- список кейсов с кнопками ✏️ / 🗑 --- */
+  /* --- кейсы --- */
+  html += '<div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:6px">' +
+    '<b>🎁 Кейсы</b><p class="a-hint">✏️ — редактировать, 🗑 — удалить.</p>';
   html += S.cases.map(c =>
     '<div class="a-case">' +
       '<span>' + esc(c.ico) + '</span>' +
@@ -701,66 +886,99 @@ function renderAdmin(){
     '</div>'
   ).join('');
 
-  /* --- форма редактирования кейса --- */
   if (editingId !== null){
     const c = editingId === 'new'
-      ? {ico:'🎁', name:'', desc:'', cd:60, price:0, stock:0, hours:0, prizes:[{name:'', chance:0}]}
+      ? {ico:'🎁', name:'', desc:'', cd:60, price:0, stock:0, prizes:[{name:'', chance:0}]}
       : S.cases.find(x => x.id === editingId);
     const hoursLeft = c.endsAt ? Math.max(0, (c.endsAt - Date.now()) / 3600000) : 0;
     html +=
       '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">' +
-        '<input class="a-input" id="cIco" placeholder="Иконка (эмодзи)" value="' + esc(c.ico) + '">' +
-        '<input class="a-input" id="cName" placeholder="Название кейса" value="' + esc(c.name) + '">' +
-        '<input class="a-input" id="cDesc" placeholder="Описание" value="' + esc(c.desc) + '">' +
-        '<input class="a-input" id="cPrice" type="number" min="0" placeholder="Цена в звёздах (0 = бесплатно)" value="' + (c.price || 0) + '">' +
-        '<input class="a-input" id="cCd" type="number" min="0" placeholder="Кулдаун, сек (60)" value="' + (c.cd || 60) + '">' +
-        '<input class="a-input" id="cStock" type="number" min="0" placeholder="Лимит открытий НА ВСЕХ (0 = без лимита)" value="' + (c.stock || 0) + '">' +
-        '<input class="a-input" id="cHours" type="number" min="0" step="0.5" placeholder="Срок жизни, часы (0 = бессрочно)" value="' + (c.endsAt ? hoursLeft.toFixed(1) : 0) + '">' +
-        '<textarea class="a-input" id="cPrizes" placeholder="Название | шанс% | stars/item | значение">' +
+        '<label class="a-label">Иконка кейса</label>' +
+        '<input class="a-input" id="cIco" value="' + esc(c.ico) + '" maxlength="4">' +
+        '<span class="a-hint">Любой эмодзи: 🎁 💎 🏆 🐉</span>' +
+        '<label class="a-label">Название</label>' +
+        '<input class="a-input" id="cName" value="' + esc(c.name) + '" maxlength="40">' +
+        '<span class="a-hint">Например: «Золотой кейс».</span>' +
+        '<label class="a-label">Описание</label>' +
+        '<input class="a-input" id="cDesc" value="' + esc(c.desc) + '" maxlength="80">' +
+        '<span class="a-hint">Серая строка в окне с шансами.</span>' +
+        '<label class="a-label">Цена в звёздах</label>' +
+        '<input class="a-input" id="cPrice" type="number" min="0" value="' + (c.price || 0) + '">' +
+        '<span class="a-hint">0 = бесплатный.</span>' +
+        '<label class="a-label">Кулдаун, секунд</label>' +
+        '<input class="a-input" id="cCd" type="number" min="0" value="' + (c.cd || 0) + '">' +
+        '<span class="a-hint">60 = минута, 300 = 5 минут, 0 = без ожидания.</span>' +
+        '<label class="a-label">Лимит открытий на ВСЕХ</label>' +
+        '<input class="a-input" id="cStock" type="number" min="0" value="' + (c.stock || 0) + '">' +
+        '<span class="a-hint">0 = без лимита. При сохранении счётчик сбрасывается.</span>' +
+        '<label class="a-label">Срок жизни, часов</label>' +
+        '<input class="a-input" id="cHours" type="number" min="0" step="0.5" value="' + (c.endsAt ? hoursLeft.toFixed(1) : 0) + '">' +
+        '<span class="a-hint">0 = бессрочно. Иначе кейс закроется через это время с момента сохранения.</span>' +
+        '<label class="a-label">Призы (один на строку)</label>' +
+        '<textarea class="a-input" id="cPrizes" placeholder="25 звёзд | 40 | stars | 25">' +
           c.prizes.map(p => p.name + ' | ' + p.chance + ' | ' + p.type + ' | ' + p.value).join('\n') +
         '</textarea>' +
+        '<span class="a-hint">Формат: Название | шанс% | stars/item | значение.<br>Примеры:<br>25 звёзд | 40 | stars | 25<br>Корона | 2 | item | 👑</span>' +
         '<button class="a-btn" onclick="saveCase()">Сохранить</button>' +
         '<button class="a-btn" onclick="cancelEdit()">Отмена</button>' +
       '</div>';
   } else {
     html += '<button class="a-btn" onclick="editCase(\'new\')">＋ Добавить кейс</button>';
   }
+  html += '</div>';
+
+  /* --- тикеты: активные чаты + закрытые в истории --- */
+  const allT = S.tickets || [];
+  const openT = allT.filter(t => t.status === 'open');
+  const closedT = allT.filter(t => t.status === 'closed');
+  html += '<div><b>🎧 Обращения (' + openT.length + ' открытых)</b>' +
+    (openT.length ? openT.map(t => ticketHtml(t, true)).join('') : '<p class="a-hint">Открытых обращений нет.</p>') +
+    (closedT.length
+      ? '<div class="muted" style="margin-top:12px">История обращений:</div>' +
+        closedT.map(t => ticketHtml(t, true)).join('')
+      : '') +
+  '</div>';
+
   wrap.innerHTML = html;
 }
 
-window.editCase  = id => { editingId = id; renderAdmin(); };
+window.editCase   = id => { editingId = id; renderAdmin(); };
 window.cancelEdit = () => { editingId = null; renderAdmin(); };
 
-/* 🗑: удаляет кейс и его счётчик остатка из базы */
 window.delCase = id => {
   if (!confirm('Удалить кейс? Изменение увидят все пользователи.')) return;
   S.cases = S.cases.filter(c => c.id !== id);
   saveLocal();
-  db.ref('cases').set(S.cases).catch(e => alert('Ошибка: ' + e.code));
+  db.ref('cases').set(S.cases).catch(e => alert('Ошибка: ' + (e.code || e.message)));
   db.ref('caseStock/' + id).remove().catch(()=>{});
   renderAll();
 };
 
-/* «Сохранить»: пишет кейс в общую базу; при лимите сбрасывает счётчик остатка */
 window.saveCase = () => {
   const prizes = document.getElementById('cPrizes').value
     .split('\n').map(l => l.trim()).filter(Boolean)
     .map(l => {
       const p = l.split('|').map(x => x.trim());
-      return { name: p[0] || 'Приз', chance: parseFloat(p[1]) || 0,
-               type: p[2] === 'item' ? 'item' : 'stars', value: p[3] || '⭐' };
+      const type = p[2] === 'item' ? 'item' : 'stars';
+      return {
+        name:   p[0] || 'Приз',
+        chance: Math.min(100, Math.max(0, parseFloat(p[1]) || 0)),
+        type,
+        value:  type === 'stars' ? Math.max(0, parseInt(p[3], 10) || 0) : (p[3] || '⭐')
+      };
     });
-  const price = Math.max(0, parseInt(document.getElementById('cPrice').value) || 0);
-  const cd    = Math.max(0, parseInt(document.getElementById('cCd').value) || 0);
-  const stock = Math.max(0, parseInt(document.getElementById('cStock').value) || 0);
+
+  const stock = Math.max(0, parseInt(document.getElementById('cStock').value, 10) || 0);
   const hours = Math.max(0, parseFloat(document.getElementById('cHours').value) || 0);
 
   const data = {
     ico:  document.getElementById('cIco').value.trim() || '🎁',
     name: document.getElementById('cName').value.trim() || 'Без названия',
     desc: document.getElementById('cDesc').value.trim(),
-    cd, price, stock,
-    endsAt: hours > 0 ? Date.now() + hours * 3600000 : 0,  // срок жизни считается от момента сохранения
+    cd:   Math.max(0, parseInt(document.getElementById('cCd').value, 10) || 0),
+    price:Math.max(0, parseInt(document.getElementById('cPrice').value, 10) || 0),
+    stock,
+    endsAt: hours > 0 ? Date.now() + hours * 3600000 : 0,
     prizes
   };
 
@@ -773,40 +991,39 @@ window.saveCase = () => {
   }
   editingId = null;
   saveLocal();
-  db.ref('cases').set(S.cases).catch(e => alert('Ошибка: ' + e.code));
-  /* счётчик остатка: выставляем заново при сохранении лимитированного кейса */
+  db.ref('cases').set(S.cases).catch(e => alert('Ошибка: ' + (e.code || e.message)));
   if (stock > 0) db.ref('caseStock/' + caseId).set(stock).catch(()=>{});
   else db.ref('caseStock/' + caseId).remove().catch(()=>{});
   renderAll();
 };
 
-/* 📢 Опубликовать объявление: одна запись — она и есть «текущее объявление» */
 window.publishAnn = () => {
   const text = document.getElementById('annText').value.trim();
   if (!text) return alert('Введите текст объявления');
   db.ref('announcement').set({ text, date: new Date().toLocaleString() })
     .then(() => alert('Опубликовано'))
-    .catch(e => alert('Ошибка: ' + e.code));
+    .catch(e => alert('Ошибка: ' + (e.code || e.message)));
 };
 
-/* 🗑 Убрать объявление: удаляет запись — карточка исчезнет у всех */
 window.removeAnn = () => {
   if (!confirm('Убрать объявление с главной?')) return;
-  db.ref('announcement').remove()
-    .catch(e => alert('Ошибка: ' + e.code));
+  db.ref('announcement').remove().catch(e => alert('Ошибка: ' + (e.code || e.message)));
 };
 
 /* ==================================================================
    РЕНДЕР И СТАРТ
    ================================================================== */
-function renderHome(){
-  document.getElementById('homeGreet').textContent = 'Привет, ' + (S.nick || 'незнакомец') + '!';
+function renderProfile(){
+  document.getElementById('profName').textContent = MY_NAME;
+  document.getElementById('profUsername').textContent = tgUser && tgUser.username ? '@' + tgUser.username : '—';
+  document.getElementById('profTgId').textContent = MY_TG_ID ? String(MY_TG_ID) : '—';
 }
 function renderAll(){
   document.getElementById('statStars').textContent = S.stars;
   document.getElementById('statItems').textContent = S.items.length;
   document.getElementById('homeStars').textContent = S.stars;
-  renderHome(); renderCases(); renderInv(); renderAdmin(); renderAnn();
+  document.getElementById('homeGreet').textContent = 'Привет, ' + MY_NAME + '!';
+  renderProfile(); renderCases(); renderInv(); renderAdmin(); renderAnn(); renderTickets();
 }
 renderAll();
 initCloud();
