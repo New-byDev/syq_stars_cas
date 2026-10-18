@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Star App</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 :root{
   --bg:#f4f4f1; --panel:#ffffff; --panel2:#fafaf8; --text:#141414;
@@ -21,13 +24,11 @@ body{
   background:var(--bg); color:var(--text);
   padding-top:env(safe-area-inset-top); overscroll-behavior:none;
 }
-/* ===== ШАПКА (тёмная) ===== */
 #appHeader{
   position:sticky; top:0; z-index:50;
   background:#101010; color:#fff;
   height:56px; display:flex; align-items:center;
   padding:0 16px 0 max(16px, env(safe-area-inset-left));
-  padding-top:env(safe-area-inset-top); box-sizing:content-box;
 }
 #appHeader .brand{font-weight:700; letter-spacing:.4px; font-size:17px}
 #menuBtn{
@@ -40,11 +41,10 @@ body{
 #menuBtn:active{transform:scale(.9)}
 #menuBtn svg{transition:transform .3s}
 body.menu-open #menuBtn svg{transform:rotate(90deg)}
-/* ===== ВЫЕЗДНАЯ ПАНЕЛЬ ===== */
 #panelClip{
   display:grid; grid-template-rows:0fr;
   transition:grid-template-rows .45s cubic-bezier(.22,1,.36,1);
-  position:sticky; top:calc(56px + env(safe-area-inset-top)); z-index:40;
+  position:sticky; top:56px; z-index:40;
 }
 body.menu-open #panelClip{grid-template-rows:1fr}
 #menuPanel{
@@ -58,93 +58,66 @@ body.menu-open #menuPanel{transform:translateY(0); opacity:1}
 .menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 16px}
 .menu-item{
   display:flex; align-items:center; gap:10px;
-  padding:12px 12px; border-radius:14px;
+  padding:12px; border-radius:14px;
   border:1px solid var(--border); background:var(--panel2);
   color:var(--text); font-size:15px; font-weight:600;
-  cursor:pointer; transition:background .2s, color .2s, transform .15s;
-  text-align:left;
+  cursor:pointer; transition:transform .15s; text-align:left;
 }
 .menu-item:active{transform:scale(.97)}
 .menu-item .mi-icon{
   width:34px; height:34px; border-radius:10px; flex:none;
   background:var(--accent); color:var(--accent-text);
-  display:flex; align-items:center; justify-content:center;
-  transition:transform .25s;
+  display:flex; align-items:center; justify-content:center; font-size:17px;
 }
-.menu-item:hover .mi-icon{transform:rotate(-6deg)}
 .menu-item .chev{margin-left:auto; opacity:.4}
-.menu-item.full{grid-column:1 / -1; justify-content:center}
+.menu-item.full{grid-column:1 / -1}
 .menu-item.active{background:var(--accent); color:var(--accent-text)}
-.menu-item.active .mi-icon{background:transparent; color:inherit; border:1.5px solid currentColor}
-/* ===== КОНТЕНТ ===== */
 #content{padding:16px; padding-bottom:40px; max-width:640px; margin:0 auto}
 .page{display:none; animation:fade .35s ease}
 .page.on{display:block}
 @keyframes fade{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
 h2{font-size:20px; margin:6px 0 14px}
-.card{
-  background:var(--panel); border:1px solid var(--border);
-  border-radius:16px; padding:16px; margin-bottom:12px;
-}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:12px}
 .muted{color:var(--muted); font-size:13px}
-/* профиль */
-#profileTop{display:flex; align-items:center; gap:14px}
-#avatar{
-  width:72px; height:72px; border-radius:50%; flex:none;
-  border:2px solid var(--border); background:var(--panel2);
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden; cursor:pointer; font-size:26px; color:var(--muted);
-}
-#avatar img{width:100%; height:100%; object-fit:cover}
-.nick-wrap{flex:1}
-#nickInput{
-  width:100%; font-size:18px; font-weight:700; color:var(--text);
-  background:transparent; border:none; border-bottom:1.5px dashed var(--border);
-  padding:4px 0; outline:none;
-}
-#nickInput:focus{border-bottom-color:var(--text)}
 .stat{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px}
 .stat:last-child{border-bottom:none}
 .stat b{font-size:16px}
-/* кейсы */
-#freeCase{
-  width:100%; padding:18px; border-radius:16px; border:none;
+.tag{
+  display:inline-block; margin:2px 4px 2px 0; padding:4px 10px;
+  border:1px solid var(--border); border-radius:20px;
+  background:var(--panel2); font-size:12px; font-weight:600;
+}
+.ann-card{
   background:var(--accent); color:var(--accent-text);
-  font-size:17px; font-weight:700; cursor:pointer; transition:transform .15s, opacity .3s;
+  border-radius:16px; padding:16px; margin-bottom:12px;
 }
-#freeCase:disabled{opacity:.55}
-#freeCase:active{transform:scale(.98)}
-.case-item{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed var(--border); font-size:14px}
-.case-item:last-child{border:none}
-.case-item .chance{margin-left:auto; font-weight:700; color:var(--muted)}
-.r-common .chance{color:inherit}
-.r-epic .chance{color:#8a63d2}
-.r-legendary .chance{color:#c98a1b}
-/* рулетка */
-#overlay{
-  position:fixed; inset:0; z-index:100; display:none;
-  background:rgba(0,0,0,.55); backdrop-filter:blur(4px);
-  align-items:center; justify-content:center; padding:20px;
+.ann-card .muted{color:inherit; opacity:.6}
+/* ===== ОБЛОЖКИ КЕЙСОВ: квадрат с заглушкой ===== */
+#casesGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
+.tile{
+  background:var(--panel); border:1px solid var(--border); border-radius:16px;
+  padding:10px; display:flex; flex-direction:column;
 }
-#overlay.on{display:flex}
-#caseModal{
-  background:var(--panel); border-radius:20px; width:100%; max-width:420px;
-  max-height:86vh; overflow-y:auto; padding:20px;
-  animation:fade .3s ease;
+.tile-img{ /* заглушка под картинку — квадрат 1:1 */
+  width:100%; aspect-ratio:1/1; border-radius:12px;
+  background:var(--panel2); border:1px dashed var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:48px; margin-bottom:8px;
+  position:relative;
 }
-#stripView{overflow:hidden; border-radius:12px; border:1px solid var(--border); margin:16px 0; position:relative}
-#stripView::before,#stripView::after{
-  content:''; position:absolute; top:0; bottom:0; width:2px; background:var(--accent); z-index:2;
+.tile-img .badge-stock{ /* «Осталось N» прямо на картинке */
+  position:absolute; top:6px; left:6px;
+  background:var(--accent); color:var(--accent-text);
+  font-size:11px; font-weight:700; padding:3px 8px; border-radius:12px;
 }
-#stripView::before{left:50%; transform:translateX(-1px)}
-#strip{display:flex; will-change:transform}
-.prize-cell{
-  flex:none; width:96px; margin:6px 4px; padding:14px 4px;
-  border:1px solid var(--border); border-radius:12px; text-align:center; font-size:13px;
-  background:var(--panel2);
+.tile-img .badge-time{ /* «до закрытия» прямо на картинке */
+  position:absolute; top:6px; right:6px;
+  background:#c0392b; color:#fff;
+  font-size:11px; font-weight:700; padding:3px 8px; border-radius:12px;
 }
-.prize-cell .p-ico{font-size:24px; display:block; margin-bottom:6px}
-.prize-cell.hl{outline:2px solid var(--accent)}
+.tile-name{font-weight:700; font-size:14px; margin-bottom:2px}
+.tile-status{font-size:12px; color:var(--muted); min-height:16px; margin-bottom:6px}
+.tile .btn{margin-top:auto; padding:10px; font-size:14px}
 .btn{
   width:100%; padding:14px; border-radius:14px; border:none;
   background:var(--accent); color:var(--accent-text);
@@ -152,19 +125,12 @@ h2{font-size:20px; margin:6px 0 14px}
 }
 .btn.ghost{background:transparent; border:1.5px solid var(--border); color:var(--text)}
 .btn:active{transform:scale(.98)}
-/* инвентарь */
-#invGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px}
-.inv-card{border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--panel2); font-size:13px}
-.inv-card .p-ico{font-size:26px}
-/* настройки */
+.btn:disabled{opacity:.5}
 .row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-bottom:1px solid var(--border)}
 .row:last-of-type{border-bottom:none}
 .switch{position:relative; width:52px; height:30px; flex:none}
 .switch input{opacity:0; width:0; height:0}
-.slider{
-  position:absolute; inset:0; border-radius:30px; background:var(--border);
-  cursor:pointer; transition:background .25s;
-}
+.slider{position:absolute; inset:0; border-radius:30px; background:var(--border); cursor:pointer; transition:background .25s}
 .slider::before{
   content:''; position:absolute; width:24px; height:24px; border-radius:50%;
   left:3px; top:3px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.3);
@@ -173,15 +139,51 @@ h2{font-size:20px; margin:6px 0 14px}
 .switch input:checked + .slider{background:#141414}
 body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
 .switch input:checked + .slider::before{transform:translateX(22px)}
-#testTopupBtn{margin-top:10px}
-#topupStatus{margin-top:10px; font-size:13px; min-height:18px}
-#topupStatus.ok{color:#1a8a3a}
-#topupStatus.err{color:#c0392b}
-.log-entry{
-  font-size:12px; padding:8px 10px; border:1px dashed var(--border);
-  border-radius:10px; margin-top:8px; white-space:pre-wrap; color:var(--muted);
+#nickInput{
+  width:100%; font-size:18px; font-weight:700; color:var(--text);
+  background:transparent; border:none; border-bottom:1.5px dashed var(--border);
+  padding:4px 0; outline:none;
 }
+#nickInput:focus{border-bottom-color:var(--text)}
 .danger{color:#c0392b}
+#invGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px}
+.inv-card{border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--panel2); font-size:13px}
+.inv-card .p-ico{font-size:26px}
+.inv-card .claim-btn{
+  margin-top:10px; width:100%; padding:8px; border-radius:10px;
+  border:none; background:var(--accent); color:var(--accent-text);
+  font-size:13px; font-weight:700; cursor:pointer;
+}
+#overlay{position:fixed; inset:0; z-index:100; display:none; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px}
+#overlay.on{display:flex}
+#caseModal{background:var(--panel); border-radius:20px; width:100%; max-width:420px; max-height:86vh; overflow-y:auto; padding:20px; animation:fade .3s ease}
+#stripView{overflow:hidden; border-radius:12px; border:1px solid var(--border); margin:16px 0; position:relative}
+#stripView::before,#stripView::after{
+  content:''; position:absolute; top:0; bottom:0; width:2px; background:var(--accent); z-index:2;
+}
+#stripView::before{left:50%; transform:translateX(-1px)}
+#strip{display:flex; will-change:transform}
+.prize-cell{flex:none; width:96px; margin:6px 4px; padding:14px 4px; border:1px solid var(--border); border-radius:12px; text-align:center; font-size:13px; background:var(--panel2)}
+.prize-cell .p-ico{font-size:24px; display:block; margin-bottom:6px}
+.prize-cell.hl{outline:2px solid var(--accent)}
+.a-input{
+  width:100%; padding:10px 12px; border-radius:10px; margin-bottom:8px;
+  border:1.5px solid var(--border); background:var(--panel2);
+  color:var(--text); font-size:15px; outline:none;
+}
+.a-input:focus{border-color:var(--text)}
+textarea.a-input{min-height:100px; resize:vertical; font-family:inherit}
+.a-btn{
+  padding:8px 14px; border-radius:10px; border:1px solid var(--border);
+  background:var(--panel2); color:var(--text); font-size:14px;
+  font-weight:600; cursor:pointer; margin:4px 6px 0 0;
+}
+.a-btn.del{border-color:#c0392b; color:#c0392b}
+.a-case{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed var(--border); font-size:14px}
+.a-case .a-info{flex:1; min-width:0}
+.a-case .a-sub{font-size:11px; color:var(--muted)}
+.a-case .a-actions{white-space:nowrap}
+#cloudStatus{font-size:12px; padding:6px 10px; border-radius:8px; background:var(--panel2); border:1px dashed var(--border); margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -198,75 +200,38 @@ body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
 <div id="panelClip">
   <nav id="menuPanel">
     <div class="menu-grid">
-      <button class="menu-item" data-page="profile">
-        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
-        Профиль
-        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
-      <button class="menu-item" data-page="home">
-        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>
-        Главная
-        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
-      <button class="menu-item" data-page="cases">
-        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg></span>
-        Кейсы
-        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
-      <button class="menu-item" data-page="inventory">
-        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16v13a1 1 0 01-1 1H5a1 1 0 01-1-1z"/><path d="M4 7l2-3h12l2 3"/><path d="M10 11h4"/></svg></span>
-        Инвентарь
-        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
-      <button class="menu-item full" data-page="settings">
-        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09a1.7 1.7 0 001.55-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34h0a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.55h0a1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87v0a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z"/></svg></span>
-        Настройки
-      </button>
+      <button class="menu-item" data-page="profile"><span class="mi-icon">👤</span> Профиль <span class="chev">›</span></button>
+      <button class="menu-item active" data-page="home"><span class="mi-icon">🏠</span> Главная <span class="chev">›</span></button>
+      <button class="menu-item full" data-page="inventory"><span class="mi-icon">📦</span> Инвентарь <span class="chev">›</span></button>
+      <button class="menu-item full" data-page="settings"><span class="mi-icon">⚙️</span> Настройки</button>
     </div>
   </nav>
 </div>
 
 <main id="content">
 
+  <!-- ГЛАВНАЯ: объявление + сетка квадратных обложек -->
+  <section class="page on" id="page-home">
+    <h2>Главная</h2>
+    <div id="cloudStatus">☁️ Подключаемся к Firebase...</div>
+    <div id="annSlot"></div>          <!-- сюда рендерится объявление -->
+    <div class="card">
+      <b id="homeGreet">Привет!</b>
+      <div class="stat" style="margin-top:8px"><span>⭐ Баланс</span><b id="homeStars">0</b></div>
+    </div>
+    <div id="casesGrid"></div>
+  </section>
+
   <!-- ПРОФИЛЬ -->
   <section class="page" id="page-profile">
     <h2>Профиль</h2>
     <div class="card">
-      <div id="profileTop">
-        <div id="avatar" title="Нажмите, чтобы поставить аву">🙂</div>
-        <div class="nick-wrap">
-          <div class="muted">Никнейм</div>
-          <input id="nickInput" maxlength="20" placeholder="Ваш ник">
-        </div>
-        <input type="file" id="avatarInput" accept="image/*" hidden>
-      </div>
+      <div class="muted" style="margin-bottom:6px">Никнейм</div>
+      <input id="nickInput" maxlength="20" placeholder="Ваш ник">
     </div>
     <div class="card">
       <div class="stat"><span>⭐ Баланс звёзд</span><b id="statStars">0</b></div>
-      <div class="stat"><span>📦 Предметов в инвентаре</span><b id="statItems">0</b></div>
-    </div>
-  </section>
-
-  <!-- ГЛАВНАЯ -->
-  <section class="page" id="page-home">
-    <h2>Главная</h2>
-    <div class="card">
-      <b id="homeGreet">Привет!</b>
-      <p class="muted" style="margin-top:8px">Открывайте бесплатный кейс раз в минуту, копите звёзды и собирайте инвентарь.</p>
-    </div>
-    <div class="card">
-      <div class="stat"><span>⭐ Баланс</span><b id="homeStars">0</b></div>
-      <div class="stat"><span>📦 Предметы</span><b id="homeItems">0</b></div>
-    </div>
-  </section>
-
-  <!-- КЕЙСЫ -->
-  <section class="page" id="page-cases">
-    <h2>Кейсы</h2>
-    <div class="card">
-      <b>🎁 Бесплатный кейс</b>
-      <p class="muted" style="margin:8px 0 14px">Раз в 60 секунд. Внутри — звёзды и редкие предметы.</p>
-      <button id="freeCase">Открыть бесплатно</button>
+      <div class="stat"><span>📦 Предметов</span><b id="statItems">0</b></div>
     </div>
   </section>
 
@@ -274,7 +239,7 @@ body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
   <section class="page" id="page-inventory">
     <h2>Инвентарь</h2>
     <div id="invGrid"></div>
-    <p class="muted" id="invEmpty" style="text-align:center;margin-top:20px">Пока пусто — откройте кейс в разделе «Кейсы» 🎁</p>
+    <p class="muted" id="invEmpty" style="text-align:center;margin-top:20px">Пока пусто — откройте кейс на главной 🎁</p>
   </section>
 
   <!-- НАСТРОЙКИ -->
@@ -289,15 +254,10 @@ body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
         </label>
       </div>
     </div>
-
-    <div class="card">
-      <b>🧪 Тест пополнения звёзд</b>
-      <p class="muted" style="margin:8px 0">Кнопка начисляет случайную сумму на баланс и отправляет подробный лог в личные сообщения бота администратору (ADMIN_ID из кода).</p>
-      <button class="btn" id="testTopupBtn">Тест пополнения</button>
-      <div id="topupStatus"></div>
-      <div id="topupLogs"></div>
+    <div class="card" id="adminCard">
+      <b>🛠 Админ-панель</b>
+      <div id="adminPanel" style="margin-top:10px"></div>
     </div>
-
     <div class="card">
       <div class="row" style="border:none;padding-bottom:0">
         <span>Сброс прогресса</span>
@@ -308,13 +268,14 @@ body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
 
 </main>
 
+<!-- МОДАЛКА КЕЙСА: сначала шансы + кнопка «Открыть за N», потом рулетка -->
 <div id="overlay">
   <div id="caseModal">
     <div id="caseMenu">
-      <b style="font-size:18px">🎁 Бесплатный кейс</b>
-      <p class="muted" style="margin:6px 0 12px">Возможные призы и шансы:</p>
+      <b style="font-size:18px" id="modalTitle">🎁 Кейс</b>
+      <p class="muted" style="margin:6px 0 12px">Призы и шансы:</p>
       <div id="prizeList"></div>
-      <button class="btn" id="spinBtn">Крутить!</button>
+      <button class="btn" id="openBtn">Открыть</button>      <!-- «Открыть за N ⭐» / «Открыть бесплатно» -->
       <button class="btn ghost" id="closeMenuBtn">Закрыть</button>
     </div>
     <div id="caseSpin" style="display:none">
@@ -328,27 +289,142 @@ body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
 
 <script>
 /* ==================================================================
-   НАСТРОЙКИ ЛОГИРОВАНИЯ — впишите свои значения
-   TG_BOT_TOKEN — токен бота от @BotFather
-   ADMIN_ID     — ваш числовой Telegram ID (узнать: @userinfobot)
-   Важно: перед первым логом админ должен один раз нажать Start у бота
+   СЮДА ВСТАВИТЬ КОНФИГ — Project settings → Your apps
    ================================================================== */
-const TG_BOT_TOKEN = '8750118399:AAHrHj60AYO5g9cypzI98O16jjZ6QseEUbI';
-const ADMIN_ID     = 8158896250;
+const firebaseConfig = {
+  apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
+  authDomain: "syq-site.firebaseapp.com",
+  databaseURL: "https://syq-site-default-rtdb.firebaseio.com",
+  projectId: "syq-site",
+  storageBucket: "syq-site.firebasestorage.app",
+  messagingSenderId: "309704145783",
+  appId: "1:309704145783:web:3d525163e0fbb1f7723f72",
+  measurementId: "G-QV7MG6M9V4"
+};
+
+/* ---------- АДМИН ---------- */
+const ADMIN_ID   = 8158896250;   // ваш Telegram ID
+const ADMIN_CODE = 'admin123';   // резервный вход кодом
 
 const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
 const haptic = t => { try { if (tg) tg.HapticFeedback.impactOccurred(t); } catch(e){} };
 
-/* ---------- состояние ---------- */
-const DEF = {stars:0, nick:'', items:[], theme:'light', lastFree:0, avatar:'', logs:[]};
+/* ==================================================================
+   КОНФИГУРАЦИЯ КЕЙСОВ (дефолт — заливается в Firebase, если база пуста)
+   Поля кейса:
+     id     — уникальное число
+     ico    — эмодзи на заглушке обложки
+     name   — название
+     desc   — описание (видно в окне с шансами)
+     cd     — кулдаун в СЕКУНДАХ между открытиями
+     price  — цена в звёздах (0 = бесплатный)
+     stock  — ЛИМИТ ОТПУСКОВ НА ВСЕХ (0 = без лимита).
+              Счётчик живёт в Firebase: caseStock/<id>
+     hours  — срок жизни кейса в ЧАСАХ с момента публикации (0 = бессрочно)
+     prizes — [{name, chance, type:'stars'|'item', value}]
+   ================================================================== */
+const DEF_CASES = [{
+  id: 1, ico: '🎁', name: 'Стартовый кейс', desc: 'Бесплатный кейс для новичков',
+  cd: 60, price: 0, stock: 0, hours: 0,
+  prizes: [
+    {name:'25 звёзд',    chance:40, type:'stars', value:25},
+    {name:'100 звёзд',   chance:30, type:'stars', value:100},
+    {name:'250 звёзд',   chance:15, type:'stars', value:250},
+    {name:'500 звёзд',   chance:10, type:'stars', value:500},
+    {name:'Подарок 🏆',  chance:5,  type:'item',  value:'🏆'}
+  ]
+}];
+
+/* ---------- ЛОКАЛЬНОЕ СОСТОЯНИЕ ---------- */
+const DEF = {nick:'', theme:'light', admin:false, stars:0, items:[], cases:DEF_CASES, lastFree:{}};
 let S = {...DEF};
 try { S = {...DEF, ...JSON.parse(localStorage.getItem('starApp') || '{}')}; } catch(e){}
-const save = () => localStorage.setItem('starApp', JSON.stringify(S));
-if (S.theme === 'dark') { document.body.dataset.theme = 'dark'; }
+const saveLocal = () => localStorage.setItem('starApp', JSON.stringify(S));
+const save = () => { saveLocal(); if (USER_REF){ clearTimeout(pushTimer); pushTimer = setTimeout(pushUser, 300); } };
+if (S.theme === 'dark') document.body.dataset.theme = 'dark';
 
-/* ---------- меню ---------- */
-const menuBtn = document.getElementById('menuBtn');
-menuBtn.addEventListener('click', () => { document.body.classList.toggle('menu-open'); haptic('light'); });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtLeft = ms => { /* «1ч 05м» / «4м» / «30 с» для таймеров */
+  const s = Math.max(0, Math.ceil(ms/1000));
+  if (s >= 3600) return Math.floor(s/3600) + 'ч ' + Math.floor(s%3600/60) + 'м';
+  if (s >= 60)   return Math.floor(s/60) + 'м';
+  return s + ' с';
+};
+
+/* ==================================================================
+   FIREBASE: ИНИЦИАЛИЗАЦИЯ И ПОДПИСКИ
+   Ветки базы:
+     users/<ключ>/       — личные данные (nick, stars, items, lastFree)
+     cases/              — общий список кейсов (правит админ)
+     caseStock/<id>/     — ОСТАТОК лимитированных кейсов (общий для всех)
+     announcement/       — текущее объявление (одно; новое заменяет старое)
+   ================================================================== */
+let USER_REF = null, cloudReady = false, pushTimer = null;
+
+const fbApp = firebase.initializeApp(firebaseConfig);
+const db    = firebase.database();
+
+function pushUser(){
+  if (!USER_REF) return;
+  USER_REF.set({ nick:S.nick, stars:S.stars, items:S.items, lastFree:S.lastFree })
+    .catch(e => setCloudStatus('⚠️ Ошибка записи: ' + e.code));
+}
+function setCloudStatus(t){ document.getElementById('cloudStatus').textContent = t; }
+
+async function initCloud(){
+  try{
+    await firebase.auth().signInAnonymously();
+    const uid = firebase.auth().currentUser.uid;
+    const key = tgUser ? 'tg' + tgUser.id : 'a' + uid.replace(/[^a-zA-Z0-9]/g,'');
+    USER_REF = db.ref('users/' + key);
+
+    const snap = await USER_REF.get();
+    if (snap.exists()){
+      const d = snap.val();
+      S.nick = d.nick || ''; S.stars = d.stars || 0;
+      S.items = Array.isArray(d.items) ? d.items : [];
+      S.lastFree = d.lastFree || {};
+      saveLocal();
+    } else pushUser();
+
+    /* общий список кейсов; если база пуста — заливаем дефолтные */
+    const cs = await db.ref('cases').get();
+    if (cs.exists() && cs.val()) S.cases = Object.values(cs.val());
+    else await db.ref('cases').set(DEF_CASES);
+
+    cloudReady = true;
+    setCloudStatus('☁️ Данные синхронизированы');
+
+    /* живые подписки: кейсы, остатки лимитов, объявление, личные данные */
+    db.ref('cases').on('value', s => {
+      S.cases = s.exists() ? Object.values(s.val()) : DEF_CASES;
+      saveLocal(); renderAll();
+    });
+    db.ref('caseStock').on('value', s => { S.stockLive = s.val() || {}; renderCases(); });
+    db.ref('announcement').on('value', s => { S.ann = s.val() || null; renderAnn(); });
+    USER_REF.on('value', s => {
+      if (!s.exists()) return;
+      const d = s.val();
+      S.nick = d.nick || ''; S.stars = d.stars || 0;
+      S.items = Array.isArray(d.items) ? d.items : [];
+      S.lastFree = d.lastFree || {};
+      saveLocal(); nickInput.value = S.nick; renderAll();
+    });
+  } catch(e){
+    setCloudStatus('⚠️ Firebase недоступен — работаем локально (' + e.code + ')');
+  }
+  renderAll();
+}
+
+if (tgUser && tgUser.id === ADMIN_ID) { S.admin = true; saveLocal(); }
+
+/* ==================================================================
+   МЕНЮ И НАВИГАЦИЯ
+   ================================================================== */
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.body.classList.toggle('menu-open'); haptic('light');
+});
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.body.classList.remove('menu-open'); });
 
 const pages = document.querySelectorAll('.page');
@@ -358,222 +434,383 @@ document.querySelectorAll('.menu-item').forEach(btn => {
     pages.forEach(pg => pg.classList.toggle('on', pg.id === 'page-' + p));
     document.querySelectorAll('.menu-item').forEach(b => b.classList.toggle('active', b === btn));
     document.body.classList.remove('menu-open');
-    haptic('light'); renderAll();
     window.scrollTo({top:0, behavior:'smooth'});
+    renderAll();
   });
 });
 
-/* ---------- профиль ---------- */
-const avatar = document.getElementById('avatar');
-const avatarInput = document.getElementById('avatarInput');
-const nickInput = document.getElementById('nickInput');
-
-function renderAvatar(){
-  if (S.avatar) avatar.innerHTML = '<img src="' + S.avatar + '">';
-  else avatar.innerHTML = '🙂';
+/* ==================================================================
+   ГЛАВНАЯ: ОБЛОЖКИ КЕЙСОВ (без шансов — только картинка, бейджи, кнопка)
+   ================================================================== */
+function renderCases(){
+  document.getElementById('casesGrid').innerHTML = S.cases.map(c => {
+    const ended = c.hours && c.endsAt && Date.now() > c.endsAt;
+    const stock = S.stockLive && S.stockLive[c.id];
+    return '<div class="tile">' +
+      /* квадратная заглушка под картинку + иконка */
+      '<div class="tile-img">' + esc(c.ico) +
+        (stock !== undefined && stock !== null ? '<span class="badge-stock">Осталось ' + stock + '</span>' : '') +
+        (c.hours ? '<span class="badge-time">⏰</span>' : '') +
+      '</div>' +
+      '<div class="tile-name">' + esc(c.name) + '</div>' +
+      /* статус: кулдаун / время жизни — обновляется tickFree */
+      '<div class="tile-status" id="cd-' + c.id + '"></div>' +
+      /* кнопка «Открыть» — шансы покажутся в следующем окне */
+      '<button class="btn" onclick="openCase(' + c.id + ')" ' + (ended ? 'disabled' : '') + '>Открыть</button>' +
+    '</div>';
+  }).join('');
+  tickFree();
 }
-avatar.addEventListener('click', () => avatarInput.click());
-avatarInput.addEventListener('change', () => {
-  const f = avatarInput.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas'); const s = 200;
-      c.width = c.height = s;
-      const ctx = c.getContext('2d');
-      const m = Math.min(img.width, img.height);
-      ctx.drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, s, s);
-      S.avatar = c.toDataURL('image/jpeg', .85);
-      save(); renderAvatar();
-    };
-    img.src = e.target.result;
-  };
-  r.readAsDataURL(f);
-});
-nickInput.value = S.nick;
-nickInput.addEventListener('input', () => { S.nick = nickInput.value.trim(); save(); });
-nickInput.addEventListener('keydown', e => { if (e.key === 'Enter') nickInput.blur(); });
 
-/* ---------- кейсы ---------- */
-const PRIZES = [
-  {ico:'⭐', name:'50 звёзд',    stars:50,   chance:34,  rarity:'common'},
-  {ico:'⭐', name:'100 звёзд',   stars:100,  chance:25,  rarity:'common'},
-  {ico:'⭐', name:'250 звёзд',   stars:250,  chance:18,  rarity:'common'},
-  {ico:'⭐', name:'500 звёзд',   stars:500,  chance:12,  rarity:'rare'},
-  {ico:'⭐', name:'1000 звёзд',  stars:1000, chance:7,   rarity:'epic'},
-  {ico:'⭐', name:'2500 звёзд',  stars:2500, chance:2.5, rarity:'epic'},
-  {ico:'🏆', name:'Подарок',    stars:0,    item:'Легендарный подарок 🏆', chance:1,   rarity:'legendary'},
-  {ico:'⭐', name:'25 звёзд',    stars:25,   chance:.5,  rarity:'common'}
-];
-const spinPrize = () => {
-  let r = Math.random() * 100, acc = 0;
-  for (const p of PRIZES){ acc += p.chance; if (r <= acc) return p; }
-  return PRIZES[0];
+/* Таймеры обложек: раз в полсекунды обновляет кулдаун и срок жизни */
+function tickFree(){
+  S.cases.forEach(c => {
+    const el = document.getElementById('cd-' + c.id);
+    if (!el) return;
+    if (c.endsAt && Date.now() > c.endsAt){
+      el.textContent = '⛔ Время вышло';
+    } else {
+      const left = (S.lastFree[c.id] || 0) + (c.cd || 60) * 1000 - Date.now();
+      el.textContent = left > 0
+        ? '⏳ Доступно через ' + fmtLeft(left)
+        : (c.endsAt ? '✅ Доступен · закроется через ' + fmtLeft(c.endsAt - Date.now()) : '✅ Доступен');
+    }
+  });
+  setTimeout(tickFree, 500);
+}
+
+/* ==================================================================
+   ОБЪЯВЛЕНИЕ НА ГЛАВНОЙ (одно; новое заменяет старое автоматически)
+   ================================================================== */
+function renderAnn(){
+  document.getElementById('annSlot').innerHTML = S.ann && S.ann.text
+    ? '<div class="ann-card"><b>📢 Объявление</b><p style="margin-top:6px;white-space:pre-wrap">' + esc(S.ann.text) + '</p>' +
+      '<p class="muted">' + esc(S.ann.date || '') + '</p></div>'
+    : '';
+}
+
+/* ==================================================================
+   МОДАЛКА КЕЙСА
+   ================================================================== */
+const overlay = document.getElementById('overlay');
+let currentCase = null;
+
+/* «Открыть» на обложке: показывает окно с шансами и ценой */
+window.openCase = id => {
+  const c = S.cases.find(x => x.id === id);
+  if (!c) return;
+  if (c.endsAt && Date.now() > c.endsAt) return alert('Время акции вышло');
+  currentCase = c;
+  document.getElementById('modalTitle').textContent = c.ico + ' ' + c.name;
+  document.getElementById('prizeList').innerHTML = c.prizes.map(p =>
+    '<div class="case-item" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--border);font-size:14px">' +
+      '<span>' + esc(p.name) + '</span><b style="color:var(--muted)">' + p.chance + '%</b></div>'
+  ).join('');
+  /* кнопка с ценой: «Открыть за N ⭐» или «Открыть бесплатно» */
+  document.getElementById('openBtn').textContent =
+    c.price > 0 ? 'Открыть за ' + c.price + ' ⭐' : 'Открыть бесплатно';
+  overlay.classList.add('on'); haptic('medium');
 };
 
-const freeBtn = document.getElementById('freeCase');
-const FREE_MS = 60000;
-function tickFree(){
-  const left = S.lastFree + FREE_MS - Date.now();
-  if (left > 0){
-    freeBtn.disabled = true;
-    freeBtn.textContent = 'Ждите ' + Math.ceil(left/1000) + ' с';
-    setTimeout(tickFree, 500);
-  } else { freeBtn.disabled = false; freeBtn.textContent = 'Открыть бесплатно'; }
-}
-freeBtn.addEventListener('click', openCaseMenu);
-tickFree();
-
-const overlay = document.getElementById('overlay');
-const caseMenu = document.getElementById('caseMenu');
-const caseSpin = document.getElementById('caseSpin');
-
-function openCaseMenu(){
-  document.getElementById('prizeList').innerHTML = PRIZES.map(p =>
-    '<div class="case-item r-' + p.rarity + '"><span>' + p.ico + ' ' + p.name + '</span><span class="chance">' + p.chance + '%</span></div>'
-  ).join('');
-  overlay.classList.add('on'); haptic('medium');
-}
-function closeCase(){
-  overlay.classList.remove('on');
-  caseMenu.style.display = ''; caseSpin.style.display = 'none';
-  document.getElementById('closeSpinBtn').style.display = 'none';
-  document.getElementById('spinResult').textContent = '';
-}
 document.getElementById('closeMenuBtn').addEventListener('click', closeCase);
 document.getElementById('closeSpinBtn').addEventListener('click', closeCase);
 overlay.addEventListener('click', e => { if (e.target === overlay) closeCase(); });
 
-document.getElementById('spinBtn').addEventListener('click', () => {
-  const prize = spinPrize();
-  S.lastFree = Date.now(); save(); tickFree();
+function closeCase(){
+  overlay.classList.remove('on');
+  document.getElementById('caseSpin').style.display = 'none';
+  document.getElementById('closeSpinBtn').style.display = 'none';
+  document.getElementById('spinResult').textContent = '';
+}
+
+/* Выбор приза по накопленным шансам */
+function spinPrize(caseObj){
+  let r = Math.random() * 100, acc = 0;
+  for (const p of caseObj.prizes){ acc += p.chance; if (r <= acc) return p; }
+  return caseObj.prizes[0];
+}
+
+/* Кнопка «Открыть за N ⭐» в окне шансов: все проверки, списание, запуск */
+document.getElementById('openBtn').addEventListener('click', async () => {
+  const c = currentCase;
+  if (!c) return;
+  if (c.endsAt && Date.now() > c.endsAt) return alert('Время акции вышло');
+
+  const left = (S.lastFree[c.id] || 0) + (c.cd || 60) * 1000 - Date.now();
+  if (left > 0) return alert('Подождите ' + Math.ceil(left/1000) + ' с');
+
+  if (c.price > 0 && S.stars < c.price)
+    return alert('Не хватает звёзд: нужно ' + c.price + ', у вас ' + S.stars);
+
+  /* остаток лимитированного кейса: читаем общий счётчик из Firebase */
+  let stock = null;
+  if (cloudReady){
+    try { const s = await db.ref('caseStock/' + c.id).get(); if (s.exists()) stock = s.val(); } catch(e){}
+  }
+  if (stock !== null && stock <= 0) return alert('Этот кейс закончился 😢');
+
+  /* списываем цену, фиксируем кулдаун, уменьшаем общий остаток */
+  if (c.price > 0) S.stars -= c.price;
+  S.lastFree[c.id] = Date.now();
+  if (stock !== null) db.ref('caseStock/' + c.id).set(stock - 1).catch(()=>{});
+  save(); tickFree();
   haptic('rigid');
 
-  caseMenu.style.display = 'none'; caseSpin.style.display = '';
+  startSpin(c);
+});
+
+/* Прокрутка ленты: генерирует ячейки, докручивает до выигрышной, выдаёт приз */
+function startSpin(c){
+  document.getElementById('caseMenu').style.display = 'none';
+  document.getElementById('caseSpin').style.display = '';
+  const prize = spinPrize(c);
   const strip = document.getElementById('strip');
   const cells = [];
   const N = 42, WIN = 34;
   for (let i = 0; i < N; i++){
-    const p = PRIZES[Math.floor(Math.random() * PRIZES.length)];
+    const p = c.prizes[Math.floor(Math.random() * c.prizes.length)];
     const d = document.createElement('div');
     d.className = 'prize-cell';
-    d.innerHTML = '<span class="p-ico">' + p.ico + '</span>' + p.name;
+    d.innerHTML = '<span class="p-ico">' + esc(p.type === 'item' ? p.value : '⭐') + '</span>' + esc(p.name);
     strip.appendChild(d); cells.push(d);
   }
-  cells[WIN].innerHTML = '<span class="p-ico">' + prize.ico + '</span>' + prize.name;
+  cells[WIN].innerHTML = '<span class="p-ico">' + esc(prize.type === 'item' ? prize.value : '⭐') + '</span>' + esc(prize.name);
 
   strip.style.transition = 'none'; strip.style.transform = 'translateX(0)';
-  const cw = 104; // ширина ячейки + margin
+  const cw = 104;
   const view = document.getElementById('stripView').offsetWidth;
   const offset = WIN * cw + cw/2 - view/2;
   requestAnimationFrame(() => requestAnimationFrame(() => {
     strip.style.transition = 'transform 4.2s cubic-bezier(.15,.9,.2,1)';
     strip.style.transform = 'translateX(-' + offset + 'px)';
   }));
+
   setTimeout(() => {
     cells[WIN].classList.add('hl');
-    document.getElementById('spinResult').textContent = '🎉 Выпало: ' + prize.name + '!';
+    document.getElementById('spinResult').textContent = '🎉 Выпало: ' + prize.name + ' — отправлено в инвентарь!';
     haptic('heavy');
-    if (prize.stars) S.stars += prize.stars;
-    if (prize.item) S.items.push({name: prize.item, ico: prize.ico, date: new Date().toLocaleDateString()});
+    S.items.unshift({
+      name: prize.name,
+      ico: prize.type === 'item' ? prize.value : '⭐',
+      type: prize.type,
+      stars: prize.type === 'stars' ? prize.value : 0,
+      date: new Date().toLocaleDateString()
+    });
     save(); renderAll();
     document.getElementById('closeSpinBtn').style.display = '';
     strip.style.transition = ''; strip.innerHTML = '';
     cells[WIN].classList.remove('hl');
   }, 4400);
-});
+}
 
-/* ---------- инвентарь ---------- */
+/* ==================================================================
+   ИНВЕНТАРЬ
+   ================================================================== */
 function renderInv(){
   const g = document.getElementById('invGrid');
-  g.innerHTML = S.items.map(it =>
-    '<div class="inv-card"><span class="p-ico">' + it.ico + '</span><div><b>' + it.name + '</b></div><span class="muted">' + it.date + '</span></div>'
+  g.innerHTML = S.items.map((it, i) =>
+    '<div class="inv-card">' +
+      '<span class="p-ico">' + esc(it.ico) + '</span>' +
+      '<div><b>' + esc(it.name) + '</b></div>' +
+      '<span class="muted">' + esc(it.date) + '</span>' +
+      (it.type === 'stars'
+        ? '<button class="claim-btn" onclick="claimStars(' + i + ')">Забрать ' + it.stars + ' ⭐</button>'
+        : '') +
+    '</div>'
   ).join('');
   document.getElementById('invEmpty').style.display = S.items.length ? 'none' : '';
 }
 
-/* ---------- настройки ---------- */
+/* «Забрать»: зачисляет звёзды и удаляет карточку из инвентаря */
+window.claimStars = i => {
+  const it = S.items[i];
+  if (!it || it.type !== 'stars') return;
+  S.stars += it.stars;
+  S.items.splice(i, 1);
+  save(); renderAll(); haptic('heavy');
+};
+
+/* ==================================================================
+   ПРОФИЛЬ И НАСТРОЙКИ
+   ================================================================== */
+const nickInput = document.getElementById('nickInput');
+nickInput.value = S.nick;
+nickInput.addEventListener('input', () => { S.nick = nickInput.value.trim(); save(); renderHome(); });
+nickInput.addEventListener('keydown', e => { if (e.key === 'Enter') nickInput.blur(); });
+
 const themeToggle = document.getElementById('themeToggle');
 themeToggle.checked = S.theme === 'dark';
 themeToggle.addEventListener('change', () => {
   S.theme = themeToggle.checked ? 'dark' : 'light';
   document.body.dataset.theme = S.theme === 'dark' ? 'dark' : '';
-  save(); haptic('light');
+  saveLocal(); haptic('light');
 });
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   if (confirm('Сбросить весь прогресс?')) {
-    S = {...DEF, theme: S.theme}; save(); renderAll(); nickInput.value = '';
+    S = {...DEF, theme: S.theme, admin: S.admin};
+    save(); nickInput.value = ''; renderAll();
   }
 });
 
-/* ---------- ЛОГИ ПОПОЛНЕНИЯ АДМИНУ ---------- */
-function userInfo(){
-  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
-  return u ? {id: u.id, uname: '@' + (u.username || 'нет username')} : {id: 'unknown', uname: '—'};
-}
-async function sendAdminLog(text){
-  if (!TG_BOT_TOKEN || TG_BOT_TOKEN.includes('PASTE') || !ADMIN_ID)
-    return {ok:false, error:'Укажите TG_BOT_TOKEN и ADMIN_ID в начале скрипта'};
-  try {
-    const res = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({chat_id: ADMIN_ID, text, parse_mode:'HTML', disable_web_page_preview:true})
-    });
-    const d = await res.json();
-    return d.ok ? {ok:true} : {ok:false, error:d.description || 'Ошибка Telegram API'};
-  } catch(e){ return {ok:false, error:'Сеть недоступна: ' + e.message}; }
-}
+/* ==================================================================
+   АДМИН-ПАНЕЛЬ: кейсы (цена, лимит, срок) + объявление.
+   Формат призов: Название | шанс% | stars/item | значение
+   ================================================================== */
+let editingId = null;
 
-const statusEl = document.getElementById('topupStatus');
-document.getElementById('testTopupBtn').addEventListener('click', async () => {
-  haptic('medium');
-  const amounts = [50, 100, 250, 500, 1000, 2500];
-  const amount = amounts[Math.floor(Math.random() * amounts.length)];
-  S.stars += amount; save(); renderAll();
+function renderAdmin(){
+  const wrap = document.getElementById('adminPanel');
+  if (!S.admin){
+    wrap.innerHTML =
+      '<p class="muted">Режим администратора выключен.</p>' +
+      '<input class="a-input" id="adminCodeInput" placeholder="Код администратора">' +
+      '<button class="a-btn" id="adminUnlockBtn">Войти</button>';
+    document.getElementById('adminUnlockBtn').onclick = () => {
+      if (document.getElementById('adminCodeInput').value === ADMIN_CODE){
+        S.admin = true; saveLocal(); renderAdmin();
+      } else alert('Неверный код');
+    };
+    return;
+  }
 
-  const u = userInfo();
-  const tx = 'tx-' + Date.now();
-  const now = new Date().toLocaleString('ru-RU');
-  const text =
-    '🧪 <b>Тестовое пополнение</b>\n' +
-    '━━━━━━━━━━━━━━━\n' +
-    '🕐 ' + now + '\n' +
-    '👤 ID: <code>' + u.id + '</code> (' + u.uname + ')\n' +
-    '⭐ Сумма: <b>+' + amount + ' звёзд</b>\n' +
-    '💰 Баланс после: ' + S.stars + '\n' +
-    '📦 Источник: тест (кнопка в настройках Mini App)\n' +
-    '🆔 Транзакция: <code>' + tx + '</code>\n' +
-    '✅ Статус: success';
+  /* --- секция объявлений --- */
+  let html = '<div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">' +
+    '<b>📢 Объявление</b>' +
+    (S.ann && S.ann.text ? '<p class="muted">Сейчас на главной: «' + esc(S.ann.text) + '»</p>' : '<p class="muted">Сейчас объявления нет.</p>') +
+    '<textarea class="a-input" id="annText" placeholder="Текст объявления">' + (S.ann ? esc(S.ann.text) : '') + '</textarea>' +
+    '<button class="a-btn" onclick="publishAnn()">Опубликовать (заменит старое)</button>' +
+    '<button class="a-btn del" onclick="removeAnn()">Убрать объявление</button>' +
+  '</div>';
 
-  statusEl.className = ''; statusEl.textContent = 'Отправляем лог админу...';
-  const r = await sendAdminLog(text);
-  if (r.ok){
-    statusEl.className = 'ok'; statusEl.textContent = '✅ Лог отправлен админу в ЛС';
-    S.logs.unshift(now + '  +' + amount + ' ⭐  → доставлено'); S.logs = S.logs.slice(0,5); save();
+  /* --- список кейсов с кнопками ✏️ / 🗑 --- */
+  html += S.cases.map(c =>
+    '<div class="a-case">' +
+      '<span>' + esc(c.ico) + '</span>' +
+      '<span class="a-info">' + esc(c.name) +
+        '<div class="a-sub">' +
+          (c.price > 0 ? c.price + ' ⭐ · ' : 'бесплатно · ') +
+          (S.stockLive && S.stockLive[c.id] !== undefined ? 'осталось ' + S.stockLive[c.id] + ' · ' : 'без лимита · ') +
+          (c.endsAt ? 'до ' + new Date(c.endsAt).toLocaleString() : 'бессрочно') +
+        '</div>' +
+      '</span>' +
+      '<span class="a-actions">' +
+        '<button class="a-btn" onclick="editCase(' + c.id + ')">✏️</button>' +
+        '<button class="a-btn del" onclick="delCase(' + c.id + ')">🗑</button>' +
+      '</span>' +
+    '</div>'
+  ).join('');
+
+  /* --- форма редактирования кейса --- */
+  if (editingId !== null){
+    const c = editingId === 'new'
+      ? {ico:'🎁', name:'', desc:'', cd:60, price:0, stock:0, hours:0, prizes:[{name:'', chance:0}]}
+      : S.cases.find(x => x.id === editingId);
+    const hoursLeft = c.endsAt ? Math.max(0, (c.endsAt - Date.now()) / 3600000) : 0;
+    html +=
+      '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">' +
+        '<input class="a-input" id="cIco" placeholder="Иконка (эмодзи)" value="' + esc(c.ico) + '">' +
+        '<input class="a-input" id="cName" placeholder="Название кейса" value="' + esc(c.name) + '">' +
+        '<input class="a-input" id="cDesc" placeholder="Описание" value="' + esc(c.desc) + '">' +
+        '<input class="a-input" id="cPrice" type="number" min="0" placeholder="Цена в звёздах (0 = бесплатно)" value="' + (c.price || 0) + '">' +
+        '<input class="a-input" id="cCd" type="number" min="0" placeholder="Кулдаун, сек (60)" value="' + (c.cd || 60) + '">' +
+        '<input class="a-input" id="cStock" type="number" min="0" placeholder="Лимит открытий НА ВСЕХ (0 = без лимита)" value="' + (c.stock || 0) + '">' +
+        '<input class="a-input" id="cHours" type="number" min="0" step="0.5" placeholder="Срок жизни, часы (0 = бессрочно)" value="' + (c.endsAt ? hoursLeft.toFixed(1) : 0) + '">' +
+        '<textarea class="a-input" id="cPrizes" placeholder="Название | шанс% | stars/item | значение">' +
+          c.prizes.map(p => p.name + ' | ' + p.chance + ' | ' + p.type + ' | ' + p.value).join('\n') +
+        '</textarea>' +
+        '<button class="a-btn" onclick="saveCase()">Сохранить</button>' +
+        '<button class="a-btn" onclick="cancelEdit()">Отмена</button>' +
+      '</div>';
   } else {
-    statusEl.className = 'err'; statusEl.textContent = '❌ ' + r.error;
-    S.logs.unshift(now + '  +' + amount + ' ⭐  → ошибка: ' + r.error); S.logs = S.logs.slice(0,5); save();
+    html += '<button class="a-btn" onclick="editCase(\'new\')">＋ Добавить кейс</button>';
   }
-  renderTopupLogs();
-});
-function renderTopupLogs(){
-  document.getElementById('topupLogs').innerHTML =
-    S.logs.map(l => '<div class="log-entry">' + l + '</div>').join('');
+  wrap.innerHTML = html;
 }
 
-/* ---------- рендер ---------- */
+window.editCase  = id => { editingId = id; renderAdmin(); };
+window.cancelEdit = () => { editingId = null; renderAdmin(); };
+
+/* 🗑: удаляет кейс и его счётчик остатка из базы */
+window.delCase = id => {
+  if (!confirm('Удалить кейс? Изменение увидят все пользователи.')) return;
+  S.cases = S.cases.filter(c => c.id !== id);
+  saveLocal();
+  db.ref('cases').set(S.cases).catch(e => alert('Ошибка: ' + e.code));
+  db.ref('caseStock/' + id).remove().catch(()=>{});
+  renderAll();
+};
+
+/* «Сохранить»: пишет кейс в общую базу; при лимите сбрасывает счётчик остатка */
+window.saveCase = () => {
+  const prizes = document.getElementById('cPrizes').value
+    .split('\n').map(l => l.trim()).filter(Boolean)
+    .map(l => {
+      const p = l.split('|').map(x => x.trim());
+      return { name: p[0] || 'Приз', chance: parseFloat(p[1]) || 0,
+               type: p[2] === 'item' ? 'item' : 'stars', value: p[3] || '⭐' };
+    });
+  const price = Math.max(0, parseInt(document.getElementById('cPrice').value) || 0);
+  const cd    = Math.max(0, parseInt(document.getElementById('cCd').value) || 0);
+  const stock = Math.max(0, parseInt(document.getElementById('cStock').value) || 0);
+  const hours = Math.max(0, parseFloat(document.getElementById('cHours').value) || 0);
+
+  const data = {
+    ico:  document.getElementById('cIco').value.trim() || '🎁',
+    name: document.getElementById('cName').value.trim() || 'Без названия',
+    desc: document.getElementById('cDesc').value.trim(),
+    cd, price, stock,
+    endsAt: hours > 0 ? Date.now() + hours * 3600000 : 0,  // срок жизни считается от момента сохранения
+    prizes
+  };
+
+  let caseId;
+  if (editingId === 'new'){ caseId = Date.now(); S.cases.push({id: caseId, ...data}); }
+  else {
+    caseId = editingId;
+    const c = S.cases.find(x => x.id === caseId);
+    if (c) Object.assign(c, data);
+  }
+  editingId = null;
+  saveLocal();
+  db.ref('cases').set(S.cases).catch(e => alert('Ошибка: ' + e.code));
+  /* счётчик остатка: выставляем заново при сохранении лимитированного кейса */
+  if (stock > 0) db.ref('caseStock/' + caseId).set(stock).catch(()=>{});
+  else db.ref('caseStock/' + caseId).remove().catch(()=>{});
+  renderAll();
+};
+
+/* 📢 Опубликовать объявление: одна запись — она и есть «текущее объявление» */
+window.publishAnn = () => {
+  const text = document.getElementById('annText').value.trim();
+  if (!text) return alert('Введите текст объявления');
+  db.ref('announcement').set({ text, date: new Date().toLocaleString() })
+    .then(() => alert('Опубликовано'))
+    .catch(e => alert('Ошибка: ' + e.code));
+};
+
+/* 🗑 Убрать объявление: удаляет запись — карточка исчезнет у всех */
+window.removeAnn = () => {
+  if (!confirm('Убрать объявление с главной?')) return;
+  db.ref('announcement').remove()
+    .catch(e => alert('Ошибка: ' + e.code));
+};
+
+/* ==================================================================
+   РЕНДЕР И СТАРТ
+   ================================================================== */
+function renderHome(){
+  document.getElementById('homeGreet').textContent = 'Привет, ' + (S.nick || 'незнакомец') + '!';
+}
 function renderAll(){
   document.getElementById('statStars').textContent = S.stars;
   document.getElementById('statItems').textContent = S.items.length;
   document.getElementById('homeStars').textContent = S.stars;
-  document.getElementById('homeItems').textContent = S.items.length;
-  const greet = S.nick ? S.nick : 'Привет!';
-  document.getElementById('homeGreet').textContent = 'Привет, ' + greet + '!';
-  renderAvatar(); renderInv(); renderTopupLogs();
+  renderHome(); renderCases(); renderInv(); renderAdmin(); renderAnn();
 }
 renderAll();
+initCloud();
+
 if (tg){ try { tg.ready(); tg.expand(); } catch(e){} }
 </script>
 </body>
