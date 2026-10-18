@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Star App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --bg:#f4f4f1; --panel:#ffffff; --panel2:#fafaf8; --text:#141414;
+  --muted:#8a8a86; --border:#e4e4e0; --accent:#141414; --accent-text:#ffffff;
+}
+body[data-theme="dark"]{
+  --bg:#141414; --panel:#1e1e1e; --panel2:#232323; --text:#f2f2f0;
+  --muted:#9a9a96; --border:#31312e; --accent:#f2f2f0; --accent-text:#141414;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg); color:var(--text);
+  padding-top:env(safe-area-inset-top); overscroll-behavior:none;
+}
+/* ===== ШАПКА (тёмная) ===== */
+#appHeader{
+  position:sticky; top:0; z-index:50;
+  background:#101010; color:#fff;
+  height:56px; display:flex; align-items:center;
+  padding:0 16px 0 max(16px, env(safe-area-inset-left));
+  padding-top:env(safe-area-inset-top); box-sizing:content-box;
+}
+#appHeader .brand{font-weight:700; letter-spacing:.4px; font-size:17px}
+#menuBtn{
+  margin-left:auto; width:42px; height:42px; border-radius:50%;
+  border:none; background:#fff; color:#101010;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.35);
+  cursor:pointer; transition:transform .25s;
+}
+#menuBtn:active{transform:scale(.9)}
+#menuBtn svg{transition:transform .3s}
+body.menu-open #menuBtn svg{transform:rotate(90deg)}
+/* ===== ВЫЕЗДНАЯ ПАНЕЛЬ ===== */
+#panelClip{
+  display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows .45s cubic-bezier(.22,1,.36,1);
+  position:sticky; top:calc(56px + env(safe-area-inset-top)); z-index:40;
+}
+body.menu-open #panelClip{grid-template-rows:1fr}
+#menuPanel{
+  overflow:hidden; min-height:0;
+  background:var(--panel); border-bottom:1px solid var(--border);
+  box-shadow:0 12px 24px rgba(0,0,0,.08);
+  transform:translateY(-14px); opacity:0;
+  transition:transform .45s cubic-bezier(.22,1,.36,1), opacity .3s;
+}
+body.menu-open #menuPanel{transform:translateY(0); opacity:1}
+.menu-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 16px}
+.menu-item{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 12px; border-radius:14px;
+  border:1px solid var(--border); background:var(--panel2);
+  color:var(--text); font-size:15px; font-weight:600;
+  cursor:pointer; transition:background .2s, color .2s, transform .15s;
+  text-align:left;
+}
+.menu-item:active{transform:scale(.97)}
+.menu-item .mi-icon{
+  width:34px; height:34px; border-radius:10px; flex:none;
+  background:var(--accent); color:var(--accent-text);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .25s;
+}
+.menu-item:hover .mi-icon{transform:rotate(-6deg)}
+.menu-item .chev{margin-left:auto; opacity:.4}
+.menu-item.full{grid-column:1 / -1; justify-content:center}
+.menu-item.active{background:var(--accent); color:var(--accent-text)}
+.menu-item.active .mi-icon{background:transparent; color:inherit; border:1.5px solid currentColor}
+/* ===== КОНТЕНТ ===== */
+#content{padding:16px; padding-bottom:40px; max-width:640px; margin:0 auto}
+.page{display:none; animation:fade .35s ease}
+.page.on{display:block}
+@keyframes fade{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+h2{font-size:20px; margin:6px 0 14px}
+.card{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:16px; margin-bottom:12px;
+}
+.muted{color:var(--muted); font-size:13px}
+/* профиль */
+#profileTop{display:flex; align-items:center; gap:14px}
+#avatar{
+  width:72px; height:72px; border-radius:50%; flex:none;
+  border:2px solid var(--border); background:var(--panel2);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; cursor:pointer; font-size:26px; color:var(--muted);
+}
+#avatar img{width:100%; height:100%; object-fit:cover}
+.nick-wrap{flex:1}
+#nickInput{
+  width:100%; font-size:18px; font-weight:700; color:var(--text);
+  background:transparent; border:none; border-bottom:1.5px dashed var(--border);
+  padding:4px 0; outline:none;
+}
+#nickInput:focus{border-bottom-color:var(--text)}
+.stat{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px}
+.stat:last-child{border-bottom:none}
+.stat b{font-size:16px}
+/* кейсы */
+#freeCase{
+  width:100%; padding:18px; border-radius:16px; border:none;
+  background:var(--accent); color:var(--accent-text);
+  font-size:17px; font-weight:700; cursor:pointer; transition:transform .15s, opacity .3s;
+}
+#freeCase:disabled{opacity:.55}
+#freeCase:active{transform:scale(.98)}
+.case-item{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed var(--border); font-size:14px}
+.case-item:last-child{border:none}
+.case-item .chance{margin-left:auto; font-weight:700; color:var(--muted)}
+.r-common .chance{color:inherit}
+.r-epic .chance{color:#8a63d2}
+.r-legendary .chance{color:#c98a1b}
+/* рулетка */
+#overlay{
+  position:fixed; inset:0; z-index:100; display:none;
+  background:rgba(0,0,0,.55); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:20px;
+}
+#overlay.on{display:flex}
+#caseModal{
+  background:var(--panel); border-radius:20px; width:100%; max-width:420px;
+  max-height:86vh; overflow-y:auto; padding:20px;
+  animation:fade .3s ease;
+}
+#stripView{overflow:hidden; border-radius:12px; border:1px solid var(--border); margin:16px 0; position:relative}
+#stripView::before,#stripView::after{
+  content:''; position:absolute; top:0; bottom:0; width:2px; background:var(--accent); z-index:2;
+}
+#stripView::before{left:50%; transform:translateX(-1px)}
+#strip{display:flex; will-change:transform}
+.prize-cell{
+  flex:none; width:96px; margin:6px 4px; padding:14px 4px;
+  border:1px solid var(--border); border-radius:12px; text-align:center; font-size:13px;
+  background:var(--panel2);
+}
+.prize-cell .p-ico{font-size:24px; display:block; margin-bottom:6px}
+.prize-cell.hl{outline:2px solid var(--accent)}
+.btn{
+  width:100%; padding:14px; border-radius:14px; border:none;
+  background:var(--accent); color:var(--accent-text);
+  font-size:16px; font-weight:700; cursor:pointer; margin-top:8px;
+}
+.btn.ghost{background:transparent; border:1.5px solid var(--border); color:var(--text)}
+.btn:active{transform:scale(.98)}
+/* инвентарь */
+#invGrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px}
+.inv-card{border:1px solid var(--border); border-radius:14px; padding:14px; background:var(--panel2); font-size:13px}
+.inv-card .p-ico{font-size:26px}
+/* настройки */
+.row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0; border-bottom:1px solid var(--border)}
+.row:last-of-type{border-bottom:none}
+.switch{position:relative; width:52px; height:30px; flex:none}
+.switch input{opacity:0; width:0; height:0}
+.slider{
+  position:absolute; inset:0; border-radius:30px; background:var(--border);
+  cursor:pointer; transition:background .25s;
+}
+.slider::before{
+  content:''; position:absolute; width:24px; height:24px; border-radius:50%;
+  left:3px; top:3px; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.3);
+  transition:transform .25s cubic-bezier(.22,1,.36,1);
+}
+.switch input:checked + .slider{background:#141414}
+body[data-theme="dark"] .switch input:checked + .slider{background:#f2f2f0}
+.switch input:checked + .slider::before{transform:translateX(22px)}
+#testTopupBtn{margin-top:10px}
+#topupStatus{margin-top:10px; font-size:13px; min-height:18px}
+#topupStatus.ok{color:#1a8a3a}
+#topupStatus.err{color:#c0392b}
+.log-entry{
+  font-size:12px; padding:8px 10px; border:1px dashed var(--border);
+  border-radius:10px; margin-top:8px; white-space:pre-wrap; color:var(--muted);
+}
+.danger{color:#c0392b}
+</style>
+</head>
+<body>
+
+<header id="appHeader">
+  <span class="brand">STAR APP</span>
+  <button id="menuBtn" aria-label="Меню">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+</header>
+
+<div id="panelClip">
+  <nav id="menuPanel">
+    <div class="menu-grid">
+      <button class="menu-item" data-page="profile">
+        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+        Профиль
+        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
+      <button class="menu-item" data-page="home">
+        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>
+        Главная
+        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
+      <button class="menu-item" data-page="cases">
+        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2"/></svg></span>
+        Кейсы
+        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
+      <button class="menu-item" data-page="inventory">
+        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16v13a1 1 0 01-1 1H5a1 1 0 01-1-1z"/><path d="M4 7l2-3h12l2 3"/><path d="M10 11h4"/></svg></span>
+        Инвентарь
+        <span class="chev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></span>
+      </button>
+      <button class="menu-item full" data-page="settings">
+        <span class="mi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09a1.7 1.7 0 001.55-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34h0a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.55h0a1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87v0a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z"/></svg></span>
+        Настройки
+      </button>
+    </div>
+  </nav>
+</div>
+
+<main id="content">
+
+  <!-- ПРОФИЛЬ -->
+  <section class="page" id="page-profile">
+    <h2>Профиль</h2>
+    <div class="card">
+      <div id="profileTop">
+        <div id="avatar" title="Нажмите, чтобы поставить аву">🙂</div>
+        <div class="nick-wrap">
+          <div class="muted">Никнейм</div>
+          <input id="nickInput" maxlength="20" placeholder="Ваш ник">
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" hidden>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stat"><span>⭐ Баланс звёзд</span><b id="statStars">0</b></div>
+      <div class="stat"><span>📦 Предметов в инвентаре</span><b id="statItems">0</b></div>
+    </div>
+  </section>
+
+  <!-- ГЛАВНАЯ -->
+  <section class="page" id="page-home">
+    <h2>Главная</h2>
+    <div class="card">
+      <b id="homeGreet">Привет!</b>
+      <p class="muted" style="margin-top:8px">Открывайте бесплатный кейс раз в минуту, копите звёзды и собирайте инвентарь.</p>
+    </div>
+    <div class="card">
+      <div class="stat"><span>⭐ Баланс</span><b id="homeStars">0</b></div>
+      <div class="stat"><span>📦 Предметы</span><b id="homeItems">0</b></div>
+    </div>
+  </section>
+
+  <!-- КЕЙСЫ -->
+  <section class="page" id="page-cases">
+    <h2>Кейсы</h2>
+    <div class="card">
+      <b>🎁 Бесплатный кейс</b>
+      <p class="muted" style="margin:8px 0 14px">Раз в 60 секунд. Внутри — звёзды и редкие предметы.</p>
+      <button id="freeCase">Открыть бесплатно</button>
+    </div>
+  </section>
+
+  <!-- ИНВЕНТАРЬ -->
+  <section class="page" id="page-inventory">
+    <h2>Инвентарь</h2>
+    <div id="invGrid"></div>
+    <p class="muted" id="invEmpty" style="text-align:center;margin-top:20px">Пока пусто — откройте кейс в разделе «Кейсы» 🎁</p>
+  </section>
+
+  <!-- НАСТРОЙКИ -->
+  <section class="page" id="page-settings">
+    <h2>Настройки</h2>
+    <div class="card">
+      <div class="row">
+        <span>🌙 Тёмная тема</span>
+        <label class="switch">
+          <input type="checkbox" id="themeToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <b>🧪 Тест пополнения звёзд</b>
+      <p class="muted" style="margin:8px 0">Кнопка начисляет случайную сумму на баланс и отправляет подробный лог в личные сообщения бота администратору (ADMIN_ID из кода).</p>
+      <button class="btn" id="testTopupBtn">Тест пополнения</button>
+      <div id="topupStatus"></div>
+      <div id="topupLogs"></div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="border:none;padding-bottom:0">
+        <span>Сброс прогресса</span>
+        <button class="btn ghost danger" id="resetBtn" style="width:auto;padding:8px 16px;margin:0">Сбросить</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="overlay">
+  <div id="caseModal">
+    <div id="caseMenu">
+      <b style="font-size:18px">🎁 Бесплатный кейс</b>
+      <p class="muted" style="margin:6px 0 12px">Возможные призы и шансы:</p>
+      <div id="prizeList"></div>
+      <button class="btn" id="spinBtn">Крутить!</button>
+      <button class="btn ghost" id="closeMenuBtn">Закрыть</button>
+    </div>
+    <div id="caseSpin" style="display:none">
+      <b style="font-size:18px">Крутим...</b>
+      <div id="stripView"><div id="strip"></div></div>
+      <div id="spinResult" style="text-align:center;font-weight:700;min-height:24px;margin-bottom:8px"></div>
+      <button class="btn ghost" id="closeSpinBtn" style="display:none">Забрать и закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==================================================================
+   НАСТРОЙКИ ЛОГИРОВАНИЯ — впишите свои значения
+   TG_BOT_TOKEN — токен бота от @BotFather
+   ADMIN_ID     — ваш числовой Telegram ID (узнать: @userinfobot)
+   Важно: перед первым логом админ должен один раз нажать Start у бота
+   ================================================================== */
+const TG_BOT_TOKEN = '8750118399:AAHrHj60AYO5g9cypzI98O16jjZ6QseEUbI';
+const ADMIN_ID     = 8158896250;
+
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const haptic = t => { try { if (tg) tg.HapticFeedback.impactOccurred(t); } catch(e){} };
+
+/* ---------- состояние ---------- */
+const DEF = {stars:0, nick:'', items:[], theme:'light', lastFree:0, avatar:'', logs:[]};
+let S = {...DEF};
+try { S = {...DEF, ...JSON.parse(localStorage.getItem('starApp') || '{}')}; } catch(e){}
+const save = () => localStorage.setItem('starApp', JSON.stringify(S));
+if (S.theme === 'dark') { document.body.dataset.theme = 'dark'; }
+
+/* ---------- меню ---------- */
+const menuBtn = document.getElementById('menuBtn');
+menuBtn.addEventListener('click', () => { document.body.classList.toggle('menu-open'); haptic('light'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.body.classList.remove('menu-open'); });
+
+const pages = document.querySelectorAll('.page');
+document.querySelectorAll('.menu-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = btn.dataset.page;
+    pages.forEach(pg => pg.classList.toggle('on', pg.id === 'page-' + p));
+    document.querySelectorAll('.menu-item').forEach(b => b.classList.toggle('active', b === btn));
+    document.body.classList.remove('menu-open');
+    haptic('light'); renderAll();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* ---------- профиль ---------- */
+const avatar = document.getElementById('avatar');
+const avatarInput = document.getElementById('avatarInput');
+const nickInput = document.getElementById('nickInput');
+
+function renderAvatar(){
+  if (S.avatar) avatar.innerHTML = '<img src="' + S.avatar + '">';
+  else avatar.innerHTML = '🙂';
+}
+avatar.addEventListener('click', () => avatarInput.click());
+avatarInput.addEventListener('change', () => {
+  const f = avatarInput.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); const s = 200;
+      c.width = c.height = s;
+      const ctx = c.getContext('2d');
+      const m = Math.min(img.width, img.height);
+      ctx.drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, s, s);
+      S.avatar = c.toDataURL('image/jpeg', .85);
+      save(); renderAvatar();
+    };
+    img.src = e.target.result;
+  };
+  r.readAsDataURL(f);
+});
+nickInput.value = S.nick;
+nickInput.addEventListener('input', () => { S.nick = nickInput.value.trim(); save(); });
+nickInput.addEventListener('keydown', e => { if (e.key === 'Enter') nickInput.blur(); });
+
+/* ---------- кейсы ---------- */
+const PRIZES = [
+  {ico:'⭐', name:'50 звёзд',    stars:50,   chance:34,  rarity:'common'},
+  {ico:'⭐', name:'100 звёзд',   stars:100,  chance:25,  rarity:'common'},
+  {ico:'⭐', name:'250 звёзд',   stars:250,  chance:18,  rarity:'common'},
+  {ico:'⭐', name:'500 звёзд',   stars:500,  chance:12,  rarity:'rare'},
+  {ico:'⭐', name:'1000 звёзд',  stars:1000, chance:7,   rarity:'epic'},
+  {ico:'⭐', name:'2500 звёзд',  stars:2500, chance:2.5, rarity:'epic'},
+  {ico:'🏆', name:'Подарок',    stars:0,    item:'Легендарный подарок 🏆', chance:1,   rarity:'legendary'},
+  {ico:'⭐', name:'25 звёзд',    stars:25,   chance:.5,  rarity:'common'}
+];
+const spinPrize = () => {
+  let r = Math.random() * 100, acc = 0;
+  for (const p of PRIZES){ acc += p.chance; if (r <= acc) return p; }
+  return PRIZES[0];
+};
+
+const freeBtn = document.getElementById('freeCase');
+const FREE_MS = 60000;
+function tickFree(){
+  const left = S.lastFree + FREE_MS - Date.now();
+  if (left > 0){
+    freeBtn.disabled = true;
+    freeBtn.textContent = 'Ждите ' + Math.ceil(left/1000) + ' с';
+    setTimeout(tickFree, 500);
+  } else { freeBtn.disabled = false; freeBtn.textContent = 'Открыть бесплатно'; }
+}
+freeBtn.addEventListener('click', openCaseMenu);
+tickFree();
+
+const overlay = document.getElementById('overlay');
+const caseMenu = document.getElementById('caseMenu');
+const caseSpin = document.getElementById('caseSpin');
+
+function openCaseMenu(){
+  document.getElementById('prizeList').innerHTML = PRIZES.map(p =>
+    '<div class="case-item r-' + p.rarity + '"><span>' + p.ico + ' ' + p.name + '</span><span class="chance">' + p.chance + '%</span></div>'
+  ).join('');
+  overlay.classList.add('on'); haptic('medium');
+}
+function closeCase(){
+  overlay.classList.remove('on');
+  caseMenu.style.display = ''; caseSpin.style.display = 'none';
+  document.getElementById('closeSpinBtn').style.display = 'none';
+  document.getElementById('spinResult').textContent = '';
+}
+document.getElementById('closeMenuBtn').addEventListener('click', closeCase);
+document.getElementById('closeSpinBtn').addEventListener('click', closeCase);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeCase(); });
+
+document.getElementById('spinBtn').addEventListener('click', () => {
+  const prize = spinPrize();
+  S.lastFree = Date.now(); save(); tickFree();
+  haptic('rigid');
+
+  caseMenu.style.display = 'none'; caseSpin.style.display = '';
+  const strip = document.getElementById('strip');
+  const cells = [];
+  const N = 42, WIN = 34;
+  for (let i = 0; i < N; i++){
+    const p = PRIZES[Math.floor(Math.random() * PRIZES.length)];
+    const d = document.createElement('div');
+    d.className = 'prize-cell';
+    d.innerHTML = '<span class="p-ico">' + p.ico + '</span>' + p.name;
+    strip.appendChild(d); cells.push(d);
+  }
+  cells[WIN].innerHTML = '<span class="p-ico">' + prize.ico + '</span>' + prize.name;
+
+  strip.style.transition = 'none'; strip.style.transform = 'translateX(0)';
+  const cw = 104; // ширина ячейки + margin
+  const view = document.getElementById('stripView').offsetWidth;
+  const offset = WIN * cw + cw/2 - view/2;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    strip.style.transition = 'transform 4.2s cubic-bezier(.15,.9,.2,1)';
+    strip.style.transform = 'translateX(-' + offset + 'px)';
+  }));
+  setTimeout(() => {
+    cells[WIN].classList.add('hl');
+    document.getElementById('spinResult').textContent = '🎉 Выпало: ' + prize.name + '!';
+    haptic('heavy');
+    if (prize.stars) S.stars += prize.stars;
+    if (prize.item) S.items.push({name: prize.item, ico: prize.ico, date: new Date().toLocaleDateString()});
+    save(); renderAll();
+    document.getElementById('closeSpinBtn').style.display = '';
+    strip.style.transition = ''; strip.innerHTML = '';
+    cells[WIN].classList.remove('hl');
+  }, 4400);
+});
+
+/* ---------- инвентарь ---------- */
+function renderInv(){
+  const g = document.getElementById('invGrid');
+  g.innerHTML = S.items.map(it =>
+    '<div class="inv-card"><span class="p-ico">' + it.ico + '</span><div><b>' + it.name + '</b></div><span class="muted">' + it.date + '</span></div>'
+  ).join('');
+  document.getElementById('invEmpty').style.display = S.items.length ? 'none' : '';
+}
+
+/* ---------- настройки ---------- */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.checked = S.theme === 'dark';
+themeToggle.addEventListener('change', () => {
+  S.theme = themeToggle.checked ? 'dark' : 'light';
+  document.body.dataset.theme = S.theme === 'dark' ? 'dark' : '';
+  save(); haptic('light');
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm('Сбросить весь прогресс?')) {
+    S = {...DEF, theme: S.theme}; save(); renderAll(); nickInput.value = '';
+  }
+});
+
+/* ---------- ЛОГИ ПОПОЛНЕНИЯ АДМИНУ ---------- */
+function userInfo(){
+  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : null;
+  return u ? {id: u.id, uname: '@' + (u.username || 'нет username')} : {id: 'unknown', uname: '—'};
+}
+async function sendAdminLog(text){
+  if (!TG_BOT_TOKEN || TG_BOT_TOKEN.includes('PASTE') || !ADMIN_ID)
+    return {ok:false, error:'Укажите TG_BOT_TOKEN и ADMIN_ID в начале скрипта'};
+  try {
+    const res = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({chat_id: ADMIN_ID, text, parse_mode:'HTML', disable_web_page_preview:true})
+    });
+    const d = await res.json();
+    return d.ok ? {ok:true} : {ok:false, error:d.description || 'Ошибка Telegram API'};
+  } catch(e){ return {ok:false, error:'Сеть недоступна: ' + e.message}; }
+}
+
+const statusEl = document.getElementById('topupStatus');
+document.getElementById('testTopupBtn').addEventListener('click', async () => {
+  haptic('medium');
+  const amounts = [50, 100, 250, 500, 1000, 2500];
+  const amount = amounts[Math.floor(Math.random() * amounts.length)];
+  S.stars += amount; save(); renderAll();
+
+  const u = userInfo();
+  const tx = 'tx-' + Date.now();
+  const now = new Date().toLocaleString('ru-RU');
+  const text =
+    '🧪 <b>Тестовое пополнение</b>\n' +
+    '━━━━━━━━━━━━━━━\n' +
+    '🕐 ' + now + '\n' +
+    '👤 ID: <code>' + u.id + '</code> (' + u.uname + ')\n' +
+    '⭐ Сумма: <b>+' + amount + ' звёзд</b>\n' +
+    '💰 Баланс после: ' + S.stars + '\n' +
+    '📦 Источник: тест (кнопка в настройках Mini App)\n' +
+    '🆔 Транзакция: <code>' + tx + '</code>\n' +
+    '✅ Статус: success';
+
+  statusEl.className = ''; statusEl.textContent = 'Отправляем лог админу...';
+  const r = await sendAdminLog(text);
+  if (r.ok){
+    statusEl.className = 'ok'; statusEl.textContent = '✅ Лог отправлен админу в ЛС';
+    S.logs.unshift(now + '  +' + amount + ' ⭐  → доставлено'); S.logs = S.logs.slice(0,5); save();
+  } else {
+    statusEl.className = 'err'; statusEl.textContent = '❌ ' + r.error;
+    S.logs.unshift(now + '  +' + amount + ' ⭐  → ошибка: ' + r.error); S.logs = S.logs.slice(0,5); save();
+  }
+  renderTopupLogs();
+});
+function renderTopupLogs(){
+  document.getElementById('topupLogs').innerHTML =
+    S.logs.map(l => '<div class="log-entry">' + l + '</div>').join('');
+}
+
+/* ---------- рендер ---------- */
+function renderAll(){
+  document.getElementById('statStars').textContent = S.stars;
+  document.getElementById('statItems').textContent = S.items.length;
+  document.getElementById('homeStars').textContent = S.stars;
+  document.getElementById('homeItems').textContent = S.items.length;
+  const greet = S.nick ? S.nick : 'Привет!';
+  document.getElementById('homeGreet').textContent = 'Привет, ' + greet + '!';
+  renderAvatar(); renderInv(); renderTopupLogs();
+}
+renderAll();
+if (tg){ try { tg.ready(); tg.expand(); } catch(e){} }
+</script>
+</body>
+</html>
