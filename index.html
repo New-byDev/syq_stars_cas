@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>ZombixUP</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loader"><div class="ld-box"><div class="ld-spin"></div><b>ZombixUP</b><p class="muted" id="ldText">Подключаемся к Firebase...</p></div></div>
+
+<div id="bannedScreen" style="display:none">
+  <div class="ban-box">
+    <b>Доступ заблокирован</b>
+    <p id="banReason" class="muted"></p>
+    <p class="muted">Свяжитесь с @Siqyal</p>
+  </div>
+</div>
+
+<canvas id="bgFx"></canvas>
+
+<header id="appHeader">
+  <span class="brand">ZOMBIXUP</span>
+  <button id="menuBtn" aria-label="Меню">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+</header>
+
+<div id="panelClip">
+  <nav id="menuPanel">
+    <div class="menu-grid" id="menuGrid">
+      <div class="menu-group-title">Игры</div>
+      <button class="menu-item active" data-page="home" onclick="goPage('home')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3z"/></svg></span> Главная <span class="chev">›</span></button>
+      <button class="menu-item" data-page="upgrade" onclick="goPage('upgrade')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2c3 2 4 6 4 9l2 3-3-1c-1 1-2 1.5-3 1.5S10 14 9 13l-3 1 2-3c0-3 1-7 4-9z"/><circle cx="12" cy="9" r="1.6"/><path d="M9 18c-1 2-1 3-3 4 0-2 0-3.5 1-5M15 18c1 2 1 3 3 4 0-2 0-3.5-1-5"/></svg></span> Апгрейдер 🚀 <span class="chev">›</span></button>
+      <button class="menu-item" data-page="pass" onclick="goPage('pass')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/></svg></span> Баттл-пасс <span class="chev">›</span></button>
+      <div class="menu-group-title">Ещё</div>
+      <button class="menu-item" data-page="profile" onclick="goPage('profile')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></span> Профиль <span class="chev">›</span></button>
+      <button class="menu-item" data-page="inventory" onclick="goPage('inventory')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span> Инвентарь <span class="chev">›</span></button>
+      <button class="menu-item" data-page="support" onclick="goPage('support')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="3" y="13" width="4" height="6" rx="2"/><rect x="17" y="13" width="4" height="6" rx="2"/></svg></span> Поддержка <span class="chev">›</span></button>
+      <button class="menu-item" data-page="settings" onclick="goPage('settings')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M4.1 7l2.6 1.5M17.3 15.5l2.6 1.5M4.1 17l2.6-1.5M17.3 8.5l2.6-1.5"/></svg></span> Настройки</button>
+      <button class="menu-item" data-page="admin" id="adminMenuItem" style="display:none" onclick="goPage('admin')"><span class="mi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span> Админ-панель</button>
+    </div>
+  </nav>
+</div>
+
+<main id="content">
+
+  <section class="page on" id="page-home">
+    <h2>Главная</h2>
+    <div id="cloudStatus" class="cloud-status">Подключаемся к Firebase...</div>
+    <div class="card" id="onlineCard"><b>Онлайн</b><div id="onlineCounter" style="margin-top:6px">…</div></div>
+    <div id="annSlot"></div>
+    <div class="card">
+      <b id="homeGreet">Привет!</b>
+      <div class="stat" style="margin-top:8px"><span>Баланс золота</span><b id="homeGold">0</b></div>
+      <div class="stat"><span>Осколки пасса</span><b id="homeShards">0</b></div>
+      <button class="btn ghost" id="depositBtn" onclick="openDeposit()">Пополнить баланс</button>
+    </div>
+    <div class="card"><b>Лайвборд</b><div id="feedList" style="margin-top:6px"></div></div>
+    <div id="casesGrid"></div>
+    <div class="card"><b>Топ игроков</b><div id="topList" style="margin-top:6px"></div></div>
+  </section>
+
+  <section class="page" id="page-profile">
+    <h2>Профиль</h2>
+    <div class="card prof-head">
+      <img id="profAvatar" class="prof-ava" src="" alt="" style="display:none">
+      <div>
+        <b id="profName">—</b>
+        <div class="muted" id="profUsername">—</div>
+        <div class="muted" id="profTgId">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stat"><span>Место в топе</span><b id="profRank">—</b></div>
+      <div class="stat"><span>Потрачено на кейсы</span><b id="profSpent">0 G</b></div>
+      <div class="stat"><span>Золото</span><b id="statGold">0</b></div>
+      <div class="stat"><span>Осколки</span><b id="statShards">0</b></div>
+      <div class="stat"><span>Билеты</span><b id="statTickets">0</b></div>
+      <div class="stat"><span>Предметов</span><b id="statItems">0</b></div>
+    </div>
+    <div class="card">
+      <b>Вывод средств</b>
+      <p class="muted">Откроется чат с модератором: укажите Zombix ID и что выводите.</p>
+      <div class="chat-input" style="margin-top:4px">
+        <input class="a-input" id="zxIdInput" placeholder="Например: 4021" maxlength="12">
+        <button class="a-btn" onclick="saveZxId()">Сохранить</button>
+      </div>
+      <button class="btn" style="margin-top:10px" onclick="openWithdraw()">Открыть чат вывода</button>
+      <div id="withdrawBox"></div>
+    </div>
+    <div class="card">
+      <b>Рефералы</b>
+      <div class="stat"><span>Ваш код</span><b id="refCodeOut">—</b></div>
+      <div class="stat"><span>Привлечено</span><b id="refCount">0</b></div>
+      <div class="stat"><span>Билетов заработано</span><b id="refTickets">0</b></div>
+      <button class="a-btn" onclick="copyRef()">Скопировать код</button>
+      <p class="a-hint">+1 билет за каждого реферала и +1 за каждые 100 G его трат. Ссылка: ?ref=КОД</p>
+    </div>
+    <div class="card">
+      <b>Оформление</b>
+      <div class="row"><span>Тёмная тема</span>
+        <label class="switch"><input type="checkbox" id="profThemeToggle"><span class="slider"></span></label></div>
+      <label class="a-label">Акцентный цвет</label>
+      <div class="swatches" id="accRow"></div>
+      <div class="row" style="margin-top:8px"><span>Фоновые эффекты</span>
+        <label class="switch"><input type="checkbox" id="profFxToggle" checked><span class="slider"></span></label></div>
+    </div>
+    <div class="card">
+      <div class="row" style="border:none;padding-bottom:0">
+        <span>Скрыть меня в топе</span>
+        <label class="switch"><input type="checkbox" id="hideToggle"><span class="slider"></span></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-inventory">
+    <h2>Инвентарь</h2>
+    <div class="cats">
+      <button class="cat-btn active" data-cat="prize" onclick="setInvCat('prize', this)">Призы</button>
+      <button class="cat-btn" data-cat="souvenir" onclick="setInvCat('souvenir', this)">Сувениры</button>
+    </div>
+    <div id="invGrid"></div>
+    <p class="muted" id="invEmpty" style="text-align:center;margin-top:20px">Пока пусто — откройте кейс на главной</p>
+  </section>
+
+  <section class="page" id="page-upgrade">
+    <h2>Апгрейдер</h2>
+    <div class="card" id="upgStakeCard">
+      <b>Выберите предметы для ставки (до 6)</b>
+      <div id="upgStakes" style="margin-top:8px"></div>
+    </div>
+    <div class="card" id="upgMultCard" style="display:none">
+      <b>Множитель и цель</b>
+      <div class="cats" id="upgMults" style="margin-top:8px"></div>
+      <div id="upgTargets"></div>
+      <div id="upgInfo" class="muted" style="margin-top:8px"></div>
+    </div>
+    <div class="card" id="upgRunCard" style="display:none">
+      <b>Прокрутка</b>
+      <div id="upgRocketWrap"></div>
+      <button class="btn" id="upgGoBtn" onclick="runUpgrade()">Прокрутить</button>
+      <div id="upgResult" style="margin-top:8px;font-weight:700;text-align:center;min-height:22px"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-pass">
+    <h2>Баттл-пасс</h2>
+    <div class="card">
+      <div class="stat"><span>Уровень</span><b id="passLevel">1 / 30</b></div>
+      <div class="stat"><span>Осколки</span><b id="passShards">0</b></div>
+      <div class="stat"><span>Следующий уровень</span><b id="passNeed">—</b></div>
+      <button class="btn" id="passUpBtn" onclick="passLevelUp()">Повысить уровень</button>
+      <button class="btn ghost" onclick="buyLevel()">Купить уровень</button>
+    </div>
+    <div class="card" id="passPlusBox"></div>
+    <div class="card"><b>Задания дня</b><div id="questList" style="margin-top:6px"></div></div>
+    <div class="card"><b>Награды уровней</b><div id="passRewards" style="margin-top:6px"></div></div>
+  </section>
+
+  <section class="page" id="page-support">
+    <h2>Поддержка</h2>
+    <div class="card">
+      <b>Быстрая помощь</b>
+      <div style="margin-top:8px">
+        <button class="a-btn" onclick="toggleFaq()">Частые вопросы</button>
+        <button class="a-btn" onclick="callModerator()">Вызов модератора</button>
+      </div>
+      <div id="faqBox" style="display:none;margin-top:10px"></div>
+      <div id="modWait" style="display:none;margin-top:10px" class="muted">Ожидайте ответа!</div>
+    </div>
+    <div class="card"><b>Обращения</b><div id="ticketPanel" style="margin-top:10px"></div>
+      <button class="btn" onclick="createTicket()">Написать обращение</button>
+    </div>
+  </section>
+
+  <section class="page" id="page-settings">
+    <h2>Настройки</h2>
+    <div class="card">
+      <div class="row"><span>Тёмная тема</span>
+        <label class="switch"><input type="checkbox" id="themeToggle"><span class="slider"></span></label></div>
+      <div class="row"><span>Фоновые эффекты</span>
+        <label class="switch"><input type="checkbox" id="fxToggle" checked><span class="slider"></span></label></div>
+      <div class="row" style="border:none"><span>Уведомления поддержки</span>
+        <label class="switch"><input type="checkbox" id="notifToggle" checked><span class="slider"></span></label></div>
+    </div>
+    <div class="card">
+      <b>Zombix ID</b>
+      <div class="chat-input" style="margin-top:8px">
+        <input class="a-input" id="zxIdInput2" placeholder="Ваш ID для вывода">
+        <button class="a-btn" onclick="saveZxId()">Сохранить</button>
+      </div>
+    </div>
+    <div class="card">
+      <b>Админ-панель</b>
+      <p class="muted">Вход по коду администратора:</p>
+      <div class="admin-code-box">
+        <input class="a-input" id="adminCodeInput" type="password" placeholder="Код">
+        <button class="a-btn" onclick="tryAdminUnlock()">Войти</button>
+      </div>
+    </div>
+    <div class="card">
+      <b>Информация</b>
+      <div style="margin-top:8px">
+        <button class="a-btn" onclick="toggleInfo('privacy')">Политика конфиденциальности</button>
+        <button class="a-btn" onclick="toggleInfo('about')">О приложении</button>
+      </div>
+      <div id="info-privacy" class="info-box" style="display:none"></div>
+      <div id="info-about" class="info-box" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div class="row" style="border:none;padding-bottom:0">
+        <span>Сброс прогресса</span>
+        <button class="btn ghost danger" id="resetBtn" style="width:auto;padding:8px 16px;margin:0">Сбросить</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="page-admin">
+    <h2>Админ-панель</h2>
+    <div id="adminPanel"></div>
+  </section>
+
+</main>
+
+<div id="overlay">
+  <div id="caseModal">
+    <div id="caseMenu">
+      <b style="font-size:18px" id="modalTitle">Кейс</b>
+      <p class="muted" style="margin:6px 0 12px" id="modalDesc"></p>
+      <div id="prizeList"></div>
+      <button class="btn" id="openBtn">Открыть</button>
+      <button class="btn ghost" id="closeMenuBtn">Закрыть</button>
+    </div>
+    <div id="caseSpin" style="display:none">
+      <b style="font-size:18px">Крутим...</b>
+      <div id="stripView"><div id="strip"></div></div>
+      <div id="spinResult" style="text-align:center;font-weight:700;min-height:24px;margin-bottom:8px"></div>
+      <button class="btn ghost" id="closeSpinBtn" style="display:none">Забрать и закрыть</button>
+    </div>
+  </div>
+</div>
+
+<div id="gateOverlay" style="display:none">
+  <div class="gate-box">
+    <b id="gateTitle">Добро пожаловать!</b>
+    <p class="muted" id="gateSub">Подпишитесь на каналы, чтобы продолжить:</p>
+    <div id="gateChannels"></div>
+    <button class="btn" id="gateGo">Продолжить</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
