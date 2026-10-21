@@ -1,1731 +1,832 @@
 <!DOCTYPE html>
-
 <html lang="ru">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>ZombixUp</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <style>
+<style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
 :root{--bg:#0a0a0a;--card:#141414;--card2:#1d1d1d;--line:#2a2a2a;--txt:#f2f2f2;--dim:#9a9a9a;--acc:#ffffff}
-
 body{background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;min-height:100vh;padding-bottom:30px}
-
 button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;transition:.2s}
-
 input,select,textarea{font-family:inherit;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px 12px;font-size:15px;width:100%;outline:none;transition:.2s}
-
 input:focus,textarea:focus{border-color:#555}
-
 .btn{background:var(--acc);color:#000;font-weight:600;padding:12px 16px;font-size:15px}
-
 .btn:active{transform:scale(.96)}
-
 .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
-
 .btn.red{background:#fff;color:#000}
-
 .btn:disabled{opacity:.4;cursor:default}
-
 img{max-width:100%}
-
 .hidden{display:none!important}
-
-
-
 /* header */
-
 #header{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(10,10,10,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-
 .bal{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);padding:7px 14px;border-radius:12px}
-
 .bal img{width:22px;height:22px;object-fit:cover;border-radius:6px}
-
 .bal b{font-size:16px;letter-spacing:.5px}
-
 #menuBtn{background:var(--card);border:1px solid var(--line);color:var(--txt);width:42px;height:42px;font-size:20px;border-radius:12px}
-
-
-
 /* menu - плавно выпадает вниз */
-
 #menu{position:fixed;top:calc(66px + env(safe-area-inset-top, 0px));right:12px;z-index:60;width:min(280px,calc(100vw - 24px));background:#101010;border:1px solid var(--line);border-radius:16px;overflow:hidden;max-height:0;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-10px) scale(.98);transform-origin:top right;transition:max-height .36s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .36s cubic-bezier(.22,1,.36,1),visibility 0s linear .36s;box-shadow:0 12px 40px rgba(0,0,0,.7)}
-
 #menu.open{max-height: min(75vh, 560px);opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1);transition:max-height .36s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .36s cubic-bezier(.22,1,.36,1),visibility 0s}
-
 #menu .mi{padding:14px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .2s;font-size:15px;display:flex;justify-content:space-between;align-items:center}
-
 #menu .mi:last-child{border-bottom:none}
-
 #menu .mi:active{background:var(--card2)}
-
-
-
 /* screens */
-
 #app{padding:14px;animation:fadeIn .3s ease}
-
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
 h1{font-size:22px;margin:6px 0 14px}
-
 h2{font-size:17px;margin:20px 0 10px}
-
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
-
 .row{display:flex;gap:10px;align-items:center}
-
 .muted{color:var(--dim);font-size:13px}
-
 .small{font-size:12px;color:var(--dim)}
-
 .grow{flex:1}
-
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
-
 .tab{padding:9px 14px;border-radius:20px;background:var(--card);border:1px solid var(--line);color:var(--dim);white-space:nowrap;font-size:13px}
-
 .tab.act{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600}
-
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-
-
-
 /* кейс-карточка */
-
 .case-card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative}
-
 .case-imgwrap{position:relative;padding:10px;display:flex;justify-content:center}
-
 .case-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:#000}
-
 .case-name{position:absolute;top:16px;left:16px;right:16px;color:#fff;font-weight:700;font-size:15px;text-shadow:0 1px 6px #000,0 0 3px #000}
-
 .case-timer{position:absolute;bottom:18px;left:16px;background:rgba(0,0,0,.75);padding:3px 9px;border-radius:8px;font-size:11px}
-
 .case-body{padding:0 12px 12px;text-align:center}
-
 .case-buy{width:100%;padding:11px;background:var(--acc);color:#000;font-weight:700;border-radius:12px;font-size:15px}
-
 .case-left{margin-top:7px;font-size:12px;color:var(--dim)}
-
-
-
 /* инвентарь */
-
 .item-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
-
 .item-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#000}
-
 .item-name{font-size:13px;font-weight:600;margin:8px 0 2px;min-height:16px}
-
 .item-price{font-size:12px;color:var(--dim);margin-bottom:8px}
-
-
-
 /* объявления */
-
 .ann{margin-bottom:12px;animation:fadeIn .4s ease}
-
 .ann img{border-radius:12px;margin-top:8px;max-height:260px;object-fit:cover;width:100%}
-
-
-
 /* тикеты */
-
 .tick{border-left:3px solid var(--line)}
-
 .tick.open{border-left-color:#fff}
-
 .tick.closed{opacity:.6}
-
 .chat{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 2px}
-
 .msg{max-width:82%;padding:9px 12px;border-radius:14px;font-size:14px;word-break:break-word}
-
 .msg.me{align-self:flex-end;background:var(--acc);color:#000;border-bottom-right-radius:4px}
-
 .msg.them{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:4px}
-
 .msg .who{font-size:10px;opacity:.6;margin-bottom:2px}
-
-
-
 /* модалка */
-
 #modalWrap{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .25s}
-
 #modalWrap.show{opacity:1}
-
 #modal{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;width:100%;max-width:420px;max-height:86vh;overflow-y:auto;transform:scale(.94);transition:transform .25s}
-
 #modalWrap.show #modal{transform:scale(1)}
-
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--acc);color:#000;padding:10px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center}
-
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
 .upg-wheel{height:60px;background:#000;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;margin:12px 0}
-
 .upg-line{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;z-index:2}
-
 .upg-track{position:absolute;top:10px;height:40px;display:flex;align-items:center;gap:6px;will-change:transform}
-
 .upg-cell{min-width:70px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--line);border-radius:8px;font-size:12px;padding:0 6px}
-
 .login-box{max-width:340px;margin:60px auto;text-align:center}
-
 .login-box input{margin:8px 0}
-
 .avatar{width:46px;height:46px;border-radius:12px;object-fit:cover;background:var(--card2);border:1px solid var(--line)}
-
 .file-btn{display:block;text-align:center;padding:10px;border:1px dashed var(--line);border-radius:10px;color:var(--dim);font-size:13px;cursor:pointer;margin:6px 0}
-
 .chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;margin:4px 4px 0 0}
-
 .chip button{background:none;color:var(--dim);font-size:14px;padding:0}
-
 .stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
-
 .stat:last-child{border-bottom:none}
-
 @media (prefers-reduced-motion: reduce){#menu,#app,.ann,#modal,#modalWrap,#toast{transition:none!important;animation:none!important}}
-
-
 </style>
 </head>
-
 <body>
-
-
-
 <div id="header">
-
-  <div class="bal" onclick="showProfile()"><img id="curIconImg" alt=""><b id="balVal">0</b></div>
-
-  <button id="menuBtn" type="button" aria-label="Открыть меню" aria-controls="menu" aria-expanded="false" onclick="toggleMenu(event)">☰</button>
-
+<div class="bal" onclick="showProfile()"><img id="curIconImg" alt=""><b id="balVal">0</b></div>
+<button id="menuBtn" type="button" aria-label="Открыть меню" aria-controls="menu" aria-expanded="false" onclick="toggleMenu(event)">☰</button>
 </div>
-
 <nav id="menu"></nav>
-
 <main id="app"></main>
-
-
-
 <div id="modalWrap" onclick="if(event.target===this)closeModal()"><div id="modal"></div></div>
-
 <div id="toast"></div>
-
-
-
 <script>
 /* ================================================================
-
-   НАСТРОЙКИ — меняйте здесь
-
+НАСТРОЙКИ — меняйте здесь
 \================================================================ */
-
 const FIREBASE_CONFIG = {
-
-  apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
-
-  authDomain: "syq-site.firebaseapp.com",
-
-  databaseURL: "https://syq-site-default-rtdb.firebaseio.com",
-
-  projectId: "syq-site",
-
-  storageBucket: "syq-site.firebasestorage.app",
-
-  messagingSenderId: "309704145783",
-
-  appId: "1:309704145783:web:3d525163e0fbb1f7723f72",
-
-  measurementId: "G-QV7MG6M9V4"
-
+  apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
+  authDomain: "syq-site.firebaseapp.com",
+  databaseURL: "https://syq-site-default-rtdb.firebaseio.com",
+  projectId: "syq-site",
+  storageBucket: "syq-site.firebasestorage.app",
+  messagingSenderId: "309704145783",
+  appId: "1:309704145783:web:3d525163e0fbb1f7723f72",
+  measurementId: "G-QV7MG6M9V4"
 };
-
-
-
 const ADMIN_IDS = [8158896250];   // ← Telegram ID админов, через запятую
-
 const SUPPORT_URL = "https://t.me/SiQyal";
-
 const SELL_RATE = 0.7;      // часть цены предмета при продаже
-
 const HOUSE_EDGE = 5;       // % в пользу проекта
-
 const WITHDRAW_COMMISSION = 5; // % комиссия при выводе
-
-
-
 /* ============ ВСЕ ПОДПИСИ — КОНСТАНТЫ ============ */
-
 const L = {
-
-  app: "ZombixUp", gold: "Золото",
-
-  menuMain: "Главная", menuInv: "Инвентарь", menuUpg: "Апгрейдер",
-
-  menuProfile: "Профиль", menuSet: "Настройки", menuTickets: "Тикеты", menuAdmin: "Админ-панель",
-
-  login: "Вход", loginName: "Ваше имя", loginId: "Ваш Telegram ID", loginBtn: "Войти",
-
-  balance: "Баланс", deposit: "Пополнить", withdraw: "Вывести", amount: "Сумма", confirm: "Создать тикет",
-
-  sell: "Продать", upgrade: "Апгрейд", chance: "Шанс", multiplier: "Множитель",
-
-  support: "Поддержка", logout: "Выйти / сменить аккаунт",
-
-  tickets: "Тикеты", takeTicket: "Взять тикет", execute: "Выполнить", reject: "Отклонить",
-
-  typeDeposit: "Пополнение", typeWithdraw: "Вывод", statusOpen: "Открыт", statusClosed: "Закрыт",
-
-  takenBy: "Взял:", takenByYou: "Тикет у вас", send: "Отправить", msgPlaceholder: "Сообщение…",
-
-  adminItems: "Предметы", adminCases: "Кейсы", adminAnn: "Объявления", adminUsers: "Игроки", adminFin: "Казна",
-
-  itemName: "Название предмета", itemPrice: "Цена", itemIcon: "Иконка/фото", add: "Добавить", del: "Удалить", save: "Сохранить", edit: "Ред.",
-
-  caseName: "Название кейса", casePrice: "Цена открытия", caseIcon: "Иконка кейса",
-
-  caseTotalLimit: "Лимит открытий на всех (0 = ∞)", caseUserLimit: "Лимит на игрока (0 = ∞)",
-
-  caseCooldown: "КД между открытиями (мин, 0 = нет)", caseExpire: "Пропадёт через (часов, 0 = никогда)",
-
-  caseContents: "Наполнение (шанс %)", left: "Осталось", closesIn: "Закроется через",
-
-  annText: "Текст объявления", annImage: "Фото (необязательно)", publish: "Опубликовать",
-
-  searchById: "Поиск по Telegram ID", role: "Роль", rolePlayer: "игрок", roleModer: "модератор",
-
-  playerName: "Имя", userBalance: "Баланс",
-
-  houseIncome: "Доход (вход)", houseOutcome: "Расход (выход)", houseDiff: "Разница",
-
-  curIcon: "Иконка валюты", balIcon: "Иконка баланса",
-
-  open: "Открыть", soldFor: "Продано за", newBalance: "Новый баланс",
-
-  noData: "Пока пусто", loading: "Загрузка…", notEnough: "Недостаточно золота",
-
-  cooldownLeft: "КД", limitReached: "Лимит открытый исчерпан", caseExpired: "Кейс закрыт",
-
-  upgWin: "ПОБЕДА!", upgLose: "Проигрыш", pickItem: "Выберите предмет",
-
-  amountHint: "Введите сумму в золоте",
-
-  myTickets: "Мои тикеты", allTickets: "Все тикеты", reserved: "Зарезервировано",
-
-  mainTitle: "ZombixUp",
-
-  errFill: "Заполните все поля", copied: "Скопировано",
-
-  yes: "Да", no: "Нет", changeRole: "Роль изменена", saved: "Сохранено", done: "Готово",
-
-  filterAll: "Все", ticketsHint: "Модератор обрабатывает заявки в чате.",
-
-  won: "Выпал предмет", arrived: "Ваш баланс пополнен", withdrawn: "Вывод выполнен",
-
-  rejected: "Тикет отклонён", takeSelf: "Нельзя взять свой тикет", alreadyTaken: "Тикет уже занят"
-
+app: "ZombixUp", gold: "Золото",
+menuMain: "Главная", menuInv: "Инвентарь", menuUpg: "Апгрейдер",
+menuProfile: "Профиль", menuSet: "Настройки", menuTickets: "Тикеты", menuAdmin: "Админ-панель",
+login: "Вход", loginName: "Ваше имя", loginId: "Ваш Telegram ID", loginBtn: "Войти",
+balance: "Баланс", deposit: "Пополнить", withdraw: "Вывести", amount: "Сумма", confirm: "Создать тикет",
+sell: "Продать", upgrade: "Апгрейд", chance: "Шанс", multiplier: "Множитель",
+support: "Поддержка", logout: "Выйти / сменить аккаунт",
+tickets: "Тикеты", takeTicket: "Взять тикет", execute: "Выполнить", reject: "Отклонить",
+typeDeposit: "Пополнение", typeWithdraw: "Вывод", statusOpen: "Открыт", statusClosed: "Закрыт",
+takenBy: "Взял:", takenByYou: "Тикет у вас", send: "Отправить", msgPlaceholder: "Сообщение…",
+adminItems: "Предметы", adminCases: "Кейсы", adminAnn: "Объявления", adminUsers: "Игроки", adminFin: "Казна",
+itemName: "Название предмета", itemPrice: "Цена", itemIcon: "Иконка/фото", add: "Добавить", del: "Удалить", save: "Сохранить", edit: "Ред.",
+caseName: "Название кейса", casePrice: "Цена открытия", caseIcon: "Иконка кейса",
+caseTotalLimit: "Лимит открытий на всех (0 = ∞)", caseUserLimit: "Лимит на игрока (0 = ∞)",
+caseCooldown: "КД между открытиями (мин, 0 = нет)", caseExpire: "Пропадёт через (часов, 0 = никогда)",
+caseContents: "Наполнение (шанс %)", left: "Осталось", closesIn: "Закроется через",
+annText: "Текст объявления", annImage: "Фото (необязательно)", publish: "Опубликовать",
+searchById: "Поиск по Telegram ID", role: "Роль", rolePlayer: "игрок", roleModer: "модератор",
+playerName: "Имя", userBalance: "Баланс",
+houseIncome: "Доход (вход)", houseOutcome: "Расход (выход)", houseDiff: "Разница",
+curIcon: "Иконка валюты", balIcon: "Иконка баланса",
+open: "Открыть", soldFor: "Продано за", newBalance: "Новый баланс",
+noData: "Пока пусто", loading: "Загрузка…", notEnough: "Недостаточно золота",
+cooldownLeft: "КД", limitReached: "Лимит открытый исчерпан", caseExpired: "Кейс закрыт",
+upgWin: "ПОБЕДА!", upgLose: "Проигрыш", pickItem: "Выберите предмет",
+amountHint: "Введите сумму в золоте",
+myTickets: "Мои тикеты", allTickets: "Все тикеты", reserved: "Зарезервировано",
+mainTitle: "ZombixUp",
+errFill: "Заполните все поля", copied: "Скопировано",
+yes: "Да", no: "Нет", changeRole: "Роль изменена", saved: "Сохранено", done: "Готово",
+filterAll: "Все", ticketsHint: "Модератор обрабатывает заявки в чате.",
+won: "Выпал предмет", arrived: "Ваш баланс пополнен", withdrawn: "Вывод выполнен",
+rejected: "Тикет отклонён", takeSelf: "Нельзя взять свой тикет", alreadyTaken: "Тикет уже занят"
 };
-
-
-
 /* ============ STATE ============ */
-
 let db, USER = null, CONFIG = {currencyIcon:"", house:{income:0,outcome:0}};
-
 let ANN = {}, ITEMS = {}, CASES = {}, MENU_OPEN = false, CUR_SCREEN = "main";
-
 let adminTab = "items", ticketFilter = {type:"all", status:"open"};
-
 let curTicket = null, countdownTimer = null;
-
-
-
 const $ = s => document.querySelector(s);
-
 const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
 const fmt = n => new Intl.NumberFormat("ru-RU").format(Math.round(Number(n)||0));
-
 const uid = () => "id" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-
-
-
 function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2200);}
-
 function openModal(html){$("#modal").innerHTML=html;$("#modalWrap").classList.add("show");}
-
 function closeModal(){$("#modalWrap").classList.remove("show");curTicket=null;}
-
 function icon(icon,cls){return icon?`<img src="${icon}" class="${cls||""}">`:`<div class="${cls||""}" style="display:flex;align-items:center;justify-content:center;background:var(--card2)"><span class="muted">?</span></div>`;}
-
-
-
 /* ============ FIREBASE ============ */
-
 function fbInit(){
-
-  firebase.initializeApp(FIREBASE_CONFIG);
-
-  db = firebase.database();
-
+firebase.initializeApp(FIREBASE_CONFIG);
+db = firebase.database();
 }
-
 const dbGet = p => db.ref(p).get().then(s=>s.val());
-
 const dbSet = (p,v) => db.ref(p).set(v);
-
 const dbUpd = (p,v) => db.ref(p).update(v);
-
 const dbPush = (p,v) => db.ref(p).push(v).then(r=>r.key);
-
-
-
 /* изображение -> сжатый base64 */
-
 function pickImage(cb){
-
-  const inp = document.createElement("input");
-
-  inp.type = "file"; inp.accept = "image/*";
-
-  inp.onchange = () => {
-
-    const f = inp.files[0]; if(!f) return;
-      if(!f.type.startsWith("image/")) return toast("Выберите изображение");
-      if(f.size > 8 * 1024 * 1024) return toast("Изображение должно быть меньше 8 МБ");
-      if(!f.type.startsWith("image/")) return toast("Выберите изображение");
-      if(f.size > 8 * 1024 * 1024) return toast("Изображение должно быть меньше 8 МБ");
-
-    const r = new FileReader();
-
-    r.onload = () => {
-
-      const img = new Image();
-
-      img.onload = () => {
-
-        const c = document.createElement("canvas");
-
-        const s = Math.min(1, 256/Math.max(img.width,img.height));
-
-        c.width = img.width*s; c.height = img.height*s;
-
-        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-
-        cb(c.toDataURL("image/jpeg",0.82));
-
-      };
-
-      img.src = r.result;
-
-    };
-
-    r.readAsDataURL(f);
-
-  };
-
-  inp.click();
-
+const inp = document.createElement("input");
+inp.type = "file"; inp.accept = "image/*";
+inp.onchange = () => {
+const f = inp.files[0]; if(!f) return;
+if(!f.type.startsWith("image/")) return toast("Выберите изображение");
+if(f.size > 8 * 1024 * 1024) return toast("Изображение должно быть меньше 8 МБ");
+if(!f.type.startsWith("image/")) return toast("Выберите изображение");
+if(f.size > 8 * 1024 * 1024) return toast("Изображение должно быть меньше 8 МБ");
+const r = new FileReader();
+r.onload = () => {
+const img = new Image();
+img.onload = () => {
+const c = document.createElement("canvas");
+const s = Math.min(1, 256/Math.max(img.width,img.height));
+c.width = img.width*s; c.height = img.height*s;
+c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+cb(c.toDataURL("image/jpeg",0.82));
+};
+img.src = r.result;
+};
+r.readAsDataURL(f);
+};
+inp.click();
 }
-
-
-
 /* ============ АВТОРИЗАЦИЯ ============ */
-
 function getTgUser(){
-
-  try{
-
-    const tg = window.Telegram && window.Telegram.WebApp;
-
-    if(tg && tg.initDataUnsafe && tg.initDataUnsafe.user){
-
-      tg.expand(); tg.ready();
-
-      const u = tg.initDataUnsafe.user;
-
-      return {id:String(u.id), name:u.first_name||("id"+u.id)};
-
-    }
-
-  }catch(e){}
-
-  return null;
-
+try{
+const tg = window.Telegram && window.Telegram.WebApp;
+if(tg && tg.initDataUnsafe && tg.initDataUnsafe.user){
+tg.expand(); tg.ready();
+const u = tg.initDataUnsafe.user;
+return {id:String(u.id), name:u.first_name||("id"+u.id)};
 }
-
-
-
+}catch(e){}
+return null;
+}
 async function ensureUser(tgu){
-
-  const ref = "users/"+tgu.id;
-
-  let data = await dbGet(ref);
-
-  if(!data) await dbSet(ref, {name:tgu.name, tgId:tgu.id, balance:0, role:"player", createdAt:Date.now()});
-
-  data = await dbGet(ref);
-
-  USER = Object.assign({id:tgu.id}, data);
-
-  USER.isAdmin = ADMIN_IDS.map(String).includes(String(USER.id));
-
-  USER.isStaff = USER.isAdmin || USER.role==="moderator";
-
-  db.ref("config").on("value", s=>{ CONFIG = Object.assign({house:{income:0,outcome:0}}, s.val()||{}); renderHeader(); });
-
+const ref = "users/"+tgu.id;
+let data = await dbGet(ref);
+if(!data) await dbSet(ref, {name:tgu.name, tgId:tgu.id, balance:0, role:"player", createdAt:Date.now()});
+data = await dbGet(ref);
+USER = Object.assign({id:tgu.id}, data);
+USER.isAdmin = ADMIN_IDS.map(String).includes(String(USER.id));
+USER.isStaff = USER.isAdmin || USER.role==="moderator";
+db.ref("config").on("value", s=>{ CONFIG = Object.assign({house:{income:0,outcome:0}}, s.val()||{}); renderHeader(); });
 }
-
-
-
 function renderLogin(){
-
-  $("#header").style.visibility="hidden";
-
-  $("#app").innerHTML = `<div class="login-box">
-
-    <h1 style="font-size:28px;margin-bottom:6px">${L.app}</h1>
-
-    <p class="muted" style="margin-bottom:20px">Введите данные для входа</p>
-
-    <input id="inId" placeholder="${L.loginId}" inputmode="numeric">
-
-    <input id="inName" placeholder="${L.loginName}">
-
-    <button class="btn" style="width:100%;margin-top:12px" onclick="manualLogin()">${L.loginBtn}</button>
-
-  </div>`;
-
+$("#header").style.visibility="hidden";
+$("#app").innerHTML = `<div class="login-box">
+<h1 style="font-size:28px;margin-bottom:6px">${L.app}</h1>
+<p class="muted" style="margin-bottom:20px">Введите данные для входа</p>
+<input id="inId" placeholder="${L.loginId}" inputmode="numeric">
+<input id="inName" placeholder="${L.loginName}">
+<button class="btn" style="width:100%;margin-top:12px" onclick="manualLogin()">${L.loginBtn}</button>
+</div>`;
 }
-
 async function manualLogin(){
-  const id = $("#inId").value.trim();
-  const name = $("#inName").value.trim() || ("id" + id);
-  if (!id || !/^\d+$/.test(id)) return toast(L.errFill);
-  try {
-    await ensureUser({id, name});
-    localStorage.setItem("zxu_id", id);
-    localStorage.setItem("zxu_name", name);
-    startApp();
-  } catch (err) {
-    toast("Не удалось подключиться к Firebase");
-    console.error(err);
-  }
+const id = $("#inId").value.trim();
+const name = $("#inName").value.trim() || ("id" + id);
+if (!id || !/^\d+$/.test(id)) return toast(L.errFill);
+try {
+await ensureUser({id, name});
+localStorage.setItem("zxu_id", id);
+localStorage.setItem("zxu_name", name);
+startApp();
+} catch (err) {
+toast("Не удалось подключиться к Firebase");
+console.error(err);
 }
-
-
-
+}
 /* ============ ШАПКА И МЕНЮ ============ */
-
 function renderHeader(){
-
-  const ic = CONFIG.currencyIcon || defaultGoldIcon();
-
-  $("#curIconImg").src = ic; $("#curIconImg").style.visibility = USER ? "visible":"hidden";
-
-  if(USER) $("#balVal").textContent = fmt(USER.balance);
-
+const ic = CONFIG.currencyIcon || defaultGoldIcon();
+$("#curIconImg").src = ic; $("#curIconImg").style.visibility = USER ? "visible":"hidden";
+if(USER) $("#balVal").textContent = fmt(USER.balance);
 }
-
 function defaultGoldIcon(){
-
-  return "data:image/svg+xml,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%23fff' stroke='%23000' stroke-width='3'/><text x='32' y='42' font-size='28' text-anchor='middle' fill='%23000' font-family='Arial' font-weight='bold'>G</text></svg>`);
-
+return "data:image/svg+xml,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%23fff' stroke='%23000' stroke-width='3'/><text x='32' y='42' font-size='28' text-anchor='middle' fill='%23000' font-family='Arial' font-weight='bold'>G</text></svg>`);
 }
-
-
-
 function toggleMenu(e){
-  if (e) e.stopPropagation();
-  MENU_OPEN = !MENU_OPEN;
-  $("#menu").classList.toggle("open", MENU_OPEN);
-  $("#menuBtn").setAttribute("aria-expanded", String(MENU_OPEN));
+if (e) e.stopPropagation();
+MENU_OPEN = !MENU_OPEN;
+$("#menu").classList.toggle("open", MENU_OPEN);
+$("#menuBtn").setAttribute("aria-expanded", String(MENU_OPEN));
 }
 document.addEventListener("click", e => {
-  if (MENU_OPEN && !$("#menu").contains(e.target) && e.target.id !== "menuBtn") {
-    MENU_OPEN = false;
-    $("#menu").classList.remove("open");
-    $("#menuBtn").setAttribute("aria-expanded", "false");
-  }
+if (MENU_OPEN && !$("#menu").contains(e.target) && e.target.id !== "menuBtn") {
+MENU_OPEN = false;
+$("#menu").classList.remove("open");
+$("#menuBtn").setAttribute("aria-expanded", "false");
+}
 });
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && MENU_OPEN) {
-    MENU_OPEN = false;
-    $("#menu").classList.remove("open");
-    $("#menuBtn").setAttribute("aria-expanded", "false");
-  }
+if (e.key === "Escape" && MENU_OPEN) {
+MENU_OPEN = false;
+$("#menu").classList.remove("open");
+$("#menuBtn").setAttribute("aria-expanded", "false");
+}
 });
-
 function buildMenu(){
-
-  const items = [
-
-    ["main", L.menuMain], ["inventory", L.menuInv], ["upgrader", L.menuUpg],
-
-    ["profile", L.menuProfile], ["settings", L.menuSet]
-
-  ];
-
-  if(USER.isStaff) items.push(["tickets", L.menuTickets]);
-
-  if(USER.isAdmin) items.push(["admin", L.menuAdmin]);
-
-  $("#menu").innerHTML = items.map(([k,t])=>`<div class="mi" onclick="go('${k}')">${t}<span>›</span></div>`).join("");
-
+const items = [
+["main", L.menuMain], ["inventory", L.menuInv], ["upgrader", L.menuUpg],
+["profile", L.menuProfile], ["settings", L.menuSet]
+];
+if(USER.isStaff) items.push(["tickets", L.menuTickets]);
+if(USER.isAdmin) items.push(["admin", L.menuAdmin]);
+$("#menu").innerHTML = items.map(([k,t])=>`<div class="mi" onclick="go('${k}')">${t}<span>›</span></div>`).join("");
 }
-
-
-
 function go(scr){
-
-  MENU_OPEN = false; $("#menu").classList.remove("open");
-
-  CUR_SCREEN = scr;
-
-  if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
-
-  if(curTicket) db.ref("tickets/"+curTicket+"/msgs").off();
-
-  buildMenu();
-
-  const r = {main:renderMain, inventory:renderInventory, upgrader:renderUpgrader, profile:renderProfile, settings:renderSettings, tickets:renderTickets, admin:renderAdmin};
-
-  (r[scr]||renderMain)();
-
-  window.scrollTo(0,0);
-
+MENU_OPEN = false; $("#menu").classList.remove("open");
+CUR_SCREEN = scr;
+if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+if(curTicket) db.ref("tickets/"+curTicket+"/msgs").off();
+buildMenu();
+const r = {main:renderMain, inventory:renderInventory, upgrader:renderUpgrader, profile:renderProfile, settings:renderSettings, tickets:renderTickets, admin:renderAdmin};
+(r[scr]||renderMain)();
+window.scrollTo(0,0);
 }
-
-
-
 /* ============ ГЛАВНАЯ (объявления + кейсы) ============ */
-
 async function renderMain(){
-
-  const [ann, cases] = await Promise.all([dbGet("announcements")||Promise.resolve({}), dbGet("cases")||Promise.resolve({})]);
-
-  ANN = ann||{}; CASES = cases||{};
-
-  const annHtml = Object.values(ANN).sort((a,b)=>b.ts-a.ts).map(a=>
-
-    `<div class="card ann">${a.text?`<div>${esc(a.text).replace(/\n/g,"<br>")}</div>`:""}${a.image?`<img src="${a.image}">`:""}</div>`
-
-  ).join("");
-
-
-
-  const now = Date.now();
-
-  const active = Object.entries(CASES).filter(([id,c])=>!c.expiresAt || c.expiresAt>now);
-
-  const caseHtml = active.length ? `<div class="grid" id="caseGrid">${active.map(([id,c])=>caseCard(id,c)).join("")}</div>` : `<p class="muted">${L.noData}</p>`;
-
-
-
-  $("#app").innerHTML = `<h1>${L.mainTitle}</h1>${annHtml||""}<h2>${L.adminCases}</h2>${caseHtml}`;
-
-  startCountdowns();
-
+const [ann, cases] = await Promise.all([dbGet("announcements")||Promise.resolve({}), dbGet("cases")||Promise.resolve({})]);
+ANN = ann||{}; CASES = cases||{};
+const annHtml = Object.values(ANN).sort((a,b)=>b.ts-a.ts).map(a=>
+`<div class="card ann">${a.text?`<div>${esc(a.text).replace(/\n/g,"<br>")}</div>`:""}${a.image?`<img src="${a.image}">`:""}</div>`
+).join("");
+const now = Date.now();
+const active = Object.entries(CASES).filter(([id,c])=>!c.expiresAt || c.expiresAt>now);
+const caseHtml = active.length ? `<div class="grid" id="caseGrid">${active.map(([id,c])=>caseCard(id,c)).join("")}</div>` : `<p class="muted">${L.noData}</p>`;
+$("#app").innerHTML = `<h1>${L.mainTitle}</h1>${annHtml||""}<h2>${L.adminCases}</h2>${caseHtml}`;
+startCountdowns();
 }
-
-
-
 function startCountdowns(){
-
-  countdownTimer = setInterval(()=>{
-
-    document.querySelectorAll("[data-exp]").forEach(el=>{
-
-      const left = Number(el.dataset.exp) - Date.now();
-
-      if(left<=0){ go(CUR_SCREEN); return; }
-
-      el.textContent = L.closesIn+" "+humanTime(left);
-
-    });
-
-    document.querySelectorAll("[data-cd]").forEach(el=>{
-
-      const left = Number(el.dataset.cd) - Date.now();
-
-      const btn = el.dataset.btn && document.getElementById(el.dataset.btn);
-
-      if(left>0){ el.textContent = L.cooldownLeft+" "+humanTime(left); if(btn) btn.disabled=true; }
-
-      else { el.textContent=""; if(btn){ btn.disabled=false; } }
-
-    });
-
-  },1000);
-
+countdownTimer = setInterval(()=>{
+document.querySelectorAll("[data-exp]").forEach(el=>{
+const left = Number(el.dataset.exp) - Date.now();
+if(left<=0){ go(CUR_SCREEN); return; }
+el.textContent = L.closesIn+" "+humanTime(left);
+});
+document.querySelectorAll("[data-cd]").forEach(el=>{
+const left = Number(el.dataset.cd) - Date.now();
+const btn = el.dataset.btn && document.getElementById(el.dataset.btn);
+if(left>0){ el.textContent = L.cooldownLeft+" "+humanTime(left); if(btn) btn.disabled=true; }
+else { el.textContent=""; if(btn){ btn.disabled=false; } }
+});
+},1000);
 }
-
 function humanTime(ms){
-
-  const s = Math.floor(ms/1000);
-
-  if(s>=3600) return Math.floor(s/3600)+"ч "+Math.floor(s%3600/60)+"м";
-
-  if(s>=60) return Math.floor(s/60)+"м "+(s%60)+"с";
-
-  return s+"с";
-
+const s = Math.floor(ms/1000);
+if(s>=3600) return Math.floor(s/3600)+"ч "+Math.floor(s%3600/60)+"м";
+if(s>=60) return Math.floor(s/60)+"м "+(s%60)+"с";
+return s+"с";
 }
-
-
-
 function caseCard(id, c){
-
-  const exp = c.expiresAt ? `<span class="case-timer" data-exp="${c.expiresAt}">…</span>` : "";
-
-  return `<div class="case-card">
-
-    <div class="case-imgwrap"><img class="case-img" src="${c.icon||defaultGoldIcon()}"><div class="case-name">${esc(c.name)}</div>${exp}</div>
-
-    <div class="case-body">
-
-      <button class="case-buy" id="cb_${id}" onclick="openCase('${id}')">${fmt(c.price)} ${L.gold}</button>
-
-      ${c.totalLimit>0?`<div class="case-left">${L.left}: <span data-opens="${id}">…</span></div>`:""}
-
-      <div class="case-left" id="cd_${id}" data-cd="0" data-btn="cb_${id}"></div>
-
-    </div></div>`;
-
+const exp = c.expiresAt ? `<span class="case-timer" data-exp="${c.expiresAt}">…</span>` : "";
+return `<div class="case-card">
+<div class="case-imgwrap"><img class="case-img" src="${c.icon||defaultGoldIcon()}"><div class="case-name">${esc(c.name)}</div>${exp}</div>
+<div class="case-body">
+<button class="case-buy" id="cb_${id}" onclick="openCase('${id}')">${fmt(c.price)} ${L.gold}</button>
+${c.totalLimit>0?`<div class="case-left">${L.left}: <span data-opens="${id}">…</span></div>`:""}
+<div class="case-left" id="cd_${id}" data-cd="0" data-btn="cb_${id}"></div>
+</div></div>`;
 }
-
-
-
 /* Инициализация кд-состояний после рендера кейсов */
-
 async function refreshCaseState(){
-
-  for(const id of Object.keys(CASES)){
-
-    const st = await dbGet("caseOpen/"+id+"_"+USER.id);
-
-    const el = document.getElementById("cd_"+id), btn = document.getElementById("cb_"+id);
-
-    if(!el) continue;
-
-    const cdLeft = st && st.lastOpen && CASES[id].cooldown>0 ? st.lastOpen + CASES[id].cooldown*60000 - Date.now() : 0;
-
-    el.dataset.cd = cdLeft>0 ? st.lastOpen + CASES[id].cooldown*60000 : 0;
-
-    const userMaxed = CASES[id].userLimit>0 && st && st.count>=CASES[id].userLimit;
-
-    if(userMaxed){ el.textContent = L.limitReached; if(btn) btn.disabled=true; }
-
-    else if(cdLeft>0){ el.textContent = L.cooldownLeft+" "+humanTime(cdLeft); if(btn) btn.disabled=true; }
-
-    else { el.textContent=""; }
-
-  }
-
-  db.ref("caseOpen").on("value", async ()=>{
-
-    for(const id of Object.keys(CASES)){
-
-      if(!((CASES[id].totalLimit||0) > 0)) continue;
-
-      const total = await dbGet("caseTotal/"+id);
-
-      const el = document.querySelector(`[data-opens="${id}"]`);
-
-      if(el) el.textContent = Math.max(0, CASES[id].totalLimit - (total||0));
-
-    }
-
-  });
-
+for(const id of Object.keys(CASES)){
+const st = await dbGet("caseOpen/"+id+"_"+USER.id);
+const el = document.getElementById("cd_"+id), btn = document.getElementById("cb_"+id);
+if(!el) continue;
+const cdLeft = st && st.lastOpen && CASES[id].cooldown>0 ? st.lastOpen + CASES[id].cooldown*60000 - Date.now() : 0;
+el.dataset.cd = cdLeft>0 ? st.lastOpen + CASES[id].cooldown*60000 : 0;
+const userMaxed = CASES[id].userLimit>0 && st && st.count>=CASES[id].userLimit;
+if(userMaxed){ el.textContent = L.limitReached; if(btn) btn.disabled=true; }
+else if(cdLeft>0){ el.textContent = L.cooldownLeft+" "+humanTime(cdLeft); if(btn) btn.disabled=true; }
+else { el.textContent=""; }
 }
-
-
-
+db.ref("caseOpen").on("value", async ()=>{
+for(const id of Object.keys(CASES)){
+if(!((CASES[id].totalLimit||0) > 0)) continue;
+const total = await dbGet("caseTotal/"+id);
+const el = document.querySelector(`[data-opens="${id}"]`);
+if(el) el.textContent = Math.max(0, CASES[id].totalLimit - (total||0));
+}
+});
+}
 /* Обёртка рендера главной: после рендера — кд */
-
 const _renderMain = renderMain;
-
 renderMain = async function(){ await _renderMain(); await refreshCaseState(); };
-
-
-
 async function openCase(id){
-
-  const c = CASES[id]; if(!c) return;
-
-  if(c.expiresAt && c.expiresAt < Date.now()) return toast(L.caseExpired);
-
-  const key = "caseOpen/"+id+"_"+USER.id, tKey = "caseTotal/"+id;
-
-  const st = (await dbGet(key))||{count:0,lastOpen:0};
-
-  if(c.userLimit>0 && st.count>=c.userLimit) return toast(L.limitReached);
-
-  const cdLeft = st.lastOpen && c.cooldown>0 ? st.lastOpen + c.cooldown*60000 - Date.now() : 0;
-
-  if(cdLeft>0) return toast(L.cooldownLeft+": "+humanTime(cdLeft));
-
-  if((USER.balance||0) < c.price) return toast(L.notEnough);
-
-
-
-  // глобальный лимит через транзакцию
-
-  if(c.totalLimit>0){
-
-    const tRef = db.ref(tKey);
-
-    const res = await tRef.transaction(v => (v||0) >= c.totalLimit ? undefined : (v||0)+1);
-
-    if(!res.committed) return toast(L.limitReached);
-
-  }
-
-
-
-  await dbSet(key, {count:(st.count||0)+1, lastOpen:Date.now()});
-
-  await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)-c.price);
-
-  await houseAdd("income", c.price);
-
-
-
-  // выпадение предмета по весам
-
-  const entries = Object.entries(c.contents||{}).filter(([iid])=>ITEMS[iid]);
-
-  if(!entries.length) return;
-
-  const total = entries.reduce((s,[,w])=>s+Number(w.chance||0),0);
-
-  let r = Math.random()*total, pick = entries[0];
-
-  for(const e of entries){ r -= Number(e[1].chance||0); if(r<=0){ pick = e; break; } }
-
-  const item = ITEMS[pick[0]];
-
-  const inv = {itemId:pick[0], name:item.name, price:Number(item.price), icon:item.icon||"", upg:0, ts:Date.now()};
-
-  const invKey = await dbPush("inventory/"+USER.id, inv);
-
-  openModal(`<h2 style="text-align:center">${L.won}</h2>
-
-    <div style="text-align:center">${icon(item.icon)}<div class="item-name" style="font-size:16px">${esc(item.name)}</div><div class="muted">${fmt(item.price)} ${L.gold}</div></div>
-
-    <button class="btn" style="width:100%;margin-top:14px" onclick="closeModal()">${L.done}</button>`);
-
-  USER.balance -= c.price; renderHeader();
-
-  go("inventory");
-
+const c = CASES[id]; if(!c) return;
+if(c.expiresAt && c.expiresAt < Date.now()) return toast(L.caseExpired);
+const key = "caseOpen/"+id+"_"+USER.id, tKey = "caseTotal/"+id;
+const st = (await dbGet(key))||{count:0,lastOpen:0};
+if(c.userLimit>0 && st.count>=c.userLimit) return toast(L.limitReached);
+const cdLeft = st.lastOpen && c.cooldown>0 ? st.lastOpen + c.cooldown*60000 - Date.now() : 0;
+if(cdLeft>0) return toast(L.cooldownLeft+": "+humanTime(cdLeft));
+if((USER.balance||0) < c.price) return toast(L.notEnough);
+// глобальный лимит через транзакцию
+if(c.totalLimit>0){
+const tRef = db.ref(tKey);
+const res = await tRef.transaction(v => (v||0) >= c.totalLimit ? undefined : (v||0)+1);
+if(!res.committed) return toast(L.limitReached);
 }
-
-
-
+await dbSet(key, {count:(st.count||0)+1, lastOpen:Date.now()});
+await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)-c.price);
+await houseAdd("income", c.price);
+// выпадение предмета по весам
+const entries = Object.entries(c.contents||{}).filter(([iid])=>ITEMS[iid]);
+if(!entries.length) return;
+const total = entries.reduce((s,[,w])=>s+Number(w.chance||0),0);
+let r = Math.random()*total, pick = entries[0];
+for(const e of entries){ r -= Number(e[1].chance||0); if(r<=0){ pick = e; break; } }
+const item = ITEMS[pick[0]];
+const inv = {itemId:pick[0], name:item.name, price:Number(item.price), icon:item.icon||"", upg:0, ts:Date.now()};
+const invKey = await dbPush("inventory/"+USER.id, inv);
+openModal(`<h2 style="text-align:center">${L.won}</h2>
+<div style="text-align:center">${icon(item.icon)}<div class="item-name" style="font-size:16px">${esc(item.name)}</div><div class="muted">${fmt(item.price)} ${L.gold}</div></div>
+<button class="btn" style="width:100%;margin-top:14px" onclick="closeModal()">${L.done}</button>`);
+USER.balance -= c.price; renderHeader();
+go("inventory");
+}
 /* ============ ИНВЕНТАРЬ ============ */
-
 async function renderInventory(){
-
-  const inv = (await dbGet("inventory/"+USER.id))||{};
-
-  const list = Object.entries(inv).sort((a,b)=>b[1].ts-a[1].ts);
-
-  $("#app").innerHTML = `<h1>${L.menuInv}</h1>` + (list.length ?
-
-    `<div class="grid">${list.map(([k,v])=>`
-
-      <div class="item-card">
-
-        <img src="${v.icon||defaultGoldIcon()}">
-
-        <div class="item-name">${esc(v.name)}</div>
-
-        <div class="item-price">${fmt(v.price)} ${L.gold}</div>
-
-        <div class="row" style="gap:6px">
-
-          <button class="btn ghost grow" style="padding:8px" onclick="sellItem('${k}',${v.price})">${L.sell}</button>
-
-          <button class="btn grow" style="padding:8px" onclick="go('upgrader');setTimeout(()=>selectUpg('${k}'),400)">${L.upgrade}</button>
-
-        </div>
-
-      </div>`).join("")}</div>` : `<p class="muted">${L.noData}</p>`);
-
+const inv = (await dbGet("inventory/"+USER.id))||{};
+const list = Object.entries(inv).sort((a,b)=>b[1].ts-a[1].ts);
+$("#app").innerHTML = `<h1>${L.menuInv}</h1>` + (list.length ?
+`<div class="grid">${list.map(([k,v])=>`
+<div class="item-card">
+<img src="${v.icon||defaultGoldIcon()}">
+<div class="item-name">${esc(v.name)}</div>
+<div class="item-price">${fmt(v.price)} ${L.gold}</div>
+<div class="row" style="gap:6px">
+<button class="btn ghost grow" style="padding:8px" onclick="sellItem('${k}',${v.price})">${L.sell}</button>
+<button class="btn grow" style="padding:8px" onclick="go('upgrader');setTimeout(()=>selectUpg('${k}'),400)">${L.upgrade}</button>
+</div>
+</div>`).join("")}</div>` : `<p class="muted">${L.noData}</p>`);
 }
-
-
-
 async function sellItem(key, price){
-
-  const gain = Math.floor(price*SELL_RATE);
-
-  await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)+gain);
-
-  await houseAdd("outcome", gain);
-
-  await db.ref("inventory/"+USER.id+"/"+key).remove();
-
-  USER.balance += gain; renderHeader();
-
-  toast(L.soldFor+": "+fmt(gain)+" "+L.gold);
-
-  go("inventory");
-
+const gain = Math.floor(price*SELL_RATE);
+await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)+gain);
+await houseAdd("outcome", gain);
+await db.ref("inventory/"+USER.id+"/"+key).remove();
+USER.balance += gain; renderHeader();
+toast(L.soldFor+": "+fmt(gain)+" "+L.gold);
+go("inventory");
 }
-
-
-
 /* ============ АПГРЕЙДЕР ============ */
-
 let upgSel = null, upgMult = 2, upgBusy = false;
-
 async function renderUpgrader(){
-
-  const inv = (await dbGet("inventory/"+USER.id))||{};
-
-  const list = Object.entries(inv).sort((a,b)=>b[1].ts-a[1].ts);
-
-  const mults = [2,3,5,10,20,50];
-
-  $("#app").innerHTML = `<h1>${L.menuUpg}</h1>
-
-    <p class="muted">${L.pickItem}. ${L.chance} = (100 − ${HOUSE_EDGE}%) / ${L.multiplier.toLowerCase()}</p>
-
-    <div class="grid" style="margin-top:12px">${list.length?list.map(([k,v])=>`
-
-      <div class="item-card" id="ui_${k}" style="${upgSel===k?"outline:2px solid #fff":""}" onclick="selectUpg('${k}')">
-
-        <img src="${v.icon||defaultGoldIcon()}"><div class="item-name">${esc(v.name)}</div>
-
-        <div class="item-price">${fmt(v.price)} ${L.gold}</div>
-
-      </div>`).join(""):""}
-
-    </div>
-
-    <div id="upgPanel" class="${upgSel?"":"hidden"}">
-
-      <div class="card">
-
-        <div class="muted" style="margin-bottom:8px">${L.multiplier}</div>
-
-        <div class="row" style="flex-wrap:wrap;gap:8px">${mults.map(m=>`<button class="tab ${upgMult===m?"act":""}" onclick="setUpgMult(${m})">x${m}</button>`).join("")}</div>
-
-        <div class="stat" style="margin-top:12px"><span>${L.chance}</span><b id="upgChance"></b></div>
-
-        <div class="stat"><span>${L.won}</span><b id="upgTarget"></b></div>
-
-        <div class="upg-wheel"><div class="upg-line"></div><div class="upg-track" id="upgTrack"></div></div>
-
-        <button class="btn" style="width:100%" id="upgGo" onclick="doUpg()">${L.upgrade}</button>
-
-      </div>
-
-    </div>`;
-
-  updateUpgPanel();
-
+const inv = (await dbGet("inventory/"+USER.id))||{};
+const list = Object.entries(inv).sort((a,b)=>b[1].ts-a[1].ts);
+const mults = [2,3,5,10,20,50];
+$("#app").innerHTML = `<h1>${L.menuUpg}</h1>
+<p class="muted">${L.pickItem}. ${L.chance} = (100 − ${HOUSE_EDGE}%) / ${L.multiplier.toLowerCase()}</p>
+<div class="grid" style="margin-top:12px">${list.length?list.map(([k,v])=>`
+<div class="item-card" id="ui_${k}" style="${upgSel===k?"outline:2px solid #fff":""}" onclick="selectUpg('${k}')">
+<img src="${v.icon||defaultGoldIcon()}"><div class="item-name">${esc(v.name)}</div>
+<div class="item-price">${fmt(v.price)} ${L.gold}</div>
+</div>`).join(""):""}
+</div>
+<div id="upgPanel" class="${upgSel?"":"hidden"}">
+<div class="card">
+<div class="muted" style="margin-bottom:8px">${L.multiplier}</div>
+<div class="row" style="flex-wrap:wrap;gap:8px">${mults.map(m=>`<button class="tab ${upgMult===m?"act":""}" onclick="setUpgMult(${m})">x${m}</button>`).join("")}</div>
+<div class="stat" style="margin-top:12px"><span>${L.chance}</span><b id="upgChance"></b></div>
+<div class="stat"><span>${L.won}</span><b id="upgTarget"></b></div>
+<div class="upg-wheel"><div class="upg-line"></div><div class="upg-track" id="upgTrack"></div></div>
+<button class="btn" style="width:100%" id="upgGo" onclick="doUpg()">${L.upgrade}</button>
+</div>
+</div>`;
+updateUpgPanel();
 }
-
 function selectUpg(k){
-
-  upgSel = k; renderUpgrader();
-
+upgSel = k; renderUpgrader();
 }
-
 function setUpgMult(m){ upgMult = m; renderUpgrader(); }
-
 async function updateUpgPanel(){
-
-  if(!upgSel) return;
-
-  const it = await dbGet("inventory/"+USER.id+"/"+upgSel);
-
-  if(!it) return;
-
-  const ch = (100-HOUSE_EDGE)/upgMult;
-
-  $("#upgChance").textContent = ch.toFixed(2)+"%";
-
-  $("#upgTarget").textContent = fmt(it.price*upgMult)+" "+L.gold;
-
-  if(upgBusy) return;
-
-  const track = $("#upgTrack"); if(!track) return;
-
-  track.innerHTML = "";
-
-  for(let i=0;i<14;i++){
-
-    const win = Math.random()*100 < ch;
-
-    const cell = document.createElement("div");
-
-    cell.className = "upg-cell";
-
-    cell.textContent = win ? "x"+upgMult : "✕";
-
-    cell.style.background = win ? "#fff" : "var(--card2)";
-
-    cell.style.color = win ? "#000" : "var(--dim)";
-
-    track.appendChild(cell);
-
-  }
-
+if(!upgSel) return;
+const it = await dbGet("inventory/"+USER.id+"/"+upgSel);
+if(!it) return;
+const ch = (100-HOUSE_EDGE)/upgMult;
+$("#upgChance").textContent = ch.toFixed(2)+"%";
+$("#upgTarget").textContent = fmt(it.price*upgMult)+" "+L.gold;
+if(upgBusy) return;
+const track = $("#upgTrack"); if(!track) return;
+track.innerHTML = "";
+for(let i=0;i<14;i++){
+const win = Math.random()*100 < ch;
+const cell = document.createElement("div");
+cell.className = "upg-cell";
+cell.textContent = win ? "x"+upgMult : "✕";
+cell.style.background = win ? "#fff" : "var(--card2)";
+cell.style.color = win ? "#000" : "var(--dim)";
+track.appendChild(cell);
 }
-
+}
 async function doUpg(){
-
-  if(upgBusy || !upgSel) return;
-
-  upgBusy = true;
-
-  const it = await dbGet("inventory/"+USER.id+"/"+upgSel);
-
-  if(!it){ upgBusy=false; return; }
-
-  const ch = (100-HOUSE_EDGE)/upgMult;
-
-  const win = Math.random()*100 < ch;
-
-  const track = $("#upgTrack"), go_ = $("#upgGo");
-
-  go_.disabled = true;
-
-  track.innerHTML = "";
-
-  for(let i=0;i<30;i++){
-
-    const w = Math.random()*100 < ch;
-
-    const cell = document.createElement("div");
-
-    cell.className = "upg-cell";
-
-    cell.textContent = w ? "x"+upgMult : "✕";
-
-    cell.style.background = w ? "#fff" : "var(--card2)";
-
-    cell.style.color = w ? "#000" : "var(--dim)";
-
-    track.appendChild(cell);
-
-  }
-
-  track.style.transition = "none"; track.style.transform = "translateX(0)";
-
-  track.getBoundingClientRect();
-
-  track.style.transition = "transform 3.2s cubic-bezier(.15,.9,.3,1)";
-
-  track.style.transform = "translateX(-" + (track.scrollWidth - 220) + "px)";
-
-  await new Promise(r=>setTimeout(r,3300));
-
-  // честный итог по чансу
-
-  if(win){
-
-    await db.ref("inventory/"+USER.id+"/"+upgSel).remove();
-
-    await dbPush("inventory/"+USER.id, {name:it.name+" ✦x"+upgMult, price:Math.floor(it.price*upgMult), icon:it.icon, upg:(it.upg||0)+1, ts:Date.now()});
-
-    await houseAdd("income", it.price);
-
-    await houseAdd("outcome", Math.floor(it.price*upgMult));
-
-    toast(L.upgWin);
-
-  } else {
-
-    await db.ref("inventory/"+USER.id+"/"+upgSel).remove();
-
-    await houseAdd("income", it.price);
-
-    toast(L.upgLose);
-
-  }
-
-  upgSel = null; upgBusy = false;
-
-  go("inventory");
-
+if(upgBusy || !upgSel) return;
+upgBusy = true;
+const it = await dbGet("inventory/"+USER.id+"/"+upgSel);
+if(!it){ upgBusy=false; return; }
+const ch = (100-HOUSE_EDGE)/upgMult;
+const win = Math.random()*100 < ch;
+const track = $("#upgTrack"), go_ = $("#upgGo");
+go_.disabled = true;
+track.innerHTML = "";
+for(let i=0;i<30;i++){
+const w = Math.random()*100 < ch;
+const cell = document.createElement("div");
+cell.className = "upg-cell";
+cell.textContent = w ? "x"+upgMult : "✕";
+cell.style.background = w ? "#fff" : "var(--card2)";
+cell.style.color = w ? "#000" : "var(--dim)";
+track.appendChild(cell);
 }
-
-
-
+track.style.transition = "none"; track.style.transform = "translateX(0)";
+track.getBoundingClientRect();
+track.style.transition = "transform 3.2s cubic-bezier(.15,.9,.3,1)";
+track.style.transform = "translateX(-" + (track.scrollWidth - 220) + "px)";
+await new Promise(r=>setTimeout(r,3300));
+// честный итог по чансу
+if(win){
+await db.ref("inventory/"+USER.id+"/"+upgSel).remove();
+await dbPush("inventory/"+USER.id, {name:it.name+" ✦x"+upgMult, price:Math.floor(it.price*upgMult), icon:it.icon, upg:(it.upg||0)+1, ts:Date.now()});
+await houseAdd("income", it.price);
+await houseAdd("outcome", Math.floor(it.price*upgMult));
+toast(L.upgWin);
+} else {
+await db.ref("inventory/"+USER.id+"/"+upgSel).remove();
+await houseAdd("income", it.price);
+toast(L.upgLose);
+}
+upgSel = null; upgBusy = false;
+go("inventory");
+}
 /* ============ ПРОФИЛЬ ============ */
-
 function renderProfile(){
-
-  const ic = CONFIG.currencyIcon || defaultGoldIcon();
-
-  $("#app").innerHTML = `<h1>${L.menuProfile}</h1>
-
-  <div class="card" style="text-align:center">
-
-    <div style="font-size:15px;font-weight:700">${esc(USER.name)}</div>
-
-    <div class="small">ID: ${USER.id}</div>
-
-    <div class="row" style="justify-content:center;margin-top:10px">
-
-      <img src="${ic}" style="width:20px;height:20px;border-radius:6px">
-
-      <span style="font-size:24px;font-weight:700">${fmt(USER.balance)}</span>
-
-      <span class="muted">${L.gold}</span>
-
-    </div>
-
-    <div class="row" style="margin-top:16px;gap:10px">
-
-      <button class="btn ghost grow" onclick="ticketModal('deposit')">${L.deposit}</button>
-
-      <button class="btn grow" onclick="ticketModal('withdraw')">${L.withdraw}</button>
-
-    </div>
-
-  </div>
-
-  <div class="card"><div class="stat"><span>${L.role}</span><b>${USER.isAdmin?L.menuAdmin.toLowerCase():(USER.role==="moderator"?L.roleModer:L.rolePlayer)}</b></div></div>`;
-
+const ic = CONFIG.currencyIcon || defaultGoldIcon();
+$("#app").innerHTML = `<h1>${L.menuProfile}</h1>
+<div class="card" style="text-align:center">
+<div style="font-size:15px;font-weight:700">${esc(USER.name)}</div>
+<div class="small">ID: ${USER.id}</div>
+<div class="row" style="justify-content:center;margin-top:10px">
+<img src="${ic}" style="width:20px;height:20px;border-radius:6px">
+<span style="font-size:24px;font-weight:700">${fmt(USER.balance)}</span>
+<span class="muted">${L.gold}</span>
+</div>
+<div class="row" style="margin-top:16px;gap:10px">
+<button class="btn ghost grow" onclick="ticketModal('deposit')">${L.deposit}</button>
+<button class="btn grow" onclick="ticketModal('withdraw')">${L.withdraw}</button>
+</div>
+</div>
+<div class="card"><div class="stat"><span>${L.role}</span><b>${USER.isAdmin?L.menuAdmin.toLowerCase():(USER.role==="moderator"?L.roleModer:L.rolePlayer)}</b></div></div>`;
 }
-
 function ticketModal(type){
-
-  const isW = type==="withdraw";
-
-  openModal(`<h2>${isW?L.withdraw:L.deposit}</h2>
-
-    <p class="muted" style="margin:8px 0">${L.amountHint}${isW?` (${L.withdraw}: −${WITHDRAW_COMMISSION}% )`:""}</p>
-
-    <input id="tAmount" inputmode="numeric" placeholder="${L.amount}">
-
-    <button class="btn" style="width:100%;margin-top:12px" onclick="createTicket('${type}')">${L.confirm}</button>`);
-
+const isW = type==="withdraw";
+openModal(`<h2>${isW?L.withdraw:L.deposit}</h2>
+<p class="muted" style="margin:8px 0">${L.amountHint}${isW?` (${L.withdraw}: −${WITHDRAW_COMMISSION}% )`:""}</p>
+<input id="tAmount" inputmode="numeric" placeholder="${L.amount}">
+<button class="btn" style="width:100%;margin-top:12px" onclick="createTicket('${type}')">${L.confirm}</button>`);
 }
-
 async function createTicket(type){
-
-  const amt = parseInt($("#tAmount").value.replace(/\D/g,""));
-
-  if(!amt || amt<=0) return toast(L.errFill);
-
-  if(type==="withdraw" && (USER.balance||0) < amt) return toast(L.notEnough);
-
-  const t = {type, amount:amt, userId:USER.id, userName:USER.name, status:"open", createdAt:Date.now()};
-
-  if(type==="withdraw"){
-
-    await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)-amt);
-
-    USER.balance -= amt; renderHeader();
-
-    t.reserved = amt;
-
-  }
-
-  await dbPush("tickets", t);
-
-  closeModal(); toast(L.done); go("tickets");
-
+const amt = parseInt($("#tAmount").value.replace(/\D/g,""));
+if(!amt || amt<=0) return toast(L.errFill);
+if(type==="withdraw" && (USER.balance||0) < amt) return toast(L.notEnough);
+const t = {type, amount:amt, userId:USER.id, userName:USER.name, status:"open", createdAt:Date.now()};
+if(type==="withdraw"){
+await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)-amt);
+USER.balance -= amt; renderHeader();
+t.reserved = amt;
 }
-
-
-
+await dbPush("tickets", t);
+closeModal(); toast(L.done); go("tickets");
+}
 /* ============ ТИКЕТЫ ============ */
-
 async function renderTickets(){
-
-  const all = (await dbGet("tickets"))||{};
-
-  let list = Object.entries(all).sort((a,b)=>b[1].createdAt-a[1].createdAt);
-
-  if(!USER.isStaff) list = list.filter(([,t])=>t.userId===USER.id);
-
-  else list = list.filter(([id,t])=>
-
-    (ticketFilter.type==="all"||t.type===ticketFilter.type) &&
-
-    (ticketFilter.status==="all"||t.status===ticketFilter.status));
-
-
-
-  const filters = USER.isStaff ? `
-
-    <div class="tabs">${[["all",L.filterAll],["deposit",L.typeDeposit],["withdraw",L.typeWithdraw]].map(([k,v])=>`<button class="tab ${ticketFilter.type===k?"act":""}" onclick="ticketFilter.type='${k}';renderTickets()">${v}</button>`).join("")}</div>
-
-    <div class="tabs">${[["open",L.statusOpen],["closed",L.statusClosed],["all",L.filterAll]].map(([k,v])=>`<button class="tab ${ticketFilter.status===k?"act":""}" onclick="ticketFilter.status='${k}';renderTickets()">${v}</button>`).join("")}</div>` : "";
-
-
-
-  $("#app").innerHTML = `<h1>${L.tickets}</h1>${USER.isStaff?`<p class="small" style="margin-bottom:8px">${L.ticketsHint}</p>`:""}${filters}` +
-
-    (list.length ? list.map(([id,t])=>`
-
-      <div class="card tick ${t.status}" onclick="openTicket('${id}')">
-
-        <div class="row"><b class="grow">${t.type==="deposit"?L.typeDeposit:L.typeWithdraw} · ${fmt(t.amount)} ${L.gold}</b>
-
-        <span class="small">${t.status==="open"?L.statusOpen:L.statusClosed}</span></div>
-
-        <div class="small">${esc(t.userName||"")} · ID ${t.userId} · ${new Date(t.createdAt).toLocaleString("ru-RU")}</div>
-
-        ${t.takenBy?`<div class="small">${L.takenBy} ${t.takenByName||t.takenBy}</div>`:""}
-
-      </div>`).join("") : `<p class="muted">${L.noData}</p>`);
-
+const all = (await dbGet("tickets"))||{};
+let list = Object.entries(all).sort((a,b)=>b[1].createdAt-a[1].createdAt);
+if(!USER.isStaff) list = list.filter(([,t])=>t.userId===USER.id);
+else list = list.filter(([id,t])=>
+(ticketFilter.type==="all"||t.type===ticketFilter.type) &&
+(ticketFilter.status==="all"||t.status===ticketFilter.status));
+const filters = USER.isStaff ? `
+<div class="tabs">${[["all",L.filterAll],["deposit",L.typeDeposit],["withdraw",L.typeWithdraw]].map(([k,v])=>`<button class="tab ${ticketFilter.type===k?"act":""}" onclick="ticketFilter.type='${k}';renderTickets()">${v}</button>`).join("")}</div>
+<div class="tabs">${[["open",L.statusOpen],["closed",L.statusClosed],["all",L.filterAll]].map(([k,v])=>`<button class="tab ${ticketFilter.status===k?"act":""}" onclick="ticketFilter.status='${k}';renderTickets()">${v}</button>`).join("")}</div>` : "";
+$("#app").innerHTML = `<h1>${L.tickets}</h1>${USER.isStaff?`<p class="small" style="margin-bottom:8px">${L.ticketsHint}</p>`:""}${filters}` +
+(list.length ? list.map(([id,t])=>`
+<div class="card tick ${t.status}" onclick="openTicket('${id}')">
+<div class="row"><b class="grow">${t.type==="deposit"?L.typeDeposit:L.typeWithdraw} · ${fmt(t.amount)} ${L.gold}</b>
+<span class="small">${t.status==="open"?L.statusOpen:L.statusClosed}</span></div>
+<div class="small">${esc(t.userName||"")} · ID ${t.userId} · ${new Date(t.createdAt).toLocaleString("ru-RU")}</div>
+${t.takenBy?`<div class="small">${L.takenBy} ${t.takenByName||t.takenBy}</div>`:""}
+</div>`).join("") : `<p class="muted">${L.noData}</p>`);
 }
-
-
-
 async function openTicket(id){
-
-  curTicket = id;
-
-  const t = await dbGet("tickets/"+id);
-
-  if(!t) return;
-
-  const canControl = USER.isStaff && t.takenBy===USER.id;
-
-  const canTake = USER.isStaff && t.status==="open" && !t.takenBy;
-
-  const isMine = t.userId===USER.id;
-
-  openModal(`
-
-    <div class="row"><h2 class="grow">${t.type==="deposit"?L.typeDeposit:L.typeWithdraw} · ${fmt(t.amount)} ${L.gold}</h2>
-
-      <span class="small">${t.status==="open"?L.statusOpen:L.statusClosed}</span></div>
-
-    <div class="small" style="margin-bottom:10px">${esc(t.userName||"")} · ID ${t.userId}</div>
-
-    <div class="chat" id="chatBox">${L.loading}</div>
-
-    <div class="row" style="margin-top:10px"><input id="msgIn" placeholder="${L.msgPlaceholder}"><button class="btn" onclick="sendMsg('${id}')">${L.send}</button></div>
-
-    <div class="row" style="margin-top:12px;gap:8px">
-
-      ${canTake?`<button class="btn grow" onclick="takeTicket('${id}')">${L.takeTicket}</button>`:""}
-
-      ${t.takenBy && USER.isStaff && t.takenBy!==USER.id?`<span class="small grow">${L.takenBy} ${esc(t.takenByName||t.takenBy)}</span>`:""}
-
-      ${t.takenBy===USER.id && t.status==="open"?`<span class="small grow">${L.takenByYou}</span>`:""}
-
-    </div>
-
-    ${canControl?`<div class="row" style="margin-top:10px;gap:8px">
-
-      <button class="btn grow" onclick="resolveTicket('${id}','done')">${L.execute}</button>
-
-      <button class="btn ghost grow" onclick="resolveTicket('${id}','reject')">${L.reject}</button></div>`:""}`);
-
-  db.ref("tickets/"+id+"/msgs").orderByChild("ts").on("value", s=>{
-
-    const box = $("#chatBox"); if(!box) return;
-
-    const msgs = s.val()||{};
-
-    const arr = Object.values(msgs).sort((a,b)=>a.ts-b.ts);
-
-    box.innerHTML = arr.length ? arr.map(m=>`
-
-      <div class="msg ${m.from===USER.id?"me":"them"}"><div class="who">${esc(m.name||"")}</div>${esc(m.text)}</div>`).join("")
-
-      : `<span class="muted">${L.noData}</span>`;
-
-    box.scrollTop = box.scrollHeight;
-
-  });
-
+curTicket = id;
+const t = await dbGet("tickets/"+id);
+if(!t) return;
+const canControl = USER.isStaff && t.takenBy===USER.id;
+const canTake = USER.isStaff && t.status==="open" && !t.takenBy;
+const isMine = t.userId===USER.id;
+openModal(`
+<div class="row"><h2 class="grow">${t.type==="deposit"?L.typeDeposit:L.typeWithdraw} · ${fmt(t.amount)} ${L.gold}</h2>
+<span class="small">${t.status==="open"?L.statusOpen:L.statusClosed}</span></div>
+<div class="small" style="margin-bottom:10px">${esc(t.userName||"")} · ID ${t.userId}</div>
+<div class="chat" id="chatBox">${L.loading}</div>
+<div class="row" style="margin-top:10px"><input id="msgIn" placeholder="${L.msgPlaceholder}"><button class="btn" onclick="sendMsg('${id}')">${L.send}</button></div>
+<div class="row" style="margin-top:12px;gap:8px">
+${canTake?`<button class="btn grow" onclick="takeTicket('${id}')">${L.takeTicket}</button>`:""}
+${t.takenBy && USER.isStaff && t.takenBy!==USER.id?`<span class="small grow">${L.takenBy} ${esc(t.takenByName||t.takenBy)}</span>`:""}
+${t.takenBy===USER.id && t.status==="open"?`<span class="small grow">${L.takenByYou}</span>`:""}
+</div>
+${canControl?`<div class="row" style="margin-top:10px;gap:8px">
+<button class="btn grow" onclick="resolveTicket('${id}','done')">${L.execute}</button>
+<button class="btn ghost grow" onclick="resolveTicket('${id}','reject')">${L.reject}</button></div>`:""}`);
+db.ref("tickets/"+id+"/msgs").orderByChild("ts").on("value", s=>{
+const box = $("#chatBox"); if(!box) return;
+const msgs = s.val()||{};
+const arr = Object.values(msgs).sort((a,b)=>a.ts-b.ts);
+box.innerHTML = arr.length ? arr.map(m=>`
+<div class="msg ${m.from===USER.id?"me":"them"}"><div class="who">${esc(m.name||"")}</div>${esc(m.text)}</div>`).join("")
+: `<span class="muted">${L.noData}</span>`;
+box.scrollTop = box.scrollHeight;
+});
 }
-
 async function sendMsg(id){
-
-  const inp = $("#msgIn"); const text = inp.value.trim(); if(!text) return;
-
-  await dbPush("tickets/"+id+"/msgs", {from:USER.id, name:USER.name, text, ts:Date.now()});
-
-  inp.value = "";
-
+const inp = $("#msgIn"); const text = inp.value.trim(); if(!text) return;
+await dbPush("tickets/"+id+"/msgs", {from:USER.id, name:USER.name, text, ts:Date.now()});
+inp.value = "";
 }
-
 async function takeTicket(id){
-
-  const t = await dbGet("tickets/"+id);
-
-  if(!t || t.takenBy) return toast(L.alreadyTaken);
-
-  if(t.userId===USER.id) return toast(L.takeSelf);
-
-  await dbUpd("tickets/"+id, {takenBy:USER.id, takenByName:USER.name, status:"open"});
-
-  closeModal(); openTicket(id);
-
+const t = await dbGet("tickets/"+id);
+if(!t || t.takenBy) return toast(L.alreadyTaken);
+if(t.userId===USER.id) return toast(L.takeSelf);
+await dbUpd("tickets/"+id, {takenBy:USER.id, takenByName:USER.name, status:"open"});
+closeModal(); openTicket(id);
 }
-
 async function resolveTicket(id, res){
-
-  const t = await dbGet("tickets/"+id);
-
-  if(!t || t.takenBy!==USER.id || t.status!=="open") return;
-
-  const uref = db.ref("users/"+t.userId+"/balance");
-
-  if(t.type==="deposit"){
-
-    if(res==="done"){
-
-      await uref.transaction(v=>(v||0)+t.amount);
-
-      await houseAdd("income", t.amount);
-
-    }
-
-  } else {
-
-    if(res==="done"){
-
-      await houseAdd("outcome", Math.floor(t.amount*(100-WITHDRAW_COMMISSION)/100));
-
-    } else {
-
-      await uref.transaction(v=>(v||0)+t.amount); // возврат резерва
-
-    }
-
-  }
-
-  await dbUpd("tickets/"+id, {status:"closed", resolvedAt:Date.now(), result:res});
-
-  await dbPush("tickets/"+id+"/msgs", {from:USER.id, name:"SYSTEM", text: res==="done"?(t.type==="deposit"?L.arrived:L.withdrawn):L.rejected, ts:Date.now()});
-
-  closeModal(); toast(L.done); go("tickets");
-
+const t = await dbGet("tickets/"+id);
+if(!t || t.takenBy!==USER.id || t.status!=="open") return;
+const uref = db.ref("users/"+t.userId+"/balance");
+if(t.type==="deposit"){
+if(res==="done"){
+await uref.transaction(v=>(v||0)+t.amount);
+await houseAdd("income", t.amount);
 }
-
-
-
+} else {
+if(res==="done"){
+await houseAdd("outcome", Math.floor(t.amount*(100-WITHDRAW_COMMISSION)/100));
+} else {
+await uref.transaction(v=>(v||0)+t.amount); // возврат резерва
+}
+}
+await dbUpd("tickets/"+id, {status:"closed", resolvedAt:Date.now(), result:res});
+await dbPush("tickets/"+id+"/msgs", {from:USER.id, name:"SYSTEM", text: res==="done"?(t.type==="deposit"?L.arrived:L.withdrawn):L.rejected, ts:Date.now()});
+closeModal(); toast(L.done); go("tickets");
+}
 /* ============ НАСТРОЙКИ ============ */
-
 function renderSettings(){
-
-  $("#app").innerHTML = `<h1>${L.menuSet}</h1>
-
-    <div class="card">
-
-      <a href="${SUPPORT_URL}" target="_blank" style="text-decoration:none">
-
-        <button class="btn ghost" style="width:100%">${L.support} · @SiQyal</button></a>
-
-    </div>
-
-    <div class="card"><button class="btn ghost" style="width:100%" onclick="logout()">${L.logout}</button></div>`;
-
+$("#app").innerHTML = `<h1>${L.menuSet}</h1>
+<div class="card">
+<a href="${SUPPORT_URL}" target="_blank" style="text-decoration:none">
+<button class="btn ghost" style="width:100%">${L.support} · @SiQyal</button></a>
+</div>
+<div class="card"><button class="btn ghost" style="width:100%" onclick="logout()">${L.logout}</button></div>`;
 }
-
 function logout(){ localStorage.removeItem("zxu_id"); USER=null; location.reload(); }
-
-
-
 /* ============ АДМИН-ПАНЕЛЬ ============ */
-
 function renderAdmin(){
-
-  if(!USER.isAdmin){ go("main"); return; }
-
-  const tabs = [["items",L.adminItems],["cases",L.adminCases],["ann",L.adminAnn],["users",L.adminUsers],["fin",L.adminFin]];
-
-  $("#app").innerHTML = `<h1>${L.menuAdmin}</h1>
-
-    <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${adminTab===k?"act":""}" onclick="adminTab='${k}';renderAdmin()">${v}</button>`).join("")}</div>
-
-    <div id="adminBody"></div>`;
-
-  ({items:aItems, cases:aCases, ann:aAnn, users:aUsers, fin:aFin}[adminTab])();
-
+if(!USER.isAdmin){ go("main"); return; }
+const tabs = [["items",L.adminItems],["cases",L.adminCases],["ann",L.adminAnn],["users",L.adminUsers],["fin",L.adminFin]];
+$("#app").innerHTML = `<h1>${L.menuAdmin}</h1>
+<div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${adminTab===k?"act":""}" onclick="adminTab='${k}';renderAdmin()">${v}</button>`).join("")}</div>
+<div id="adminBody"></div>`;
+({items:aItems, cases:aCases, ann:aAnn, users:aUsers, fin:aFin}[adminTab])();
 }
-
-
-
 async function aItems(){
-
-  ITEMS = (await dbGet("items"))||{};
-
-  $("#adminBody").innerHTML = `<div class="card">
-
-      <input id="iName" placeholder="${L.itemName}">
-
-      <input id="iPrice" inputmode="numeric" placeholder="${L.itemPrice}" style="margin:8px 0">
-
-      <div class="file-btn" onclick="pickImage(d=>{$('#iIcon').src=d;$('#iIcon').classList.remove('hidden')})">${L.itemIcon}</div>
-
-      <img id="iIcon" class="hidden" style="width:70px;height:70px;object-fit:cover;border-radius:10px">
-
-      <button class="btn" style="width:100%;margin-top:8px" onclick="addItem()">${L.add}</button>
-
-    </div>
-
-    <div class="grid">${Object.entries(ITEMS).map(([k,v])=>`
-
-      <div class="item-card"><img src="${v.icon||defaultGoldIcon()}">
-
-      <div class="item-name">${esc(v.name)}</div><div class="item-price">${fmt(v.price)} ${L.gold}</div>
-
-      <button class="btn ghost" style="width:100%;padding:7px;font-size:12px" onclick="delItem('${k}')">${L.del}</button></div>`).join("")}</div>`;
-
+ITEMS = (await dbGet("items"))||{};
+$("#adminBody").innerHTML = `<div class="card">
+<input id="iName" placeholder="${L.itemName}">
+<input id="iPrice" inputmode="numeric" placeholder="${L.itemPrice}" style="margin:8px 0">
+<div class="file-btn" onclick="pickImage(d=>{$('#iIcon').src=d;$('#iIcon').classList.remove('hidden')})">${L.itemIcon}</div>
+<img id="iIcon" class="hidden" style="width:70px;height:70px;object-fit:cover;border-radius:10px">
+<button class="btn" style="width:100%;margin-top:8px" onclick="addItem()">${L.add}</button>
+</div>
+<div class="grid">${Object.entries(ITEMS).map(([k,v])=>`
+<div class="item-card"><img src="${v.icon||defaultGoldIcon()}">
+<div class="item-name">${esc(v.name)}</div><div class="item-price">${fmt(v.price)} ${L.gold}</div>
+<button class="btn ghost" style="width:100%;padding:7px;font-size:12px" onclick="delItem('${k}')">${L.del}</button></div>`).join("")}</div>`;
 }
-
 async function addItem(){
-
-  const name = $("#iName").value.trim(), price = parseInt($("#iPrice").value.replace(/\D/g,""));
-
-  const icon = ($("#iIcon")&&!$("#iIcon").classList.contains("hidden"))?$("#iIcon").src:"";
-
-  if(!name||!price) return toast(L.errFill);
-
-  await dbPush("items", {name, price, icon});
-
-  toast(L.done); aItems();
-
+const name = $("#iName").value.trim(), price = parseInt($("#iPrice").value.replace(/\D/g,""));
+const icon = ($("#iIcon")&&!$("#iIcon").classList.contains("hidden"))?$("#iIcon").src:"";
+if(!name||!price) return toast(L.errFill);
+await dbPush("items", {name, price, icon});
+toast(L.done); aItems();
 }
-
 async function delItem(k){ await db.ref("items/"+k).remove(); aItems(); }
-
-
-
 async function aCases(){
-
-  CASES = (await dbGet("cases"))||{};
-
-  ITEMS = (await dbGet("items"))||{};
-
-  $("#adminBody").innerHTML = `
-
-    <div class="card">
-
-      <input id="cName" placeholder="${L.caseName}">
-
-      <input id="cPrice" inputmode="numeric" placeholder="${L.casePrice}" style="margin:8px 0">
-
-      <div class="file-btn" onclick="pickImage(d=>{$('#cIcon').src=d;$('#cIcon').classList.remove('hidden')})">${L.caseIcon}</div>
-
-      <img id="cIcon" class="hidden" style="width:70px;height:70px;object-fit:cover;border-radius:10px">
-
-      <input id="cTotal" inputmode="numeric" placeholder="${L.caseTotalLimit}" style="margin-top:8px">
-
-      <input id="cUser" inputmode="numeric" placeholder="${L.caseUserLimit}" style="margin:8px 0">
-
-      <input id="cCd" inputmode="numeric" placeholder="${L.caseCooldown}">
-
-      <input id="cExp" inputmode="numeric" placeholder="${L.caseExpire}" style="margin:8px 0">
-
-      <div class="muted" style="margin:10px 0 4px">${L.caseContents}</div>
-
-      <div id="cPick">${Object.entries(ITEMS).map(([k,v])=>`
-
-        <div class="row" style="margin-bottom:6px">
-
-          <input type="checkbox" id="ck_${k}" style="width:20px">
-
-          <span class="grow small">${esc(v.name)} · ${fmt(v.price)}</span>
-
-          <input id="cc_${k}" inputmode="numeric" placeholder="%" style="width:70px;padding:6px">
-
-        </div>`).join("")||`<span class="muted">${L.noData}</span>`}</div>
-
-      <button class="btn" style="width:100%;margin-top:10px" onclick="addCase()">${L.add}</button>
-
-    </div>
-
-    <div class="grid">${Object.entries(CASES).map(([k,v])=>`
-
-      <div class="item-card"><img src="${v.icon||defaultGoldIcon()}">
-
-      <div class="item-name">${esc(v.name)}</div><div class="item-price">${fmt(v.price)} ${L.gold}</div>
-
-      <button class="btn ghost" style="width:100%;padding:7px;font-size:12px" onclick="delCase('${k}')">${L.del}</button></div>`).join("")}</div>`;
-
+CASES = (await dbGet("cases"))||{};
+ITEMS = (await dbGet("items"))||{};
+$("#adminBody").innerHTML = `
+<div class="card">
+<input id="cName" placeholder="${L.caseName}">
+<input id="cPrice" inputmode="numeric" placeholder="${L.casePrice}" style="margin:8px 0">
+<div class="file-btn" onclick="pickImage(d=>{$('#cIcon').src=d;$('#cIcon').classList.remove('hidden')})">${L.caseIcon}</div>
+<img id="cIcon" class="hidden" style="width:70px;height:70px;object-fit:cover;border-radius:10px">
+<input id="cTotal" inputmode="numeric" placeholder="${L.caseTotalLimit}" style="margin-top:8px">
+<input id="cUser" inputmode="numeric" placeholder="${L.caseUserLimit}" style="margin:8px 0">
+<input id="cCd" inputmode="numeric" placeholder="${L.caseCooldown}">
+<input id="cExp" inputmode="numeric" placeholder="${L.caseExpire}" style="margin:8px 0">
+<div class="muted" style="margin:10px 0 4px">${L.caseContents}</div>
+<div id="cPick">${Object.entries(ITEMS).map(([k,v])=>`
+<div class="row" style="margin-bottom:6px">
+<input type="checkbox" id="ck_${k}" style="width:20px">
+<span class="grow small">${esc(v.name)} · ${fmt(v.price)}</span>
+<input id="cc_${k}" inputmode="numeric" placeholder="%" style="width:70px;padding:6px">
+</div>`).join("")||`<span class="muted">${L.noData}</span>`}</div>
+<button class="btn" style="width:100%;margin-top:10px" onclick="addCase()">${L.add}</button>
+</div>
+<div class="grid">${Object.entries(CASES).map(([k,v])=>`
+<div class="item-card"><img src="${v.icon||defaultGoldIcon()}">
+<div class="item-name">${esc(v.name)}</div><div class="item-price">${fmt(v.price)} ${L.gold}</div>
+<button class="btn ghost" style="width:100%;padding:7px;font-size:12px" onclick="delCase('${k}')">${L.del}</button></div>`).join("")}</div>`;
 }
-
 async function addCase(){
-
-  const name = $("#cName").value.trim(), price = parseInt($("#cPrice").value.replace(/\D/g,""));
-
-  if(!name||!price) return toast(L.errFill);
-
-  const contents = {};
-
-  Object.keys(ITEMS).forEach(k=>{
-
-    if($("#ck_"+k).checked){
-
-      const w = parseInt($("#cc_"+k).value)||0;
-
-      if(w>0) contents[k] = {chance:w};
-
-    }
-
-  });
-
-  if(!Object.keys(contents).length) return toast(L.caseContents+": 0");
-
-  const total = parseInt($("#cTotal").value)||0, userL = parseInt($("#cUser").value)||0;
-
-  const cd = parseInt($("#cCd").value)||0, exp = parseInt($("#cExp").value)||0;
-
-  await dbPush("cases", {
-
-    name, price, icon:($("#cIcon")&&!$("#cIcon").classList.contains("hidden"))?$("#cIcon").src:"",
-
-    contents, totalLimit:total, userLimit:userL, cooldown:cd,
-
-    expiresAt: exp>0 ? Date.now()+exp*3600000 : 0
-
-  });
-
-  toast(L.done); aCases();
-
+const name = $("#cName").value.trim(), price = parseInt($("#cPrice").value.replace(/\D/g,""));
+if(!name||!price) return toast(L.errFill);
+const contents = {};
+Object.keys(ITEMS).forEach(k=>{
+if($("#ck_"+k).checked){
+const w = parseInt($("#cc_"+k).value)||0;
+if(w>0) contents[k] = {chance:w};
 }
-
+});
+if(!Object.keys(contents).length) return toast(L.caseContents+": 0");
+const total = parseInt($("#cTotal").value)||0, userL = parseInt($("#cUser").value)||0;
+const cd = parseInt($("#cCd").value)||0, exp = parseInt($("#cExp").value)||0;
+await dbPush("cases", {
+name, price, icon:($("#cIcon")&&!$("#cIcon").classList.contains("hidden"))?$("#cIcon").src:"",
+contents, totalLimit:total, userLimit:userL, cooldown:cd,
+expiresAt: exp>0 ? Date.now()+exp*3600000 : 0
+});
+toast(L.done); aCases();
+}
 async function delCase(k){ await db.ref("cases/"+k).remove(); aCases(); }
-
-
-
 async function aAnn(){
-
-  ANN = (await dbGet("announcements"))||{};
-
-  $("#adminBody").innerHTML = `
-
-    <div class="card">
-
-      <textarea id="aText" rows="3" placeholder="${L.annText}"></textarea>
-
-      <div class="file-btn" onclick="pickImage(d=>{$('#aImg').src=d;$('#aImg').classList.remove('hidden')})">${L.annImage}</div>
-
-      <img id="aImg" class="hidden" style="border-radius:10px;max-height:120px">
-
-      <button class="btn" style="width:100%;margin-top:8px" onclick="addAnn()">${L.publish}</button>
-
-    </div>
-
-    ${Object.entries(ANN).sort((a,b)=>b[1].ts-a[1].ts).map(([k,v])=>`
-
-      <div class="card ann"><div class="row"><div class="grow">${esc(v.text||"")}</div>
-
-      <button class="btn ghost" style="padding:6px 10px;font-size:12px" onclick="delAnn('${k}')">${L.del}</button></div>
-
-      ${v.image?`<img src="${v.image}">`:""}</div>`).join("")||`<p class="muted">${L.noData}</p>`}`;
-
+ANN = (await dbGet("announcements"))||{};
+$("#adminBody").innerHTML = `
+<div class="card">
+<textarea id="aText" rows="3" placeholder="${L.annText}"></textarea>
+<div class="file-btn" onclick="pickImage(d=>{$('#aImg').src=d;$('#aImg').classList.remove('hidden')})">${L.annImage}</div>
+<img id="aImg" class="hidden" style="border-radius:10px;max-height:120px">
+<button class="btn" style="width:100%;margin-top:8px" onclick="addAnn()">${L.publish}</button>
+</div>
+${Object.entries(ANN).sort((a,b)=>b[1].ts-a[1].ts).map(([k,v])=>`
+<div class="card ann"><div class="row"><div class="grow">${esc(v.text||"")}</div>
+<button class="btn ghost" style="padding:6px 10px;font-size:12px" onclick="delAnn('${k}')">${L.del}</button></div>
+${v.image?`<img src="${v.image}">`:""}</div>`).join("")||`<p class="muted">${L.noData}</p>`}`;
 }
-
 async function addAnn(){
-
-  const text = $("#aText").value.trim();
-
-  const hasImg = $("#aImg") && !$("#aImg").classList.contains("hidden");
-
-  if(!text && !hasImg) return toast(L.errFill);
-
-  await dbPush("announcements", {text, image:hasImg?$("#aImg").src:"", ts:Date.now()});
-
-  toast(L.done); aAnn();
-
+const text = $("#aText").value.trim();
+const hasImg = $("#aImg") && !$("#aImg").classList.contains("hidden");
+if(!text && !hasImg) return toast(L.errFill);
+await dbPush("announcements", {text, image:hasImg?$("#aImg").src:"", ts:Date.now()});
+toast(L.done); aAnn();
 }
-
 async function delAnn(k){ await db.ref("announcements/"+k).remove(); aAnn(); }
-
-
-
 async function aUsers(){
-
-  const q = ($("#uq")?$("#uq").value.trim():"");
-
-  let users = (await dbGet("users"))||{};
-
-  let list = Object.entries(users);
-
-  if(q) list = list.filter(([id])=>id.includes(q));
-
-  list.sort((a,b)=>b[0].localeCompare(a[0]));
-
-  $("#adminBody").innerHTML = `
-
-    <input id="uq" placeholder="${L.searchById}" value="${esc(q)}" oninput="clearTimeout(window._ut);window._ut=setTimeout(aUsers,500)">
-
-    <div style="margin-top:12px">${list.slice(0,30).map(([id,u])=>`
-
-      <div class="card">
-
-        <div class="row">
-
-          <b class="grow">${esc(u.name||"")}</b>
-
-          <span class="small">ID ${id}</span>
-
-        </div>
-
-        <div class="stat"><span>${L.userBalance}</span><b>${fmt(u.balance)} ${L.gold}</b></div>
-
-        <div class="stat"><span>${L.role}</span><b>${u.role==="moderator"?L.roleModer:(ADMIN_IDS.map(String).includes(id)?"admin":L.rolePlayer)}</b></div>
-
-        <div class="row" style="margin-top:8px;gap:8px">
-
-          <button class="btn ghost grow" style="padding:8px" onclick="editUser('${id}',${u.balance||0},'${esc(u.name||"")}')">${L.edit}</button>
-
-          <button class="btn grow" style="padding:8px" onclick="toggleRole('${id}','${u.role||"player"}')">${L.role}</button>
-
-        </div>
-
-      </div>`).join("")}</div>`;
-
+const q = ($("#uq")?$("#uq").value.trim():"");
+let users = (await dbGet("users"))||{};
+let list = Object.entries(users);
+if(q) list = list.filter(([id])=>id.includes(q));
+list.sort((a,b)=>b[0].localeCompare(a[0]));
+$("#adminBody").innerHTML = `
+<input id="uq" placeholder="${L.searchById}" value="${esc(q)}" oninput="clearTimeout(window._ut);window._ut=setTimeout(aUsers,500)">
+<div style="margin-top:12px">${list.slice(0,30).map(([id,u])=>`
+<div class="card">
+<div class="row">
+<b class="grow">${esc(u.name||"")}</b>
+<span class="small">ID ${id}</span>
+</div>
+<div class="stat"><span>${L.userBalance}</span><b>${fmt(u.balance)} ${L.gold}</b></div>
+<div class="stat"><span>${L.role}</span><b>${u.role==="moderator"?L.roleModer:(ADMIN_IDS.map(String).includes(id)?"admin":L.rolePlayer)}</b></div>
+<div class="row" style="margin-top:8px;gap:8px">
+<button class="btn ghost grow" style="padding:8px" onclick="editUser('${id}',${u.balance||0},'${esc(u.name||"")}')">${L.edit}</button>
+<button class="btn grow" style="padding:8px" onclick="toggleRole('${id}','${u.role||"player"}')">${L.role}</button>
+</div>
+</div>`).join("")}</div>`;
 }
-
 function editUser(id, bal, name){
-
-  openModal(`<h2>${L.adminUsers}</h2>
-
-    <input id="eName" value="${esc(name)}" placeholder="${L.playerName}" style="margin:10px 0">
-
-    <input id="eBal" inputmode="numeric" value="${bal}" placeholder="${L.userBalance}">
-
-    <button class="btn" style="width:100%;margin-top:12px" onclick="saveUser('${id}')">${L.save}</button>`);
-
+openModal(`<h2>${L.adminUsers}</h2>
+<input id="eName" value="${esc(name)}" placeholder="${L.playerName}" style="margin:10px 0">
+<input id="eBal" inputmode="numeric" value="${bal}" placeholder="${L.userBalance}">
+<button class="btn" style="width:100%;margin-top:12px" onclick="saveUser('${id}')">${L.save}</button>`);
 }
-
 async function saveUser(id){
-
-  const name = $("#eName").value.trim(), bal = parseInt($("#eBal").value.replace(/\D/g,""))||0;
-
-  await dbUpd("users/"+id, {name, balance:bal});
-
-  closeModal(); toast(L.saved); aUsers();
-
+const name = $("#eName").value.trim(), bal = parseInt($("#eBal").value.replace(/\D/g,""))||0;
+await dbUpd("users/"+id, {name, balance:bal});
+closeModal(); toast(L.saved); aUsers();
 }
-
 async function toggleRole(id, cur){
-
-  const next = cur==="moderator" ? "player" : "moderator";
-
-  await dbSet("users/"+id+"/role", next);
-
-  toast(L.changeRole); aUsers();
-
+const next = cur==="moderator" ? "player" : "moderator";
+await dbSet("users/"+id+"/role", next);
+toast(L.changeRole); aUsers();
 }
-
-
-
 async function aFin(){
-
-  CONFIG = Object.assign({house:{income:0,outcome:0}}, (await dbGet("config"))||{});
-
-  const h = CONFIG.house||{};
-
-  const diff = (h.income||0)-(h.outcome||0);
-
-  $("#adminBody").innerHTML = `
-
-    <div class="card">
-
-      <div class="stat"><span>${L.houseIncome}</span><b>${fmt(h.income||0)}</b></div>
-
-      <div class="stat"><span>${L.houseOutcome}</span><b>${fmt(h.outcome||0)}</b></div>
-
-      <div class="stat"><span>${L.houseDiff}</span><b style="color:${diff>=0?"#fff":"#888"}">${fmt(diff)}</b></div>
-
-      <p class="small" style="margin-top:8px">${HOUSE_EDGE}% — ${L.app}. ${L.chance} = (100−${HOUSE_EDGE})% / ${L.multiplier.toLowerCase()}</p>
-
-    </div>
-
-    <div class="card">
-
-      <div class="muted" style="margin-bottom:8px">${L.curIcon} / ${L.balIcon}</div>
-
-      <div class="file-btn" onclick="pickImage(d=>setCurIcon(d))">${L.curIcon}</div>
-
-    </div>`;
-
+CONFIG = Object.assign({house:{income:0,outcome:0}}, (await dbGet("config"))||{});
+const h = CONFIG.house||{};
+const diff = (h.income||0)-(h.outcome||0);
+$("#adminBody").innerHTML = `
+<div class="card">
+<div class="stat"><span>${L.houseIncome}</span><b>${fmt(h.income||0)}</b></div>
+<div class="stat"><span>${L.houseOutcome}</span><b>${fmt(h.outcome||0)}</b></div>
+<div class="stat"><span>${L.houseDiff}</span><b style="color:${diff>=0?"#fff":"#888"}">${fmt(diff)}</b></div>
+<p class="small" style="margin-top:8px">${HOUSE_EDGE}% — ${L.app}. ${L.chance} = (100−${HOUSE_EDGE})% / ${L.multiplier.toLowerCase()}</p>
+</div>
+<div class="card">
+<div class="muted" style="margin-bottom:8px">${L.curIcon} / ${L.balIcon}</div>
+<div class="file-btn" onclick="pickImage(d=>setCurIcon(d))">${L.curIcon}</div>
+</div>`;
 }
-
 async function setCurIcon(d){
-
-  await dbSet("config/currencyIcon", d);
-
-  toast(L.saved); aFin();
-
+await dbSet("config/currencyIcon", d);
+toast(L.saved); aFin();
 }
-
-
-
 /* ============ КАЗНА (helper) ============ */
-
 async function houseAdd(field, v){
-
-  await db.ref("config/house/"+field).transaction(cur=>(cur||0)+Math.round(v));
-
+await db.ref("config/house/"+field).transaction(cur=>(cur||0)+Math.round(v));
 }
-
-
-
 /* ============ START ============ */
-
 (async function init(){
-
-  try{ fbInit(); }catch(e){ $("#app").innerHTML = "<p style='padding:20px'>Ошибка Firebase: проверьте FIREBASE_CONFIG</p>"; return; }
-
-  const tg = getTgUser();
-
-  if(tg){ await ensureUser(tg); startApp(); }
-
-  else {
-
-    const saved = localStorage.getItem("zxu_id");
-
-    if(saved){ await ensureUser({id:saved, name:localStorage.getItem("zxu_name")||("id"+saved)}); startApp(); }
-
-    else renderLogin();
-
-  }
-
-})();
-
-
-
-function startApp(){
-
-  $("#header").style.visibility="visible";
-
-  renderHeader(); buildMenu(); go("main");
-
+try{ fbInit(); }catch(e){ $("#app").innerHTML = "<p style='padding:20px'>Ошибка Firebase: проверьте FIREBASE_CONFIG</p>"; return; }
+const tg = getTgUser();
+if(tg){ await ensureUser(tg); startApp(); }
+else {
+const saved = localStorage.getItem("zxu_id");
+if(saved){ await ensureUser({id:saved, name:localStorage.getItem("zxu_name")||("id"+saved)}); startApp(); }
+else renderLogin();
 }
-
+})();
+function startApp(){
+$("#header").style.visibility="visible";
+renderHeader(); buildMenu(); go("main");
+}
 </script>
-
 </body>
-
 </html>
