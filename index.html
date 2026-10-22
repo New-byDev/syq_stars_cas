@@ -3,112 +3,200 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ZombixUp</title>
+<title>ZombixUP</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--bg:#0a0a0a;--card:#141414;--card2:#1d1d1d;--line:#2a2a2a;--txt:#f2f2f2;--dim:#9a9a9a;--acc:#ffffff}
-body{background:var(--bg);color:var(--txt);font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;min-height:100vh;padding-bottom:30px}
-button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;transition:.2s}
-input,select,textarea{font-family:inherit;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px 12px;font-size:15px;width:100%;outline:none;transition:.2s}
-input:focus,textarea:focus{border-color:#555}
-.btn{background:var(--acc);color:#000;font-weight:600;padding:12px 16px;font-size:15px}
-.btn:active{transform:scale(.96)}
-.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
-.btn.red{background:#fff;color:#000}
-.btn:disabled{opacity:.4;cursor:default}
-img{max-width:100%}
-.hidden{display:none!important}
-/* header */
-#header{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(10,10,10,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.bal{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);padding:7px 14px;border-radius:12px}
-.bal img{width:22px;height:22px;object-fit:cover;border-radius:6px}
-.bal b{font-size:16px;letter-spacing:.5px}
-#menuBtn{background:var(--card);border:1px solid var(--line);color:var(--txt);width:42px;height:42px;font-size:20px;border-radius:12px}
-/* menu - плавно выпадает вниз */
-#menu{position:fixed;top:calc(66px + env(safe-area-inset-top, 0px));right:12px;z-index:60;width:min(280px,calc(100vw - 24px));background:#101010;border:1px solid var(--line);border-radius:16px;overflow:hidden;max-height:0;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-10px) scale(.98);transform-origin:top right;transition:max-height .36s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .36s cubic-bezier(.22,1,.36,1),visibility 0s linear .36s;box-shadow:0 12px 40px rgba(0,0,0,.7)}
-#menu.open{max-height: min(75vh, 560px);opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1);transition:max-height .36s cubic-bezier(.22,1,.36,1),opacity .24s ease,transform .36s cubic-bezier(.22,1,.36,1),visibility 0s}
-#menu .mi{padding:14px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .2s;font-size:15px;display:flex;justify-content:space-between;align-items:center}
-#menu .mi:last-child{border-bottom:none}
-#menu .mi:active{background:var(--card2)}
-/* screens */
-#app{padding:14px;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-h1{font-size:22px;margin:6px 0 14px}
-h2{font-size:17px;margin:20px 0 10px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
-.row{display:flex;gap:10px;align-items:center}
-.muted{color:var(--dim);font-size:13px}
-.small{font-size:12px;color:var(--dim)}
-.grow{flex:1}
-.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
-.tab{padding:9px 14px;border-radius:20px;background:var(--card);border:1px solid var(--line);color:var(--dim);white-space:nowrap;font-size:13px}
-.tab.act{background:var(--acc);color:#000;border-color:var(--acc);font-weight:600}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-/* кейс-карточка */
-.case-card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative}
-.case-imgwrap{position:relative;padding:10px;display:flex;justify-content:center}
-.case-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:#000}
-.case-name{position:absolute;top:16px;left:16px;right:16px;color:#fff;font-weight:700;font-size:15px;text-shadow:0 1px 6px #000,0 0 3px #000}
-.case-timer{position:absolute;bottom:18px;left:16px;background:rgba(0,0,0,.75);padding:3px 9px;border-radius:8px;font-size:11px}
-.case-body{padding:0 12px 12px;text-align:center}
-.case-buy{width:100%;padding:11px;background:var(--acc);color:#000;font-weight:700;border-radius:12px;font-size:15px}
-.case-left{margin-top:7px;font-size:12px;color:var(--dim)}
-/* инвентарь */
-.item-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
-.item-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#000}
-.item-name{font-size:13px;font-weight:600;margin:8px 0 2px;min-height:16px}
-.item-price{font-size:12px;color:var(--dim);margin-bottom:8px}
-/* объявления */
-.ann{margin-bottom:12px;animation:fadeIn .4s ease}
-.ann img{border-radius:12px;margin-top:8px;max-height:260px;object-fit:cover;width:100%}
-/* тикеты */
-.tick{border-left:3px solid var(--line)}
-.tick.open{border-left-color:#fff}
-.tick.closed{opacity:.6}
-.chat{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 2px}
-.msg{max-width:82%;padding:9px 12px;border-radius:14px;font-size:14px;word-break:break-word}
-.msg.me{align-self:flex-end;background:var(--acc);color:#000;border-bottom-right-radius:4px}
-.msg.them{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:4px}
-.msg .who{font-size:10px;opacity:.6;margin-bottom:2px}
-/* модалка */
-#modalWrap{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity .25s}
-#modalWrap.show{opacity:1}
-#modal{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;width:100%;max-width:420px;max-height:86vh;overflow-y:auto;transform:scale(.94);transition:transform .25s}
-#modalWrap.show #modal{transform:scale(1)}
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--acc);color:#000;padding:10px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:200;pointer-events:none;max-width:90%;text-align:center}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.upg-wheel{height:60px;background:#000;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;margin:12px 0}
-.upg-line{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;z-index:2}
-.upg-track{position:absolute;top:10px;height:40px;display:flex;align-items:center;gap:6px;will-change:transform}
-.upg-cell{min-width:70px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--line);border-radius:8px;font-size:12px;padding:0 6px}
-.login-box{max-width:340px;margin:60px auto;text-align:center}
-.login-box input{margin:8px 0}
-.avatar{width:46px;height:46px;border-radius:12px;object-fit:cover;background:var(--card2);border:1px solid var(--line)}
-.file-btn{display:block;text-align:center;padding:10px;border:1px dashed var(--line);border-radius:10px;color:var(--dim);font-size:13px;cursor:pointer;margin:6px 0}
-.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;margin:4px 4px 0 0}
-.chip button{background:none;color:var(--dim);font-size:14px;padding:0}
-.stat{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
-.stat:last-child{border-bottom:none}
-@media (prefers-reduced-motion: reduce){#menu,#app,.ann,#modal,#modalWrap,#toast{transition:none!important;animation:none!important}}
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  :root { --bg:#0b0b0b; --card:#171717; --text:#f5f5f5; --muted:#8d8d8d; --line:#2c2c2c; --accent:#fff; --green:#4caf50; --red:#ef5350; }
+  html, body { background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; height:100%; overflow:hidden; }
+
+  #auth-screen { position:fixed; inset:0; background:radial-gradient(circle at 50% 0%, #1e1e1e, #0b0b0b 70%); z-index:500; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+  #auth-screen.show { display:flex; }
+  #auth-screen h1 { font-size:30px; letter-spacing:3px; margin-bottom:4px; }
+  #auth-screen .sub { color:var(--muted); font-size:13px; margin-bottom:26px; }
+  #auth-screen .card { width:100%; max-width:340px; animation:rise .4s ease; }
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+
+  .app { height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--line); background:#101010; z-index:10; }
+  .logo { font-weight:800; letter-spacing:1.5px; font-size:16px; }
+  .logo span { color:var(--muted); font-weight:400; font-size:11px; display:block; letter-spacing:0; margin-top:2px; }
+  .balance { font-size:17px; font-weight:700; display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line); padding:8px 12px; border-radius:20px; }
+  .balance small { color:var(--muted); font-weight:400; }
+  #cur-icon { width:20px; height:20px; border-radius:50%; object-fit:cover; display:none; }
+  .burger { background:var(--card); border:1px solid var(--line); color:var(--text); width:42px; height:40px; border-radius:10px; font-size:17px; cursor:pointer; transition:.2s; }
+  .burger:active { transform:scale(.92); }
+
+  .menu-panel { background:var(--card); border-bottom:1px solid var(--line); max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1); }
+  .menu-panel.open { max-height:420px; }
+  .menu-inner { display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px; }
+  .nav-item { background:#111; border:1px solid var(--line); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px; transition:.2s; user-select:none; }
+  .nav-item:hover { border-color:#555; }
+  .nav-item:active { transform:scale(.95); }
+  .nav-item.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+
+  main { padding:16px; overflow-y:auto; flex:1; }
+  .tab-anim { animation:tabIn .3s ease; }
+  @keyframes tabIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .card h2 { font-size:15px; margin-bottom:12px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .badge { display:inline-block; background:var(--accent); color:#000; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; margin-top:8px; }
+  .badge.mod { background:var(--green); color:#fff; }
+  .status { font-size:13px; padding:5px 0; }
+  .ok { color:var(--green); } .err { color:var(--red); }
+  .divider { border:none; border-top:1px solid var(--line); margin:12px 0; }
+
+  input, select, button, textarea { font-size:14px; }
+  input, select, textarea { width:100%; background:#101010; border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:10px; margin:4px 0 10px; transition:border-color .2s; outline:none; font-family:inherit; }
+  input:focus, select:focus, textarea:focus { border-color:#666; }
+  input[type=checkbox] { width:auto; }
+  input[type=file] { padding:6px; color:var(--muted); }
+  label { font-size:12px; color:var(--muted); }
+  .btn { background:var(--accent); color:#000; border:none; padding:12px 14px; border-radius:10px; font-weight:700; cursor:pointer; width:100%; transition:.2s; }
+  .btn:hover { opacity:.85; }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.4; cursor:default; transform:none; }
+  .btn.sec { background:transparent; color:var(--text); border:1px solid var(--line); font-weight:400; }
+  .btn.sec:hover { border-color:#555; opacity:1; }
+  .btn.small { width:auto; padding:8px 12px; font-size:13px; }
+  .row { display:flex; gap:8px; }
+  .row > * { flex:1; }
+  .del { background:transparent; border:1px solid var(--red); color:var(--red); border-radius:8px; padding:4px 10px; cursor:pointer; font-size:12px; transition:.2s; }
+  .del:active { transform:scale(.94); }
+
+  .item-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .item-card { background:#111; border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center; transition:.25s; }
+  .item-card:hover { border-color:#555; transform:translateY(-2px); }
+  .item-card.wide { grid-column:span 2; text-align:left; }
+  .item-card img { width:56px; height:56px; object-fit:contain; }
+  .item-card .nm { font-size:13px; margin:8px 0 2px; word-break:break-word; }
+  .chips { font-size:11px; color:var(--muted); }
+  .cmini { width:12px; height:12px; border-radius:50%; object-fit:cover; vertical-align:middle; }
+  .price-tag { font-weight:700; font-size:13px; margin-top:2px; }
+  .free { color:var(--green); font-weight:700; }
+  .cat-title { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:18px 0 8px; }
+  .preview { width:64px; height:64px; border-radius:12px; border:1px solid var(--line); object-fit:cover; margin-top:8px; }
+
+  /* ---------- ОБЪЯВЛЕНИЯ ---------- */
+  .ann-wrap { position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); margin-bottom:14px; touch-action:pan-y; }
+  .ann-track { display:flex; transition:transform .55s cubic-bezier(.4,0,.2,1); }
+  .ann-slide { min-width:100%; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .ann-slide img { width:100%; max-height:170px; object-fit:cover; border-radius:10px; }
+  .ann-slide .atext { font-size:14px; line-height:1.45; word-break:break-word; }
+  .ann-btn { display:inline-block; background:var(--accent); color:#000; font-weight:700; font-size:13px; padding:9px 16px; border-radius:10px; text-decoration:none; text-align:center; transition:.2s; }
+  .ann-btn:active { transform:scale(.96); }
+  .ann-nav { position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; border:1px solid var(--line); font-size:15px; cursor:pointer; z-index:5; transition:.2s; }
+  .ann-nav:active { transform:translateY(-50%) scale(.88); }
+  .ann-nav.l { left:8px; } .ann-nav.r { right:8px; }
+  .ann-dots { display:flex; gap:6px; justify-content:center; padding:10px 0 12px; }
+  .ann-dot { width:8px; height:8px; border-radius:50%; background:#333; border:none; cursor:pointer; transition:.3s; padding:0; }
+  .ann-dot.on { background:var(--accent); width:20px; border-radius:6px; }
+
+  /* ---------- ПРОКРУТКА КЕЙСА ---------- */
+  #case-modal { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:400; display:none; align-items:center; justify-content:center; flex-direction:column; padding:24px; }
+  #case-modal.show { display:flex; }
+  .cm-box { display:flex; flex-direction:column; align-items:center; text-align:center; width:100%; max-width:420px; }
+  .rl-window { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#0f0f0f; position:relative; height:130px; width:100%; }
+  .rl-window::before, .rl-window::after { content:''; position:absolute; top:0; bottom:0; width:18%; z-index:5; pointer-events:none; }
+  .rl-window::before { left:0; background:linear-gradient(90deg, #0f0f0f, transparent); }
+  .rl-window::after { right:0; background:linear-gradient(-90deg, #0f0f0f, transparent); }
+  .rl-marker { position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:#fff; z-index:6; box-shadow:0 0 12px rgba(255,255,255,.8); }
+  .rl-strip { display:flex; gap:10px; padding:15px 0; align-items:center; will-change:transform; }
+  .rl-item { width:100px; flex:0 0 100px; height:100px; background:#1a1a1a; border:1px solid var(--line); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; will-change:transform; }
+  .rl-item img { width:44px; height:44px; object-fit:contain; pointer-events:none; }
+  .rl-item span { font-size:9px; color:var(--muted); text-align:center; padding:0 4px; word-break:break-word; pointer-events:none; }
+  .cm-prize { opacity:0; transform:scale(.3); margin-top:16px; }
+  .cm-prize.show { animation:prizeIn .55s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes prizeIn { to { opacity:1; transform:scale(1); } }
+  .cm-prize .frame { width:150px; height:150px; margin:0 auto; border-radius:50%; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, #2a2a2a, #101010); border:2px solid #fff; box-shadow:0 0 40px rgba(255,255,255,.55), 0 0 80px rgba(255,255,255,.25); animation:glowPulse 1.8s ease-in-out infinite; }
+  @keyframes glowPulse { 0%,100% { box-shadow:0 0 30px rgba(255,255,255,.4), 0 0 70px rgba(255,255,255,.15); } 50% { box-shadow:0 0 50px rgba(255,255,255,.75), 0 0 100px rgba(255,255,255,.3); } }
+  .cm-prize .frame img { width:88px; height:88px; object-fit:contain; }
+  .cm-prize .pn { font-size:17px; font-weight:700; margin-top:12px; }
+  .cm-prize .pp { color:var(--muted); font-size:13px; margin-top:2px; }
+
+  /* ---------- ТИКЕТЫ И ЧАТ ---------- */
+  .ticket-row { background:#111; border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:8px; }
+  .ticket-row .tnum { font-weight:700; font-size:14px; }
+  .ts-open { color:var(--green); } .ts-taken { color:#ffb74d; } .ts-closed { color:var(--muted); }
+  .chat { display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; padding:4px 0; }
+  .msg { max-width:80%; padding:8px 12px; border-radius:12px; font-size:13px; word-break:break-word; animation:msgIn .25s ease; }
+  @keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .msg.own { align-self:flex-end; background:var(--accent); color:#000; border-bottom-right-radius:4px; }
+  .msg.them { align-self:flex-start; background:#222; border-bottom-left-radius:4px; }
+  .msg .who { font-size:10px; opacity:.65; margin-bottom:2px; }
+  .tx-box { background:#101010; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+  .tx-box label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; }
+
+  #toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(80px); background:#f5f5f5; color:#000; padding:11px 18px; border-radius:12px; font-size:14px; font-weight:600; z-index:600; opacity:0; transition:.35s; max-width:86%; text-align:center; }
+  #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  .admin-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
+  .admin-tabs .btn.sec { padding:9px 12px; font-size:13px; white-space:nowrap; }
+  .admin-tabs .btn.sec.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+  .subtabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .subtabs button { background:#111; border:1px solid var(--line); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
+  .subtabs button.on { background:var(--accent); color:#000; font-weight:700; }
 </style>
 </head>
 <body>
-<div id="header">
-<div class="bal" onclick="showProfile()"><img id="curIconImg" alt=""><b id="balVal">0</b></div>
-<button id="menuBtn" type="button" aria-label="Открыть меню" aria-controls="menu" aria-expanded="false" onclick="toggleMenu(event)">☰</button>
+
+<div id="auth-screen">
+  <h1>ZombixUP</h1>
+  <p class="sub">Вход по Telegram ID и паролю</p>
+  <div class="card">
+    <label>Telegram ID (только цифры)</label>
+    <input id="a-id" inputmode="numeric" placeholder="8158896250">
+    <label>Пароль (мин. 6 символов)</label>
+    <input id="a-pass" type="password">
+    <p class="muted" id="a-msg" style="margin:6px 0 4px; min-height:18px"></p>
+    <button class="btn" onclick="doAuth()">Войти / Зарегистрироваться</button>
+    <p class="muted" style="margin-top:10px">Если аккаунта с таким ID ещё нет — он создастся автоматически.</p>
+  </div>
 </div>
-<nav id="menu"></nav>
-<main id="app"></main>
-<div id="modalWrap" onclick="if(event.target===this)closeModal()"><div id="modal"></div></div>
+
+<div class="app" id="app" style="display:none">
+  <header>
+    <div class="logo">ZombixUP<span id="page-title">Главная</span></div>
+    <div class="balance">
+      <small>Баланс</small>
+      <img id="cur-icon" alt="">
+      <span id="balance">…</span>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <nav class="menu-panel" id="menu-panel">
+    <div class="menu-inner">
+      <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
+      <a class="nav-item" data-tab="cases"     onclick="go('cases')">📦 Кейсы</a>
+      <a class="nav-item" data-tab="inventory" onclick="go('inventory')">🎒 Инвентарь</a>
+      <a class="nav-item" data-tab="profile"   onclick="go('profile')">👤 Профиль</a>
+      <a class="nav-item" data-tab="settings"  onclick="go('settings')">⚙️ Настройки</a>
+      <a class="nav-item" id="staff-btn" style="display:none" onclick="go('tickets')">🎫 Тикеты</a>
+      <a class="nav-item" id="admin-btn" style="display:none" onclick="go('admin')">🛠 Админ-панель</a>
+    </div>
+  </nav>
+
+  <main id="content">
+    <div class="card">
+      <h2>Статус</h2>
+      <div class="status" id="s-auth">Авторизация…</div>
+      <div class="status" id="s-db">База данных…</div>
+    </div>
+  </main>
+</div>
+
+<div id="case-modal"><div class="cm-box" id="cm-box"></div></div>
 <div id="toast"></div>
+
 <script>
-/* ================================================================
-НАСТРОЙКИ — меняйте здесь
-\================================================================ */
-const FIREBASE_CONFIG = {
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
   apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
   authDomain: "syq-site.firebaseapp.com",
   databaseURL: "https://syq-site-default-rtdb.firebaseio.com",
@@ -118,715 +206,861 @@ const FIREBASE_CONFIG = {
   appId: "1:309704145783:web:3d525163e0fbb1f7723f72",
   measurementId: "G-QV7MG6M9V4"
 };
-const ADMIN_IDS = [8158896250];   // ← Telegram ID админов, через запятую
-const SUPPORT_URL = "https://t.me/SiQyal";
-const SELL_RATE = 0.7;      // часть цены предмета при продаже
-const HOUSE_EDGE = 5;       // % в пользу проекта
-const WITHDRAW_COMMISSION = 5; // % комиссия при выводе
-/* ============ ВСЕ ПОДПИСИ — КОНСТАНТЫ ============ */
-const L = {
-app: "ZombixUp", gold: "Золото",
-menuMain: "Главная", menuInv: "Инвентарь", menuUpg: "Апгрейдер",
-menuProfile: "Профиль", menuSet: "Настройки", menuTickets: "Тикеты", menuAdmin: "Админ-панель",
-login: "Вход", loginName: "Ваше имя", loginId: "Ваш Telegram ID", loginBtn: "Войти",
-balance: "Баланс", deposit: "Пополнить", withdraw: "Вывести", amount: "Сумма", confirm: "Создать тикет",
-sell: "Продать", upgrade: "Апгрейд", chance: "Шанс", multiplier: "Множитель",
-support: "Поддержка", logout: "Выйти / сменить аккаунт",
-tickets: "Тикеты", takeTicket: "Взять тикет", execute: "Выполнить", reject: "Отклонить",
-typeDeposit: "Пополнение", typeWithdraw: "Вывод", statusOpen: "Открыт", statusClosed: "Закрыт",
-takenBy: "Взял:", takenByYou: "Тикет у вас", send: "Отправить", msgPlaceholder: "Сообщение…",
-adminItems: "Предметы", adminCases: "Кейсы", adminAnn: "Объявления", adminUsers: "Игроки", adminFin: "Казна",
-itemName: "Название предмета", itemPrice: "Цена", itemIcon: "Иконка/фото", add: "Добавить", del: "Удалить", save: "Сохранить", edit: "Ред.",
-caseName: "Название кейса", casePrice: "Цена открытия", caseIcon: "Иконка кейса",
-caseTotalLimit: "Лимит открытий на всех (0 = ∞)", caseUserLimit: "Лимит на игрока (0 = ∞)",
-caseCooldown: "КД между открытиями (мин, 0 = нет)", caseExpire: "Пропадёт через (часов, 0 = никогда)",
-caseContents: "Наполнение (шанс %)", left: "Осталось", closesIn: "Закроется через",
-annText: "Текст объявления", annImage: "Фото (необязательно)", publish: "Опубликовать",
-searchById: "Поиск по Telegram ID", role: "Роль", rolePlayer: "игрок", roleModer: "модератор",
-playerName: "Имя", userBalance: "Баланс",
-houseIncome: "Доход (вход)", houseOutcome: "Расход (выход)", houseDiff: "Разница",
-curIcon: "Иконка валюты", balIcon: "Иконка баланса",
-open: "Открыть", soldFor: "Продано за", newBalance: "Новый баланс",
-noData: "Пока пусто", loading: "Загрузка…", notEnough: "Недостаточно золота",
-cooldownLeft: "КД", limitReached: "Лимит открытый исчерпан", caseExpired: "Кейс закрыт",
-upgWin: "ПОБЕДА!", upgLose: "Проигрыш", pickItem: "Выберите предмет",
-amountHint: "Введите сумму в золоте",
-myTickets: "Мои тикеты", allTickets: "Все тикеты", reserved: "Зарезервировано",
-mainTitle: "ZombixUp",
-errFill: "Заполните все поля", copied: "Скопировано",
-yes: "Да", no: "Нет", changeRole: "Роль изменена", saved: "Сохранено", done: "Готово",
-filterAll: "Все", ticketsHint: "Модератор обрабатывает заявки в чате.",
-won: "Выпал предмет", arrived: "Ваш баланс пополнен", withdrawn: "Вывод выполнен",
-rejected: "Тикет отклонён", takeSelf: "Нельзя взять свой тикет", alreadyTaken: "Тикет уже занят"
-};
-/* ============ STATE ============ */
-let db, USER = null, CONFIG = {currencyIcon:"", house:{income:0,outcome:0}};
-let ANN = {}, ITEMS = {}, CASES = {}, MENU_OPEN = false, CUR_SCREEN = "main";
-let adminTab = "items", ticketFilter = {type:"all", status:"open"};
-let curTicket = null, countdownTimer = null;
-const $ = s => document.querySelector(s);
-const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmt = n => new Intl.NumberFormat("ru-RU").format(Math.round(Number(n)||0));
-const uid = () => "id" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2200);}
-function openModal(html){$("#modal").innerHTML=html;$("#modalWrap").classList.add("show");}
-function closeModal(){$("#modalWrap").classList.remove("show");curTicket=null;}
-function icon(icon,cls){return icon?`<img src="${icon}" class="${cls||""}">`:`<div class="${cls||""}" style="display:flex;align-items:center;justify-content:center;background:var(--card2)"><span class="muted">?</span></div>`;}
-/* ============ FIREBASE ============ */
-function fbInit(){
-firebase.initializeApp(FIREBASE_CONFIG);
-db = firebase.database();
+
+const ADMIN_ID = '8158896250';
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+const tg = window.Telegram.WebApp;
+tg.ready(); tg.expand();
+const TG_USER = tg.initDataUnsafe?.user || null;
+const TG_ID = TG_USER ? String(TG_USER.id) : null;
+
+let CURRENT_ID = null, CURRENT_PASS = null, profileRef = null, profile = null;
+const WORKER_URL = 'https://strike-arena-kv.mirikpirik2009.workers.dev';
+async function workerRequest(path, payload = {}) {
+  if (!CURRENT_ID || !CURRENT_PASS) throw new Error('Сессия не подтверждена. Войдите заново.');
+  if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Укажи URL Cloudflare Worker в WORKER_URL в index.html');
+  const response = await fetch(WORKER_URL + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:CURRENT_ID, password:CURRENT_PASS, ...payload }) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data.error || 'Ошибка серверной операции');
+  return data;
 }
-const dbGet = p => db.ref(p).get().then(s=>s.val());
-const dbSet = (p,v) => db.ref(p).set(v);
-const dbUpd = (p,v) => db.ref(p).update(v);
-const dbPush = (p,v) => db.ref(p).push(v).then(r=>r.key);
-/* изображение -> сжатый base64 */
-function pickImage(cb){
-const inp = document.createElement("input");
-inp.type = "file"; inp.accept = "image/*";
-inp.onchange = () => {
-const f = inp.files[0]; if(!f) return;
-if(!f.type.startsWith("image/")) return toast("Выберите изображение");
-if(f.size > 8 * 1024 * 1024) return toast("Изображение должно быть меньше 8 МБ");
-if(!f.type.startsWith("image/")) return toast("Выберите изображение");
-if(f.size > 8 * 1024 * 1024) return toast("Изображение должно быть меньше 8 МБ");
-const r = new FileReader();
-r.onload = () => {
-const img = new Image();
-img.onload = () => {
-const c = document.createElement("canvas");
-const s = Math.min(1, 256/Math.max(img.width,img.height));
-c.width = img.width*s; c.height = img.height*s;
-c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-cb(c.toDataURL("image/jpeg",0.82));
-};
-img.src = r.result;
-};
-r.readAsDataURL(f);
-};
-inp.click();
+let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
+let CUR_ICON = '', CUR_DRAFT = '';
+let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
+let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '';
+let ANN_EDIT = null, ANN_DRAFT = null;
+let annIndex = 0, annTimer = null, annCount = 0;
+const IMG_SIZE = 128;
+const DAY = 24 * 3600 * 1000;
+
+/* ---------- утилиты ---------- */
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
-/* ============ АВТОРИЗАЦИЯ ============ */
-function getTgUser(){
-try{
-const tg = window.Telegram && window.Telegram.WebApp;
-if(tg && tg.initDataUnsafe && tg.initDataUnsafe.user){
-tg.expand(); tg.ready();
-const u = tg.initDataUnsafe.user;
-return {id:String(u.id), name:u.first_name||("id"+u.id)};
+const esc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const pcur = n => `${CUR_ICON ? `<img class="cmini" src="${CUR_ICON}">` : ''} ${n}`;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2400);
 }
-}catch(e){}
-return null;
+function toggleMenu() { document.getElementById('menu-panel').classList.toggle('open'); }
+function isAdmin() { return (profile && profile.is_admin === true) || CURRENT_ID === ADMIN_ID; }
+function isStaff() { return isAdmin() || ROLES[CURRENT_ID] === 'moderator'; }
+function fmtTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit' }) + ' ' +
+         d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
 }
-async function ensureUser(tgu){
-const ref = "users/"+tgu.id;
-let data = await dbGet(ref);
-if(!data) await dbSet(ref, {name:tgu.name, tgId:tgu.id, balance:0, role:"player", createdAt:Date.now()});
-data = await dbGet(ref);
-USER = Object.assign({id:tgu.id}, data);
-USER.isAdmin = ADMIN_IDS.map(String).includes(String(USER.id));
-USER.isStaff = USER.isAdmin || USER.role==="moderator";
-db.ref("config").on("value", s=>{ CONFIG = Object.assign({house:{income:0,outcome:0}}, s.val()||{}); renderHeader(); });
+const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+
+function fileToDataUrl(file, cb) {
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = IMG_SIZE;
+      c.getContext('2d').drawImage(img, 0, 0, IMG_SIZE, IMG_SIZE);
+      cb(c.toDataURL('image/png'));
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
 }
-function renderLogin(){
-$("#header").style.visibility="hidden";
-$("#app").innerHTML = `<div class="login-box">
-<h1 style="font-size:28px;margin-bottom:6px">${L.app}</h1>
-<p class="muted" style="margin-bottom:20px">Введите данные для входа</p>
-<input id="inId" placeholder="${L.loginId}" inputmode="numeric">
-<input id="inName" placeholder="${L.loginName}">
-<button class="btn" style="width:100%;margin-top:12px" onclick="manualLogin()">${L.loginBtn}</button>
-</div>`;
+/* фото объявления — сжимаем до 800px по ширине (объявления шире иконок) */
+function fileToPhoto(file, cb) {
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const w = Math.min(800, img.width);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = Math.round(img.height * w / img.width);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
 }
-async function manualLogin(){
-const id = $("#inId").value.trim();
-const name = $("#inName").value.trim() || ("id" + id);
-if (!id || !/^\d+$/.test(id)) return toast(L.errFill);
-try {
-await ensureUser({id, name});
-localStorage.setItem("zxu_id", id);
-localStorage.setItem("zxu_name", name);
-startApp();
-} catch (err) {
-toast("Не удалось подключиться к Firebase");
-console.error(err);
+
+/* ---------- ВХОД ---------- */
+function aMsg(t, cls) {
+  const m = document.getElementById('a-msg');
+  m.textContent = t; m.style.color = cls === 'err' ? '#ef5350' : '#8d8d8d';
 }
+async function doAuth() {
+  const id = document.getElementById('a-id').value.trim();
+  const pass = document.getElementById('a-pass').value;
+  if (!/^\d{4,}$/.test(id)) return aMsg('ID должен быть числом', 'err');
+  if (pass.length < 6) return aMsg('Пароль минимум 6 символов', 'err');
+  if (WORKER_URL.includes('YOUR-WORKER')) return aMsg('Сначала настрой URL Cloudflare Worker в index.html', 'err');
+  try {
+    const cred = await auth.signInAnonymously();
+    const idToken = await cred.user.getIdToken();
+    CURRENT_PASS = pass;
+    const callSession = async (register = false, bootstrapSecret = '') => {
+      const response = await fetch(WORKER_URL + '/api/session', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ id, password:pass, uid:cred.user.uid, idToken, register, bootstrapSecret })
+      });
+      return { response, data: await response.json().catch(() => ({})) };
+    };
+    let result = await callSession(false);
+    if (!result.response.ok && result.data.code === 'ACCOUNT_MISSING') {
+      if (!confirm('Такого ID ещё нет. Зарегистрировать новый аккаунт?')) return;
+      let bootstrapSecret = '';
+      if (id === ADMIN_ID) bootstrapSecret = prompt('Для первичной регистрации администратора введи ADMIN_BOOTSTRAP_SECRET из настроек Worker:') || '';
+      result = await callSession(true, bootstrapSecret);
+    }
+    if (!result.response.ok || !result.data.ok) return aMsg(result.data.error || 'Не удалось войти', 'err');
+    CURRENT_ID = id;
+    enterApp(id);
+  } catch (e) { aMsg('Ошибка входа: ' + e.message, 'err'); }
 }
-/* ============ ШАПКА И МЕНЮ ============ */
-function renderHeader(){
-const ic = CONFIG.currencyIcon || defaultGoldIcon();
-$("#curIconImg").src = ic; $("#curIconImg").style.visibility = USER ? "visible":"hidden";
-if(USER) $("#balVal").textContent = fmt(USER.balance);
+/* ---------- СТАРТ ---------- */
+async function enterApp(id) {
+  CURRENT_ID = id;
+  document.getElementById('auth-screen').classList.remove('show');
+  document.getElementById('app').style.display = 'flex';
+
+  profileRef = db.ref('users/' + id);
+  const snap = await profileRef.get();
+  if (!snap.exists()) {
+    await profileRef.child('tgId').set(id);
+    await profileRef.child('name').set((TG_USER && String(TG_USER.id) === id) ? TG_USER.first_name : id);
+    await profileRef.child('createdAt').set(Date.now());
+  } else if (id === ADMIN_ID && snap.val().is_admin !== true) {
+    // is_admin выставляется только вручную в базе или сервером.
+  }
+
+  profileRef.on('value', s => {
+    profile = s.val() || {};
+    document.getElementById('balance').textContent = profile.balance ?? 0;
+    document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
+    updateStaffBtn();
+    const sDb = document.getElementById('s-db');
+    if (sDb && !sDb.textContent.includes('ок')) { sDb.textContent = 'База данных: ок'; sDb.className = 'status ok'; }
+  });
+
+  db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('cases').on('value', s => { CASES = s.val() || {}; rerenderIfDepends(); });
+  db.ref('users').on('value', s => { USERS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('tickets').on('value', s => { TICKETS = s.val() || {}; sweepExpired(); rerenderIfDepends(); });
+  db.ref('roles').on('value', s => { ROLES = s.val() || {}; updateStaffBtn(); rerenderIfDepends(); });
+  db.ref('anns').on('value', s => { ANNS = s.val() || {}; if (CURRENT_TAB === 'home') rerender(); });
+  db.ref('config/currency').on('value', s => {
+    CUR_ICON = s.val()?.icon || '';
+    const el = document.getElementById('cur-icon');
+    if (CUR_ICON) { el.src = CUR_ICON; el.style.display = 'block'; } else el.style.display = 'none';
+  });
+
+  go('home');
 }
-function defaultGoldIcon(){
-return "data:image/svg+xml,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%23fff' stroke='%23000' stroke-width='3'/><text x='32' y='42' font-size='28' text-anchor='middle' fill='%23000' font-family='Arial' font-weight='bold'>G</text></svg>`);
+function rerenderIfDepends() {
+  if (['admin', 'tickets', 'profile', 'home', 'cases'].includes(CURRENT_TAB)) rerender();
 }
-function toggleMenu(e){
-if (e) e.stopPropagation();
-MENU_OPEN = !MENU_OPEN;
-$("#menu").classList.toggle("open", MENU_OPEN);
-$("#menuBtn").setAttribute("aria-expanded", String(MENU_OPEN));
+function updateStaffBtn() {
+  document.getElementById('staff-btn').style.display = isStaff() ? 'block' : 'none';
 }
-document.addEventListener("click", e => {
-if (MENU_OPEN && !$("#menu").contains(e.target) && e.target.id !== "menuBtn") {
-MENU_OPEN = false;
-$("#menu").classList.remove("open");
-$("#menuBtn").setAttribute("aria-expanded", "false");
-}
+
+auth.onAuthStateChanged(u => {
+  // Каждый вход требует пароль, чтобы Worker мог серверно проверить аккаунт.
+  // Не выполняем вход только по Firebase Anonymous UID или Telegram initDataUnsafe.
+  showAuth();
 });
-document.addEventListener("keydown", e => {
-if (e.key === "Escape" && MENU_OPEN) {
-MENU_OPEN = false;
-$("#menu").classList.remove("open");
-$("#menuBtn").setAttribute("aria-expanded", "false");
+function showAuth() {
+  document.getElementById('auth-screen').classList.add('show');
+  document.getElementById('app').style.display = 'none';
 }
-});
-function buildMenu(){
-const items = [
-["main", L.menuMain], ["inventory", L.menuInv], ["upgrader", L.menuUpg],
-["profile", L.menuProfile], ["settings", L.menuSet]
-];
-if(USER.isStaff) items.push(["tickets", L.menuTickets]);
-if(USER.isAdmin) items.push(["admin", L.menuAdmin]);
-$("#menu").innerHTML = items.map(([k,t])=>`<div class="mi" onclick="go('${k}')">${t}<span>›</span></div>`).join("");
+
+/* ---------- НАВИГАЦИЯ ---------- */
+function go(tab) {
+  CURRENT_TAB = tab;
+  OPEN_TICKET_ID = null;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.getElementById('menu-panel').classList.remove('open');
+  document.getElementById('page-title').textContent = TITLES[tab] || tab;
+  const c = document.getElementById('content');
+  c.classList.remove('tab-anim'); void c.offsetWidth; c.classList.add('tab-anim');
+  rerender();
 }
-function go(scr){
-MENU_OPEN = false; $("#menu").classList.remove("open");
-CUR_SCREEN = scr;
-if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
-if(curTicket) db.ref("tickets/"+curTicket+"/msgs").off();
-buildMenu();
-const r = {main:renderMain, inventory:renderInventory, upgrader:renderUpgrader, profile:renderProfile, settings:renderSettings, tickets:renderTickets, admin:renderAdmin};
-(r[scr]||renderMain)();
-window.scrollTo(0,0);
+function rerender() {
+  const c = document.getElementById('content');
+  if (CURRENT_TAB === 'home') renderHome(c);
+  if (CURRENT_TAB === 'settings') c.innerHTML = `<div class="card"><h2>⚙️ Настройки</h2>
+    <p class="muted">Позже: тема, звук и т.д.</p>
+    <button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта</button></div>`;
+  if (CURRENT_TAB === 'inventory') renderInventory(c);
+  if (CURRENT_TAB === 'cases') renderCasesShop(c);
+  if (CURRENT_TAB === 'profile') renderProfile(c);
+  if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
+  if (CURRENT_TAB === 'admin') isAdmin() ? renderAdmin(c) : (c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>');
 }
-/* ============ ГЛАВНАЯ (объявления + кейсы) ============ */
-async function renderMain(){
-const [ann, cases] = await Promise.all([dbGet("announcements")||Promise.resolve({}), dbGet("cases")||Promise.resolve({})]);
-ANN = ann||{}; CASES = cases||{};
-const annHtml = Object.values(ANN).sort((a,b)=>b.ts-a.ts).map(a=>
-`<div class="card ann">${a.text?`<div>${esc(a.text).replace(/\n/g,"<br>")}</div>`:""}${a.image?`<img src="${a.image}">`:""}</div>`
-).join("");
-const now = Date.now();
-const active = Object.entries(CASES).filter(([id,c])=>!c.expiresAt || c.expiresAt>now);
-const caseHtml = active.length ? `<div class="grid" id="caseGrid">${active.map(([id,c])=>caseCard(id,c)).join("")}</div>` : `<p class="muted">${L.noData}</p>`;
-$("#app").innerHTML = `<h1>${L.mainTitle}</h1>${annHtml||""}<h2>${L.adminCases}</h2>${caseHtml}`;
-startCountdowns();
+function logout() { auth.signOut().then(() => location.reload()); }
+
+/* ---------- ГЛАВНАЯ: ОБЪЯВЛЕНИЯ ---------- */
+function renderHome(c) {
+  const list = Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+  let annHtml = '';
+  if (list.length) {
+    annCount = list.length;
+    if (annIndex >= annCount) annIndex = 0;
+    annHtml = `
+    <div class="ann-wrap" id="ann-wrap">
+      <div class="ann-track" id="ann-track">
+        ${list.map(([id, a]) => `<div class="ann-slide">
+          ${a.img ? `<img src="${esc(a.img)}">` : ''}
+          <div class="atext">${esc(a.text)}</div>
+          ${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener">${esc(a.btnName)}</a>` : ''}
+        </div>`).join('')}
+      </div>
+      ${annCount > 1 ? `<button class="ann-nav l" onclick="annSlide(-1)">‹</button>
+        <button class="ann-nav r" onclick="annSlide(1)">›</button>
+        <div class="ann-dots">${list.map((_, i) => `<button class="ann-dot ${i === annIndex ? 'on' : ''}" onclick="annGo(${i})"></button>`).join('')}</div>` : ''}
+    </div>`;
+  } else annCount = 0;
+  c.innerHTML = annHtml + `<div class="card"><h2>Добро пожаловать${TG_USER ? ', ' + esc(TG_USER.first_name) : ''}!</h2>
+    <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>`;
+  if (annCount > 1) startAnnRotator();
 }
-function startCountdowns(){
-countdownTimer = setInterval(()=>{
-document.querySelectorAll("[data-exp]").forEach(el=>{
-const left = Number(el.dataset.exp) - Date.now();
-if(left<=0){ go(CUR_SCREEN); return; }
-el.textContent = L.closesIn+" "+humanTime(left);
-});
-document.querySelectorAll("[data-cd]").forEach(el=>{
-const left = Number(el.dataset.cd) - Date.now();
-const btn = el.dataset.btn && document.getElementById(el.dataset.btn);
-if(left>0){ el.textContent = L.cooldownLeft+" "+humanTime(left); if(btn) btn.disabled=true; }
-else { el.textContent=""; if(btn){ btn.disabled=false; } }
-});
-},1000);
+function annUpdate() {
+  const track = document.getElementById('ann-track');
+  if (!track) return;
+  track.style.transform = `translateX(-${annIndex * 100}%)`;
+  document.querySelectorAll('.ann-dot').forEach((d, i) => d.classList.toggle('on', i === annIndex));
 }
-function humanTime(ms){
-const s = Math.floor(ms/1000);
-if(s>=3600) return Math.floor(s/3600)+"ч "+Math.floor(s%3600/60)+"м";
-if(s>=60) return Math.floor(s/60)+"м "+(s%60)+"с";
-return s+"с";
+function annSlide(dir) { annIndex = (annIndex + dir + annCount) % annCount; annUpdate(); restartAnnTimer(); }
+function annGo(i) { annIndex = i; annUpdate(); restartAnnTimer(); }
+function startAnnRotator() {
+  clearInterval(annTimer);
+  annUpdate();
+  annTimer = setInterval(() => { if (document.getElementById('ann-track')) annSlide(1); else clearInterval(annTimer); }, 10000);
 }
-function caseCard(id, c){
-const exp = c.expiresAt ? `<span class="case-timer" data-exp="${c.expiresAt}">…</span>` : "";
-return `<div class="case-card">
-<div class="case-imgwrap"><img class="case-img" src="${c.icon||defaultGoldIcon()}"><div class="case-name">${esc(c.name)}</div>${exp}</div>
-<div class="case-body">
-<button class="case-buy" id="cb_${id}" onclick="openCase('${id}')">${fmt(c.price)} ${L.gold}</button>
-${c.totalLimit>0?`<div class="case-left">${L.left}: <span data-opens="${id}">…</span></div>`:""}
-<div class="case-left" id="cd_${id}" data-cd="0" data-btn="cb_${id}"></div>
-</div></div>`;
+function restartAnnTimer() { clearInterval(annTimer); annTimer = setInterval(() => { if (document.getElementById('ann-track')) annSlide(1); else clearInterval(annTimer); }, 10000); }
+/* свайп пальцем */
+document.addEventListener('touchstart', e => {
+  const w = e.target.closest?.('#ann-wrap');
+  if (w) { window._annX = e.touches[0].clientX; }
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (window._annX == null) return;
+  const dx = e.changedTouches[0].clientX - window._annX;
+  window._annX = null;
+  if (Math.abs(dx) > 40) annSlide(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+/* ---------- ИНВЕНТАРЬ ---------- */
+function renderInventory(c) {
+  const inv = profile?.inventory || {};
+  const keys = Object.keys(inv).sort((a, b) => (inv[b].at || 0) - (inv[a].at || 0));
+  c.innerHTML = `<div class="card"><h2>🎒 Инвентарь (${keys.length})</h2>` +
+    (keys.length === 0 ? '<p class="muted">Пусто. Открой кейс!</p>' :
+      '<div class="item-grid">' + keys.map(k => {
+        const it = ITEMS[inv[k].itemId] || { name: '?', price: 0, sellable: 0 };
+        return `<div class="item-card">
+          ${it.img ? `<img src="${esc(it.img)}">` : ''}
+          <div class="nm">${esc(it.name)}</div>
+          <div class="price-tag">${pcur(it.price)}</div>
+          ${it.sellable ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')">Продать за ${it.price}</button>` : ''}
+        </div>`;
+      }).join('') + '</div>') + '</div>';
 }
-/* Инициализация кд-состояний после рендера кейсов */
-async function refreshCaseState(){
-for(const id of Object.keys(CASES)){
-const st = await dbGet("caseOpen/"+id+"_"+USER.id);
-const el = document.getElementById("cd_"+id), btn = document.getElementById("cb_"+id);
-if(!el) continue;
-const cdLeft = st && st.lastOpen && CASES[id].cooldown>0 ? st.lastOpen + CASES[id].cooldown*60000 - Date.now() : 0;
-el.dataset.cd = cdLeft>0 ? st.lastOpen + CASES[id].cooldown*60000 : 0;
-const userMaxed = CASES[id].userLimit>0 && st && st.count>=CASES[id].userLimit;
-if(userMaxed){ el.textContent = L.limitReached; if(btn) btn.disabled=true; }
-else if(cdLeft>0){ el.textContent = L.cooldownLeft+" "+humanTime(cdLeft); if(btn) btn.disabled=true; }
-else { el.textContent=""; }
+async function sellItem(entryKey) {
+  try { const result = await workerRequest('/api/item/sell', { entryKey }); toast(`Продано за ${result.amount}`); }
+  catch (e) { toast(e.message || 'Не удалось продать предмет'); }
 }
-db.ref("caseOpen").on("value", async ()=>{
-for(const id of Object.keys(CASES)){
-if(!((CASES[id].totalLimit||0) > 0)) continue;
-const total = await dbGet("caseTotal/"+id);
-const el = document.querySelector(`[data-opens="${id}"]`);
-if(el) el.textContent = Math.max(0, CASES[id].totalLimit - (total||0));
+
+/* ---------- МАГАЗИН КЕЙСОВ ---------- */
+function renderCasesShop(c) {
+  const ids = Object.keys(CASES);
+  if (ids.length === 0) return c.innerHTML = '<div class="card"><h2>📦 Кейсы</h2><p class="muted">Кейсов пока нет.</p></div>';
+  const groups = {};
+  ids.forEach(id => {
+    const g = CATS[CASES[id].category]?.name || 'Общая';
+    (groups[g] = groups[g] || []).push(id);
+  });
+  c.innerHTML = Object.entries(groups).map(([g, list]) =>
+    `<div class="cat-title">📂 ${esc(g)}</div><div class="item-grid">` +
+    list.map(id => {
+      const k = CASES[id];
+      const openedByMe = profile?.openedCases?.[id] || 0;
+      const expired = k.expiresAt && Date.now() > k.expiresAt;
+      const totalLeft = k.totalLimit ? k.totalLimit - (k.opened || 0) : Infinity;
+      const userLeft = k.perUserLimit ? k.perUserLimit - openedByMe : Infinity;
+      let state = null;
+      if (expired) state = 'Истёк';
+      else if (totalLeft <= 0) state = 'Закончился';
+      else if (userLeft <= 0) state = 'Лимит исчерпан';
+      return `<div class="item-card">
+        ${k.img ? `<img src="${esc(k.img)}">` : '<div style="font-size:44px; line-height:56px">📦</div>'}
+        <div class="nm">${esc(k.name)}</div>
+        <div class="chips">Предметов: ${Object.keys(k.items || {}).length}
+          ${k.totalLimit ? ` · ${k.opened || 0}/${k.totalLimit}` : ''}${k.perUserLimit ? ` · твоё: ${openedByMe}/${k.perUserLimit}` : ''}</div>
+        <button class="btn" style="margin-top:10px" ${state ? 'disabled' : ''} onclick="openCase('${id}')">
+          ${state ? state : (k.price > 0 ? `Открыть за ${k.price}` : 'Открыть бесплатно')}</button>
+      </div>`;
+    }).join('') + '</div>').join('');
 }
-});
+async function openCase(caseId) {
+  const k = CASES[caseId]; if (!k) return;
+  try { const result = await workerRequest('/api/case/open', { caseId }); showCaseRoulette(k, result.winnerId); }
+  catch (e) { toast(e.message || 'Не удалось открыть кейс'); }
 }
-/* Обёртка рендера главной: после рендера — кд */
-const _renderMain = renderMain;
-renderMain = async function(){ await _renderMain(); await refreshCaseState(); };
-async function openCase(id){
-const c = CASES[id]; if(!c) return;
-if(c.expiresAt && c.expiresAt < Date.now()) return toast(L.caseExpired);
-const key = "caseOpen/"+id+"_"+USER.id, tKey = "caseTotal/"+id;
-const st = (await dbGet(key))||{count:0,lastOpen:0};
-if(c.userLimit>0 && st.count>=c.userLimit) return toast(L.limitReached);
-const cdLeft = st.lastOpen && c.cooldown>0 ? st.lastOpen + c.cooldown*60000 - Date.now() : 0;
-if(cdLeft>0) return toast(L.cooldownLeft+": "+humanTime(cdLeft));
-if((USER.balance||0) < c.price) return toast(L.notEnough);
-// глобальный лимит через транзакцию
-if(c.totalLimit>0){
-const tRef = db.ref(tKey);
-const res = await tRef.transaction(v => (v||0) >= c.totalLimit ? undefined : (v||0)+1);
-if(!res.committed) return toast(L.limitReached);
+
+/* ---------- ПРОКРУТКА ---------- */
+const STEP = 110, ITEM_W = 100;
+function showCaseRoulette(k, winnerId) {
+  const modal = document.getElementById('case-modal');
+  const box = document.getElementById('cm-box');
+  box.innerHTML = `
+    <p class="muted" style="margin-bottom:14px">${esc(k.name)}</p>
+    <div class="rl-window"><div class="rl-marker"></div><div class="rl-strip" id="rl-strip"></div></div>`;
+  modal.classList.add('show');
+
+  const pool = Object.keys(k.items || {}).filter(id => ITEMS[id]);
+  const ids = pool.length ? pool : Object.keys(ITEMS).length ? Object.keys(ITEMS) : [winnerId];
+  const seq = [];
+  for (let i = 0; i < 48; i++) seq.push(ids[Math.floor(Math.random() * ids.length)]);
+  seq[40] = winnerId;
+  const strip = document.getElementById('rl-strip');
+  strip.innerHTML = seq.map(id => {
+    const it = ITEMS[id] || {};
+    return `<div class="rl-item">${it.img ? `<img src="${esc(it.img)}">` : '<span>🎁</span>'}
+      <span>${esc(it.name || id)}</span></div>`;
+  }).join('');
+
+  const winW = box.querySelector('.rl-window').clientWidth;
+  const targetX = 40 * STEP - winW / 2 + ITEM_W / 2;
+  const DURATION = 5200;
+  const items = [...strip.children];
+  let start = null;
+
+  function frame(now) {
+    if (!start) start = now;
+    const t = Math.min(1, (now - start) / DURATION);
+    const ease = 1 - Math.pow(1 - t, 4);
+    const x = -targetX * ease;
+    strip.style.transform = `translateX(${x}px)`;
+    items.forEach((el, i) => {
+      const center = i * STEP + ITEM_W / 2 + x;
+      const dist = Math.abs(center - winW / 2);
+      const scale = 1 + 0.45 * Math.max(0, 1 - dist / 80);
+      el.style.transform = `scale(${scale})`;
+      el.style.zIndex = Math.round(scale * 10);
+    });
+    if (t < 1) requestAnimationFrame(frame);
+    else setTimeout(() => showPrize(k, winnerId), 450);
+  }
+  requestAnimationFrame(frame);
 }
-await dbSet(key, {count:(st.count||0)+1, lastOpen:Date.now()});
-await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)-c.price);
-await houseAdd("income", c.price);
-// выпадение предмета по весам
-const entries = Object.entries(c.contents||{}).filter(([iid])=>ITEMS[iid]);
-if(!entries.length) return;
-const total = entries.reduce((s,[,w])=>s+Number(w.chance||0),0);
-let r = Math.random()*total, pick = entries[0];
-for(const e of entries){ r -= Number(e[1].chance||0); if(r<=0){ pick = e; break; } }
-const item = ITEMS[pick[0]];
-const inv = {itemId:pick[0], name:item.name, price:Number(item.price), icon:item.icon||"", upg:0, ts:Date.now()};
-const invKey = await dbPush("inventory/"+USER.id, inv);
-openModal(`<h2 style="text-align:center">${L.won}</h2>
-<div style="text-align:center">${icon(item.icon)}<div class="item-name" style="font-size:16px">${esc(item.name)}</div><div class="muted">${fmt(item.price)} ${L.gold}</div></div>
-<button class="btn" style="width:100%;margin-top:14px" onclick="closeModal()">${L.done}</button>`);
-USER.balance -= c.price; renderHeader();
-go("inventory");
+function showPrize(k, winnerId) {
+  const win = ITEMS[winnerId] || {};
+  const box = document.getElementById('cm-box');
+  box.innerHTML = `
+    <p class="muted" style="margin-bottom:6px">Вам выпало</p>
+    <div class="cm-prize" id="cm-prize">
+      <div class="frame">${win.img ? `<img src="${esc(win.img)}">` : '🎁'}</div>
+      <div class="pn">${esc(win.name || 'Предмет')}</div>
+      <div class="pp">${win.price > 0 ? `Стоимость: ${win.price}` : 'Без цены'}</div>
+    </div>
+    <button class="btn" style="max-width:220px; margin-top:22px" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
+  requestAnimationFrame(() => document.getElementById('cm-prize').classList.add('show'));
 }
-/* ============ ИНВЕНТАРЬ ============ */
-async function renderInventory(){
-const inv = (await dbGet("inventory/"+USER.id))||{};
-const list = Object.entries(inv).sort((a,b)=>b[1].ts-a[1].ts);
-$("#app").innerHTML = `<h1>${L.menuInv}</h1>` + (list.length ?
-`<div class="grid">${list.map(([k,v])=>`
-<div class="item-card">
-<img src="${v.icon||defaultGoldIcon()}">
-<div class="item-name">${esc(v.name)}</div>
-<div class="item-price">${fmt(v.price)} ${L.gold}</div>
-<div class="row" style="gap:6px">
-<button class="btn ghost grow" style="padding:8px" onclick="sellItem('${k}',${v.price})">${L.sell}</button>
-<button class="btn grow" style="padding:8px" onclick="go('upgrader');setTimeout(()=>selectUpg('${k}'),400)">${L.upgrade}</button>
-</div>
-</div>`).join("")}</div>` : `<p class="muted">${L.noData}</p>`);
+function closeCaseModal() {
+  document.getElementById('case-modal').classList.remove('show');
+  rerender();
 }
-async function sellItem(key, price){
-const gain = Math.floor(price*SELL_RATE);
-await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)+gain);
-await houseAdd("outcome", gain);
-await db.ref("inventory/"+USER.id+"/"+key).remove();
-USER.balance += gain; renderHeader();
-toast(L.soldFor+": "+fmt(gain)+" "+L.gold);
-go("inventory");
+
+/* ---------- ТИКЕТЫ ---------- */
+function sweepExpired() {
+  // Статус просроченного тикета меняется только на сервере.
 }
-/* ============ АПГРЕЙДЕР ============ */
-let upgSel = null, upgMult = 2, upgBusy = false;
-async function renderUpgrader(){
-const inv = (await dbGet("inventory/"+USER.id))||{};
-const list = Object.entries(inv).sort((a,b)=>b[1].ts-a[1].ts);
-const mults = [2,3,5,10,20,50];
-$("#app").innerHTML = `<h1>${L.menuUpg}</h1>
-<p class="muted">${L.pickItem}. ${L.chance} = (100 − ${HOUSE_EDGE}%) / ${L.multiplier.toLowerCase()}</p>
-<div class="grid" style="margin-top:12px">${list.length?list.map(([k,v])=>`
-<div class="item-card" id="ui_${k}" style="${upgSel===k?"outline:2px solid #fff":""}" onclick="selectUpg('${k}')">
-<img src="${v.icon||defaultGoldIcon()}"><div class="item-name">${esc(v.name)}</div>
-<div class="item-price">${fmt(v.price)} ${L.gold}</div>
-</div>`).join(""):""}
-</div>
-<div id="upgPanel" class="${upgSel?"":"hidden"}">
-<div class="card">
-<div class="muted" style="margin-bottom:8px">${L.multiplier}</div>
-<div class="row" style="flex-wrap:wrap;gap:8px">${mults.map(m=>`<button class="tab ${upgMult===m?"act":""}" onclick="setUpgMult(${m})">x${m}</button>`).join("")}</div>
-<div class="stat" style="margin-top:12px"><span>${L.chance}</span><b id="upgChance"></b></div>
-<div class="stat"><span>${L.won}</span><b id="upgTarget"></b></div>
-<div class="upg-wheel"><div class="upg-line"></div><div class="upg-track" id="upgTrack"></div></div>
-<button class="btn" style="width:100%" id="upgGo" onclick="doUpg()">${L.upgrade}</button>
-</div>
-</div>`;
-updateUpgPanel();
+
+const TYPE_NAME = { deposit: 'Пополнение', withdraw: 'Вывод' };
+const tStatusHTML = s => s === 'open' ? '<span class="ts-open">Открыт</span>' : s === 'taken' ? '<span class="ts-taken">Взят</span>' : '<span class="ts-closed">Закрыт</span>';
+
+async function createTicket(type, amount) {
+  const ref = db.ref('tickets').push();
+  const numSnap = await db.ref('counters/ticketNum').transaction(v => (v || 0) + 1);
+  await ref.set({
+    num: numSnap.snapshot.val(), owner: CURRENT_ID,
+    ownerName: profile?.name || CURRENT_ID,
+    type, amount: +amount || 0, status: 'open',
+    createdAt: Date.now(), messages: {}
+  });
+  OPEN_TICKET_ID = ref.key;
+  toast(`Тикет #${numSnap.snapshot.val()} создан`);
 }
-function selectUpg(k){
-upgSel = k; renderUpgrader();
+function sendMsg(id, inputId) {
+  const inp = document.getElementById(inputId);
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  db.ref('tickets/' + id + '/messages').push().set({
+    from: CURRENT_ID, name: profile?.name || CURRENT_ID,
+    role: isAdmin() ? 'admin' : (ROLES[CURRENT_ID] === 'moderator' ? 'moderator' : 'player'),
+    text, at: Date.now()
+  });
 }
-function setUpgMult(m){ upgMult = m; renderUpgrader(); }
-async function updateUpgPanel(){
-if(!upgSel) return;
-const it = await dbGet("inventory/"+USER.id+"/"+upgSel);
-if(!it) return;
-const ch = (100-HOUSE_EDGE)/upgMult;
-$("#upgChance").textContent = ch.toFixed(2)+"%";
-$("#upgTarget").textContent = fmt(it.price*upgMult)+" "+L.gold;
-if(upgBusy) return;
-const track = $("#upgTrack"); if(!track) return;
-track.innerHTML = "";
-for(let i=0;i<14;i++){
-const win = Math.random()*100 < ch;
-const cell = document.createElement("div");
-cell.className = "upg-cell";
-cell.textContent = win ? "x"+upgMult : "✕";
-cell.style.background = win ? "#fff" : "var(--card2)";
-cell.style.color = win ? "#000" : "var(--dim)";
-track.appendChild(cell);
+async function takeTicket(id) {
+  try { const result = await workerRequest('/api/ticket/take', { ticketId:id }); OPEN_TICKET_ID = id; toast(result.message || 'Тикет взят'); }
+  catch (e) { toast(e.message || 'Не удалось взять тикет'); }
 }
+
+async function closeTicket(id) {
+  const t = TICKETS[id];
+  if (!t || !isStaff()) return toast('Нет доступа к тикету');
+  if (t.status === 'closed') return toast('Тикет уже закрыт');
+  if (t.status !== 'taken' || t.takenBy !== CURRENT_ID) return toast('Сначала возьми этот тикет в работу');
+  const approve = document.getElementById('tx-apply')?.checked === true;
+  const reasonInput = prompt('Причина закрытия тикета:', approve ? 'Подтверждено' : 'Отклонено/закрыто без операции');
+  if (reasonInput === null) return;
+  const reason = reasonInput.trim(); if (!reason) return toast('Укажи причину закрытия');
+  try {
+    await workerRequest('/api/ticket/close', { ticketId:id, approve, reason });
+    toast(approve ? 'Заявка подтверждена сервером' : 'Тикет закрыт без изменения баланса');
+    OPEN_TICKET_ID = null; rerender();
+  } catch (e) { toast(e.message || 'Не удалось обработать тикет'); }
 }
-async function doUpg(){
-if(upgBusy || !upgSel) return;
-upgBusy = true;
-const it = await dbGet("inventory/"+USER.id+"/"+upgSel);
-if(!it){ upgBusy=false; return; }
-const ch = (100-HOUSE_EDGE)/upgMult;
-const win = Math.random()*100 < ch;
-const track = $("#upgTrack"), go_ = $("#upgGo");
-go_.disabled = true;
-track.innerHTML = "";
-for(let i=0;i<30;i++){
-const w = Math.random()*100 < ch;
-const cell = document.createElement("div");
-cell.className = "upg-cell";
-cell.textContent = w ? "x"+upgMult : "✕";
-cell.style.background = w ? "#fff" : "var(--card2)";
-cell.style.color = w ? "#000" : "var(--dim)";
-track.appendChild(cell);
+
+/* --- карточка тикета со списком --- */
+function ticketRowHTML(id, t, btn) {
+  return `<div class="ticket-row">
+    <div class="row" style="align-items:center">
+      <div style="flex:1">
+        <div class="tnum">#${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</div>
+        <div class="chips">${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · ${tStatusHTML(t.status)}
+          ${t.reason ? ` · причина: ${esc(t.reason)}` : ''}</div>
+      </div>
+      ${btn ? `<button class="btn small" style="flex:0 0 auto" onclick="${btn.action}('${id}')">${btn.label}</button>` : ''}
+    </div></div>`;
 }
-track.style.transition = "none"; track.style.transform = "translateX(0)";
-track.getBoundingClientRect();
-track.style.transition = "transform 3.2s cubic-bezier(.15,.9,.3,1)";
-track.style.transform = "translateX(-" + (track.scrollWidth - 220) + "px)";
-await new Promise(r=>setTimeout(r,3300));
-// честный итог по чансу
-if(win){
-await db.ref("inventory/"+USER.id+"/"+upgSel).remove();
-await dbPush("inventory/"+USER.id, {name:it.name+" ✦x"+upgMult, price:Math.floor(it.price*upgMult), icon:it.icon, upg:(it.upg||0)+1, ts:Date.now()});
-await houseAdd("income", it.price);
-await houseAdd("outcome", Math.floor(it.price*upgMult));
-toast(L.upgWin);
-} else {
-await db.ref("inventory/"+USER.id+"/"+upgSel).remove();
-await houseAdd("income", it.price);
-toast(L.upgLose);
+/* --- просмотр тикета с чатом --- */
+function ticketViewHTML(id, t, backFn) {
+  const msgs = Object.entries(t.messages || {})
+    .map(([mid, m]) => ({ mid, ...m }))
+    .sort((a, b) => a.at - b.at);
+  const canWrite = t.status !== 'closed';
+  const isHandler = isStaff() && t.owner !== CURRENT_ID;
+  const canClose = isHandler && t.status !== 'closed';
+  const canTake = isHandler && t.status === 'open';
+  const txLabel = t.type === 'deposit'
+    ? `Выдать игроку ${t.amount} ${CUR_ICON ? '' : '(пополнение)'}`
+    : `Забрать у игрока ${t.amount} ${CUR_ICON ? '' : '(вывод)'}`;
+  return `<div class="card">
+    <button class="btn sec small" onclick="${backFn}()">← Назад</button>
+    <h2 style="margin-top:10px">Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</h2>
+    <div class="chips">От: ${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · статус: ${tStatusHTML(t.status)}
+      ${t.takenByName ? ` · взял: ${esc(t.takenByName)}` : ''}</div>
+    ${t.reason ? `<p class="muted" style="margin-top:6px">Причина закрытия: <b>${esc(t.reason)}</b></p>` : ''}
+    <hr class="divider">
+    <div class="chat" id="chat-box">
+      ${msgs.map(m => `<div class="msg ${m.from === CURRENT_ID ? 'own' : 'them'}">
+        <div class="who">${esc(m.name || m.from)}${m.role === 'admin' ? ' · админ' : m.role === 'moderator' ? ' · модератор' : ''}</div>
+        ${esc(m.text)}<div class="when" style="color:${m.from === CURRENT_ID ? 'rgba(0,0,0,.5)' : 'var(--muted)'}">${fmtTime(m.at)}</div></div>`).join('') || '<p class="muted">Сообщений пока нет.</p>'}
+    </div>
+    ${canTake ? `<button class="btn" style="margin-top:10px" onclick="uiTake('${id}')">Взять тикет</button>` : ''}
+    ${canClose ? `<div class="tx-box">
+        <label><input type="checkbox" id="tx-apply" style="width:auto"> ${txLabel}</label>
+        <p class="muted" style="margin-top:6px">Поставь галочку, чтобы подтвердить заявку. Сервер проверит сумму и изменит баланс один раз.</p>
+      </div>
+      <button class="btn" style="margin-top:8px; background:var(--red); color:#fff" onclick="closeTicket('${id}')">Обработать тикет</button>` : ''}
+    ${canWrite ? `<div class="row" style="margin-top:10px">
+      <input id="msg-input" placeholder="Сообщение…">
+      <button class="btn small" style="flex:0 0 auto; padding:10px 16px" onclick="sendMsg('${id}','msg-input')">➤</button></div>` : ''}
+  </div>`;
 }
-upgSel = null; upgBusy = false;
-go("inventory");
+
+/* --- профиль: мои тикеты --- */
+function renderProfile(c) {
+  const my = Object.entries(TICKETS).filter(([, t]) => t.owner === CURRENT_ID)
+    .sort((a, b) => b[1].num - a[1].num);
+  if (OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID])
+    return c.innerHTML = ticketViewHTML(OPEN_TICKET_ID, TICKETS[OPEN_TICKET_ID], 'backToProfile');
+
+  const open = my.filter(([, t]) => t.status !== 'closed');
+  const closed = my.filter(([, t]) => t.status === 'closed');
+  const list = profileTicketTab === 'open' ? open : closed;
+
+  c.innerHTML = `<div class="card"><h2>👤 Профиль</h2>
+      <p class="muted">Telegram ID: <b>${esc(CURRENT_ID)}</b></p>
+      <p class="muted">Имя: <b>${esc(profile?.name || '—')}</b></p>
+      <p class="muted">Баланс: <b>${profile?.balance ?? 0}</b></p>
+      ${isAdmin() ? '<span class="badge">АДМИНИСТРАТОР</span>' : ROLES[CURRENT_ID] === 'moderator' ? '<span class="badge mod">МОДЕРАТОР</span>' : ''}</div>
+    <div class="card"><h2>🎫 Мои тикеты</h2>
+      <div class="subtabs">
+        <button class="${profileTicketTab === 'open' ? 'on' : ''}" onclick="setPTab('open')">Открытые (${open.length})</button>
+        <button class="${profileTicketTab === 'closed' ? 'on' : ''}" onclick="setPTab('closed')">Закрытые (${closed.length})</button>
+      </div>
+      ${list.map(([id, t]) => ticketRowHTML(id, t, { action: 'openMyTicket', label: 'Открыть' })).join('') || '<p class="muted">Пока пусто.</p>'}
+      <hr class="divider">
+      <h2>➕ Создать тикет</h2>
+      <label>Тип</label><select id="tk-type">
+        <option value="deposit">Пополнение</option>
+        <option value="withdraw">Вывод</option></select>
+      <label>Сумма</label><input id="tk-amount" type="number" min="1">
+      <p class="muted" id="tk-hint"></p>
+      <button class="btn" onclick="uiCreateTicket()">Создать тикет</button>
+    </div>`;
+  updateTkHint();
 }
-/* ============ ПРОФИЛЬ ============ */
-function renderProfile(){
-const ic = CONFIG.currencyIcon || defaultGoldIcon();
-$("#app").innerHTML = `<h1>${L.menuProfile}</h1>
-<div class="card" style="text-align:center">
-<div style="font-size:15px;font-weight:700">${esc(USER.name)}</div>
-<div class="small">ID: ${USER.id}</div>
-<div class="row" style="justify-content:center;margin-top:10px">
-<img src="${ic}" style="width:20px;height:20px;border-radius:6px">
-<span style="font-size:24px;font-weight:700">${fmt(USER.balance)}</span>
-<span class="muted">${L.gold}</span>
-</div>
-<div class="row" style="margin-top:16px;gap:10px">
-<button class="btn ghost grow" onclick="ticketModal('deposit')">${L.deposit}</button>
-<button class="btn grow" onclick="ticketModal('withdraw')">${L.withdraw}</button>
-</div>
-</div>
-<div class="card"><div class="stat"><span>${L.role}</span><b>${USER.isAdmin?L.menuAdmin.toLowerCase():(USER.role==="moderator"?L.roleModer:L.rolePlayer)}</b></div></div>`;
+function updateTkHint() {
+  const typeEl = document.getElementById('tk-type');
+  const hint = document.getElementById('tk-hint');
+  if (typeEl && hint) hint.textContent = typeEl.value === 'withdraw'
+    ? `Максимум для вывода: ${profile?.balance ?? 0}` : 'Сумма пополнения — договоритесь в чате тикета';
+  if (typeEl) typeEl.onchange = updateTkHint;
 }
-function ticketModal(type){
-const isW = type==="withdraw";
-openModal(`<h2>${isW?L.withdraw:L.deposit}</h2>
-<p class="muted" style="margin:8px 0">${L.amountHint}${isW?` (${L.withdraw}: −${WITHDRAW_COMMISSION}% )`:""}</p>
-<input id="tAmount" inputmode="numeric" placeholder="${L.amount}">
-<button class="btn" style="width:100%;margin-top:12px" onclick="createTicket('${type}')">${L.confirm}</button>`);
+function setPTab(v) { profileTicketTab = v; OPEN_TICKET_ID = null; rerender(); }
+function backToProfile() { OPEN_TICKET_ID = null; rerender(); }
+function openMyTicket(id) { OPEN_TICKET_ID = id; rerender(); }
+function uiCreateTicket() {
+  const type = document.getElementById('tk-type').value;
+  const amount = +document.getElementById('tk-amount').value || 0;
+  if (amount <= 0) return toast('Укажи сумму больше 0');
+  if (type === 'withdraw' && amount > (profile?.balance || 0))
+    return toast('Сумма вывода не может превышать твой баланс');
+  createTicket(type, amount).then(rerender);
 }
-async function createTicket(type){
-const amt = parseInt($("#tAmount").value.replace(/\D/g,""));
-if(!amt || amt<=0) return toast(L.errFill);
-if(type==="withdraw" && (USER.balance||0) < amt) return toast(L.notEnough);
-const t = {type, amount:amt, userId:USER.id, userName:USER.name, status:"open", createdAt:Date.now()};
-if(type==="withdraw"){
-await db.ref("users/"+USER.id+"/balance").transaction(v=>(v||0)-amt);
-USER.balance -= amt; renderHeader();
-t.reserved = amt;
+
+/* --- вкладка тикетов для стаффа --- */
+function renderStaffTickets(c) {
+  if (OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID])
+    return c.innerHTML = ticketViewHTML(OPEN_TICKET_ID, TICKETS[OPEN_TICKET_ID], 'backToStaff');
+
+  const all = Object.entries(TICKETS).sort((a, b) => b[1].num - a[1].num);
+  const q = ticketSearch.trim();
+  const match = ([, t]) => !q || String(t.num).includes(q);
+  const open = all.filter(([, t]) => t.status === 'open' && match([, t]));
+  const mine = all.filter(([, t]) => t.status === 'taken' && t.takenBy === CURRENT_ID);
+  const closed = all.filter(([, t]) => t.status === 'closed' && match([, t]));
+
+  c.innerHTML = `<div class="card"><h2>🎫 Тикеты</h2>
+      <p class="muted">Взятый тикет исчезает из списка у всех. Невзятый тикет закроется сам через 24 часа («Время истекло»).</p>
+      <input placeholder="Поиск по номеру тикета…" value="${esc(ticketSearch)}" oninput="ticketSearch=this.value; rerender()">
+      <div class="subtabs">
+        <button class="${ticketSubTab === 'open' ? 'on' : ''}" onclick="setSub2('open')">Не выполненные (${open.length})</button>
+        <button class="${ticketSubTab === 'mine' ? 'on' : ''}" onclick="setSub2('mine')">Текущие (${mine.length})</button>
+        <button class="${ticketSubTab === 'closed' ? 'on' : ''}" onclick="setSub2('closed')">Закрытые (${closed.length})</button>
+      </div>
+      ${ticketSubTab === 'open' ? (open.map(([id, t]) =>
+        ticketRowHTML(id, t, { action: 'uiTake', label: 'Взять' })).join('') || '<p class="muted">Свободных тикетов нет.</p>') : ''}
+      ${ticketSubTab === 'mine' ? (mine.map(([id, t]) =>
+        ticketRowHTML(id, t, { action: 'openStaffTicket', label: 'Открыть' })).join('') || '<p class="muted">Нет активных тикетов.</p>') : ''}
+      ${ticketSubTab === 'closed' ? (closed.map(([id, t]) =>
+        ticketRowHTML(id, t, { action: 'openStaffTicket', label: 'Открыть' })).join('') || '<p class="muted">Пока нет закрытых.</p>') : ''}
+    </div>`;
 }
-await dbPush("tickets", t);
-closeModal(); toast(L.done); go("tickets");
+function setSub2(v) { ticketSubTab = v; OPEN_TICKET_ID = null; rerender(); }
+function backToStaff() { OPEN_TICKET_ID = null; rerender(); }
+function openStaffTicket(id) { OPEN_TICKET_ID = id; rerender(); }
+function uiTake(id) { takeTicket(id).then(rerender); }
+
+/* ---------- АДМИН-ПАНЕЛЬ ---------- */
+function renderAdmin(c) {
+  c.innerHTML = `
+    <div class="card">
+      <div class="admin-tabs">
+        <button class="btn sec ${adminSub==='items'?'on':''}" onclick="setSub('items')">📚 Предметы</button>
+        <button class="btn sec ${adminSub==='cats'?'on':''}" onclick="setSub('cats')">🗂 Категории</button>
+        <button class="btn sec ${adminSub==='cases'?'on':''}" onclick="setSub('cases')">📦 Кейсы</button>
+        <button class="btn sec ${adminSub==='users'?'on':''}" onclick="setSub('users')">👥 Игроки</button>
+        <button class="btn sec ${adminSub==='anns'?'on':''}" onclick="setSub('anns')">📢 Объявления</button>
+        <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
+      </div>
+    </div>
+    <div id="admin-body"></div>`;
+  drawAdminBody();
 }
-/* ============ ТИКЕТЫ ============ */
-async function renderTickets(){
-const all = (await dbGet("tickets"))||{};
-let list = Object.entries(all).sort((a,b)=>b[1].createdAt-a[1].createdAt);
-if(!USER.isStaff) list = list.filter(([,t])=>t.userId===USER.id);
-else list = list.filter(([id,t])=>
-(ticketFilter.type==="all"||t.type===ticketFilter.type) &&
-(ticketFilter.status==="all"||t.status===ticketFilter.status));
-const filters = USER.isStaff ? `
-<div class="tabs">${[["all",L.filterAll],["deposit",L.typeDeposit],["withdraw",L.typeWithdraw]].map(([k,v])=>`<button class="tab ${ticketFilter.type===k?"act":""}" onclick="ticketFilter.type='${k}';renderTickets()">${v}</button>`).join("")}</div>
-<div class="tabs">${[["open",L.statusOpen],["closed",L.statusClosed],["all",L.filterAll]].map(([k,v])=>`<button class="tab ${ticketFilter.status===k?"act":""}" onclick="ticketFilter.status='${k}';renderTickets()">${v}</button>`).join("")}</div>` : "";
-$("#app").innerHTML = `<h1>${L.tickets}</h1>${USER.isStaff?`<p class="small" style="margin-bottom:8px">${L.ticketsHint}</p>`:""}${filters}` +
-(list.length ? list.map(([id,t])=>`
-<div class="card tick ${t.status}" onclick="openTicket('${id}')">
-<div class="row"><b class="grow">${t.type==="deposit"?L.typeDeposit:L.typeWithdraw} · ${fmt(t.amount)} ${L.gold}</b>
-<span class="small">${t.status==="open"?L.statusOpen:L.statusClosed}</span></div>
-<div class="small">${esc(t.userName||"")} · ID ${t.userId} · ${new Date(t.createdAt).toLocaleString("ru-RU")}</div>
-${t.takenBy?`<div class="small">${L.takenBy} ${t.takenByName||t.takenBy}</div>`:""}
-</div>`).join("") : `<p class="muted">${L.noData}</p>`);
+function setSub(s) { adminSub = s; drawAdminBody(); }
+function drawAdminBody() {
+  const b = document.getElementById('admin-body');
+  if (!b) return;
+  if (adminSub === 'items') b.innerHTML = adminItemsHTML();
+  if (adminSub === 'cats')  b.innerHTML = adminCatsHTML();
+  if (adminSub === 'cases') b.innerHTML = adminCasesHTML();
+  if (adminSub === 'users') b.innerHTML = adminUsersHTML();
+  if (adminSub === 'anns')  b.innerHTML = adminAnnsHTML();
+  if (adminSub === 'cur')   b.innerHTML = adminCurHTML();
 }
-async function openTicket(id){
-curTicket = id;
-const t = await dbGet("tickets/"+id);
-if(!t) return;
-const canControl = USER.isStaff && t.takenBy===USER.id;
-const canTake = USER.isStaff && t.status==="open" && !t.takenBy;
-const isMine = t.userId===USER.id;
-openModal(`
-<div class="row"><h2 class="grow">${t.type==="deposit"?L.typeDeposit:L.typeWithdraw} · ${fmt(t.amount)} ${L.gold}</h2>
-<span class="small">${t.status==="open"?L.statusOpen:L.statusClosed}</span></div>
-<div class="small" style="margin-bottom:10px">${esc(t.userName||"")} · ID ${t.userId}</div>
-<div class="chat" id="chatBox">${L.loading}</div>
-<div class="row" style="margin-top:10px"><input id="msgIn" placeholder="${L.msgPlaceholder}"><button class="btn" onclick="sendMsg('${id}')">${L.send}</button></div>
-<div class="row" style="margin-top:12px;gap:8px">
-${canTake?`<button class="btn grow" onclick="takeTicket('${id}')">${L.takeTicket}</button>`:""}
-${t.takenBy && USER.isStaff && t.takenBy!==USER.id?`<span class="small grow">${L.takenBy} ${esc(t.takenByName||t.takenBy)}</span>`:""}
-${t.takenBy===USER.id && t.status==="open"?`<span class="small grow">${L.takenByYou}</span>`:""}
-</div>
-${canControl?`<div class="row" style="margin-top:10px;gap:8px">
-<button class="btn grow" onclick="resolveTicket('${id}','done')">${L.execute}</button>
-<button class="btn ghost grow" onclick="resolveTicket('${id}','reject')">${L.reject}</button></div>`:""}`);
-db.ref("tickets/"+id+"/msgs").orderByChild("ts").on("value", s=>{
-const box = $("#chatBox"); if(!box) return;
-const msgs = s.val()||{};
-const arr = Object.values(msgs).sort((a,b)=>a.ts-b.ts);
-box.innerHTML = arr.length ? arr.map(m=>`
-<div class="msg ${m.from===USER.id?"me":"them"}"><div class="who">${esc(m.name||"")}</div>${esc(m.text)}</div>`).join("")
-: `<span class="muted">${L.noData}</span>`;
-box.scrollTop = box.scrollHeight;
-});
+
+/* --- Предметы --- */
+function adminItemsHTML() {
+  return `<div class="card"><h2>➕ Новый предмет</h2>
+    <label>Название</label><input id="it-name">
+    <label>Иконка (загрузи файл или вставь ссылку)</label>
+    <input type="file" accept="image/*" onchange="onItemFile(event)">
+    <p class="muted" style="text-align:center; margin:4px 0">или</p>
+    <input id="it-img" placeholder="https://...">
+    <img id="it-prev" class="preview" style="display:none">
+    <label>Цена</label><input id="it-price" type="number" value="0">
+    <label><input type="checkbox" id="it-sell" checked> Можно продавать</label>
+    <button class="btn" onclick="addItem()">Создать предмет</button></div>
+  <div class="card"><h2>📚 Предметы (${Object.keys(ITEMS).length})</h2>
+    <div class="item-grid">${Object.entries(ITEMS).map(([id, it]) =>
+      `<div class="item-card">${it.img ? `<img src="${esc(it.img)}">` : ''}
+        <div class="nm">${esc(it.name)}</div>
+        <div class="chips">${it.price} · ${it.sellable ? 'продаётся' : 'не продаётся'}</div>
+        <button class="del" style="margin-top:8px" onclick="delItem('${id}')">Удалить</button></div>`).join('')}
+    </div></div>`;
 }
-async function sendMsg(id){
-const inp = $("#msgIn"); const text = inp.value.trim(); if(!text) return;
-await dbPush("tickets/"+id+"/msgs", {from:USER.id, name:USER.name, text, ts:Date.now()});
-inp.value = "";
+function onItemFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToDataUrl(f, url => {
+    document.getElementById('it-img').value = url;
+    const p = document.getElementById('it-prev');
+    p.src = url; p.style.display = 'block';
+    toast('Картинка загружена');
+  });
 }
-async function takeTicket(id){
-const t = await dbGet("tickets/"+id);
-if(!t || t.takenBy) return toast(L.alreadyTaken);
-if(t.userId===USER.id) return toast(L.takeSelf);
-await dbUpd("tickets/"+id, {takenBy:USER.id, takenByName:USER.name, status:"open"});
-closeModal(); openTicket(id);
+async function addItem() {
+  const name = document.getElementById('it-name').value.trim();
+  if (!name) return toast('Введи название');
+  await db.ref('items').push().set({
+    name, img: document.getElementById('it-img').value.trim(),
+    price: +document.getElementById('it-price').value || 0,
+    sellable: document.getElementById('it-sell').checked ? 1 : 0
+  });
+  toast('Предмет создан');
+  drawAdminBody();
 }
-async function resolveTicket(id, res){
-const t = await dbGet("tickets/"+id);
-if(!t || t.takenBy!==USER.id || t.status!=="open") return;
-const uref = db.ref("users/"+t.userId+"/balance");
-if(t.type==="deposit"){
-if(res==="done"){
-await uref.transaction(v=>(v||0)+t.amount);
-await houseAdd("income", t.amount);
+async function delItem(id) { if (confirm('Удалить предмет?')) { await db.ref('items/' + id).remove(); drawAdminBody(); } }
+
+/* --- Категории --- */
+function adminCatsHTML() {
+  return `<div class="card"><h2>➕ Новая категория</h2>
+    <label>Название</label><input id="cat-name">
+    <button class="btn" onclick="addCat()">Создать категорию</button></div>
+  <div class="card"><h2>🗂 Категории (${Object.keys(CATS).length})</h2>
+    ${Object.entries(CATS).map(([id, c]) =>
+      `<div class="row" style="align-items:center; margin-bottom:6px">
+        <p style="flex:1">${esc(c.name)}</p><button class="del" onclick="delCat('${id}')">Удалить</button></div>`).join('') || '<p class="muted">Пока нет.</p>'}
+    <hr class="divider"><p class="muted">Кейсы без категории автоматически попадают в раздел «Общая» в магазине.</p>
+  </div>`;
 }
-} else {
-if(res==="done"){
-await houseAdd("outcome", Math.floor(t.amount*(100-WITHDRAW_COMMISSION)/100));
-} else {
-await uref.transaction(v=>(v||0)+t.amount); // возврат резерва
+async function addCat() {
+  const name = document.getElementById('cat-name').value.trim();
+  if (!name) return toast('Введи название');
+  await db.ref('categories').push().set({ name });
+  toast('Категория создана');
+  drawAdminBody();
 }
+async function delCat(id) { if (confirm('Удалить категорию?')) { await db.ref('categories/' + id).remove(); drawAdminBody(); } }
+
+/* --- Кейсы --- */
+function adminCasesHTML() {
+  if (!draft) draft = { name:'', img:'', price:0, category:'', totalLimit:0, perUserLimit:0, hours:0, items:[] };
+  return `<div class="card"><h2>➕ Новый кейс</h2>
+    <label>Название</label><input id="cs-name" value="${esc(draft.name)}">
+    <label>Иконка кейса (файл или ссылка)</label>
+    <input type="file" accept="image/*" onchange="onCaseFile(event)">
+    <p class="muted" style="text-align:center; margin:4px 0">или</p>
+    <input id="cs-img" value="${esc(draft.img)}" placeholder="https://...">
+    <img id="cs-prev" class="preview" style="${draft.img ? '' : 'display:none'}" src="${esc(draft.img)}">
+    <label>Стоимость (0 = бесплатный кейс)</label><input id="cs-price" type="number" value="${draft.price}">
+    <label>Категория (необязательно — иначе «Общая»)</label><select id="cs-cat">
+      <option value="">— Общая —</option>
+      ${Object.entries(CATS).map(([id, c]) => `<option value="${id}" ${draft.category === id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+    </select>
+    <div class="row">
+      <div><label>Всего открытий (0 = ∞)</label><input id="cs-total" type="number" value="${draft.totalLimit}"></div>
+      <div><label>Лимит на игрока (0 = ∞)</label><input id="cs-per" type="number" value="${draft.perUserLimit}"></div>
+    </div>
+    <label>Исчезнет через (часов, 0 = никогда)</label><input id="cs-hours" type="number" value="${draft.hours}">
+    <hr class="divider">
+    <label>Предметы и шансы</label>
+    <div class="row">
+      <select id="cs-item">${Object.entries(ITEMS).map(([id, it]) => `<option value="${id}">${esc(it.name)}</option>`).join('')}</select>
+      <input id="cs-chance" type="number" placeholder="Шанс, %" value="10" style="flex:0 0 90px">
+      <button class="btn sec" style="flex:0 0 auto; padding:10px" onclick="draftAddItem()">+</button>
+    </div>
+    ${draft.items.map((d, i) => `<div class="row" style="align-items:center">
+      <p style="flex:1">${ITEMS[d.id]?.img ? `<img class="cmini" src="${esc(ITEMS[d.id].img)}" style="border-radius:4px">` : ''} ${esc(ITEMS[d.id]?.name || d.id)} — <b>${d.chance}%</b></p>
+      <button class="del" onclick="draftRemove(${i})">✕</button></div>`).join('') || '<p class="muted">Добавь хотя бы один предмет.</p>'}
+    <button class="btn" style="margin-top:10px" onclick="saveCase()">Создать кейс</button></div>
+  <div class="card"><h2>📦 Кейсы (${Object.keys(CASES).length})</h2>
+    ${Object.entries(CASES).map(([id, k]) =>
+      `<div class="row" style="align-items:center; margin-bottom:6px">
+        <p style="flex:1">${k.img ? `<img class="cmini" src="${esc(k.img)}" style="border-radius:4px">` : ''} ${esc(k.name)} · ${k.price > 0 ? k.price : 'бесплатно'} · открыто: ${k.opened || 0}</p>
+        <button class="del" onclick="delCase('${id}')">Удалить</button></div>`).join('') || '<p class="muted">Пока нет.</p>'}
+  </div>`;
 }
-await dbUpd("tickets/"+id, {status:"closed", resolvedAt:Date.now(), result:res});
-await dbPush("tickets/"+id+"/msgs", {from:USER.id, name:"SYSTEM", text: res==="done"?(t.type==="deposit"?L.arrived:L.withdrawn):L.rejected, ts:Date.now()});
-closeModal(); toast(L.done); go("tickets");
+function readDraft() {
+  draft.name = document.getElementById('cs-name').value;
+  draft.img = document.getElementById('cs-img').value.trim();
+  draft.price = +document.getElementById('cs-price').value || 0;
+  draft.category = document.getElementById('cs-cat').value;
+  draft.totalLimit = +document.getElementById('cs-total').value || 0;
+  draft.perUserLimit = +document.getElementById('cs-per').value || 0;
+  draft.hours = +document.getElementById('cs-hours').value || 0;
 }
-/* ============ НАСТРОЙКИ ============ */
-function renderSettings(){
-$("#app").innerHTML = `<h1>${L.menuSet}</h1>
-<div class="card">
-<a href="${SUPPORT_URL}" target="_blank" style="text-decoration:none">
-<button class="btn ghost" style="width:100%">${L.support} · @SiQyal</button></a>
-</div>
-<div class="card"><button class="btn ghost" style="width:100%" onclick="logout()">${L.logout}</button></div>`;
+function onCaseFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToDataUrl(f, url => {
+    draft.img = url;
+    drawAdminBody();
+    toast('Картинка загружена');
+  });
 }
-function logout(){ localStorage.removeItem("zxu_id"); USER=null; location.reload(); }
-/* ============ АДМИН-ПАНЕЛЬ ============ */
-function renderAdmin(){
-if(!USER.isAdmin){ go("main"); return; }
-const tabs = [["items",L.adminItems],["cases",L.adminCases],["ann",L.adminAnn],["users",L.adminUsers],["fin",L.adminFin]];
-$("#app").innerHTML = `<h1>${L.menuAdmin}</h1>
-<div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${adminTab===k?"act":""}" onclick="adminTab='${k}';renderAdmin()">${v}</button>`).join("")}</div>
-<div id="adminBody"></div>`;
-({items:aItems, cases:aCases, ann:aAnn, users:aUsers, fin:aFin}[adminTab])();
+function draftAddItem() {
+  const id = document.getElementById('cs-item').value;
+  const chance = +document.getElementById('cs-chance').value || 0;
+  if (!id || chance <= 0) return toast('Выбери предмет и шанс больше 0');
+  readDraft();
+  draft.items.push({ id, chance });
+  drawAdminBody();
 }
-async function aItems(){
-ITEMS = (await dbGet("items"))||{};
-$("#adminBody").innerHTML = `<div class="card">
-<input id="iName" placeholder="${L.itemName}">
-<input id="iPrice" inputmode="numeric" placeholder="${L.itemPrice}" style="margin:8px 0">
-<div class="file-btn" onclick="pickImage(d=>{$('#iIcon').src=d;$('#iIcon').classList.remove('hidden')})">${L.itemIcon}</div>
-<img id="iIcon" class="hidden" style="width:70px;height:70px;object-fit:cover;border-radius:10px">
-<button class="btn" style="width:100%;margin-top:8px" onclick="addItem()">${L.add}</button>
-</div>
-<div class="grid">${Object.entries(ITEMS).map(([k,v])=>`
-<div class="item-card"><img src="${v.icon||defaultGoldIcon()}">
-<div class="item-name">${esc(v.name)}</div><div class="item-price">${fmt(v.price)} ${L.gold}</div>
-<button class="btn ghost" style="width:100%;padding:7px;font-size:12px" onclick="delItem('${k}')">${L.del}</button></div>`).join("")}</div>`;
+function draftRemove(i) { readDraft(); draft.items.splice(i, 1); drawAdminBody(); }
+async function saveCase() {
+  readDraft();
+  if (!draft.name.trim()) return toast('Введи название');
+  if (draft.items.length === 0) return toast('Добавь предметы в кейс');
+  await db.ref('cases').push().set({
+    name: draft.name.trim(), img: draft.img,
+    category: draft.category,
+    price: draft.price, totalLimit: draft.totalLimit, perUserLimit: draft.perUserLimit,
+    expiresAt: draft.hours ? Date.now() + draft.hours * 3600000 : 0,
+    opened: 0,
+    items: Object.fromEntries(draft.items.map(d => [d.id, d.chance])),
+    createdAt: Date.now()
+  });
+  draft = null;
+  toast('Кейс создан!');
+  drawAdminBody();
 }
-async function addItem(){
-const name = $("#iName").value.trim(), price = parseInt($("#iPrice").value.replace(/\D/g,""));
-const icon = ($("#iIcon")&&!$("#iIcon").classList.contains("hidden"))?$("#iIcon").src:"";
-if(!name||!price) return toast(L.errFill);
-await dbPush("items", {name, price, icon});
-toast(L.done); aItems();
+async function delCase(id) { if (confirm('Удалить кейс?')) { await db.ref('cases/' + id).remove(); drawAdminBody(); } }
+
+/* --- Игроки и роли --- */
+function adminUsersHTML() {
+  return `<div class="card"><h2>👥 Игроки (${Object.keys(USERS).length})</h2>
+    <p class="muted">Модератор видит вкладку «Тикеты» и может брать и закрывать тикеты игроков.</p>
+    ${Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || '')).map(([id, u]) =>
+      `<div class="row" style="align-items:center; margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-size:14px">${esc(u.name || id)} ${u.is_admin ? '<span class="badge" style="margin:0">АДМИН</span>' : ''} ${ROLES[id] === 'moderator' ? '<span class="badge mod" style="margin:0">МОД</span>' : ''}</div>
+          <div class="chips">ID: ${id} · баланс: ${u.balance ?? 0}</div>
+        </div>
+        ${u.is_admin ? '' : (ROLES[id] === 'moderator'
+          ? `<button class="del" onclick="toggleMod('${id}', false)">Снять мода</button>`
+          : `<button class="btn small" style="flex:0 0 auto" onclick="toggleMod('${id}', true)">Сделать модом</button>`)}
+      </div>`).join('')}
+  </div>`;
 }
-async function delItem(k){ await db.ref("items/"+k).remove(); aItems(); }
-async function aCases(){
-CASES = (await dbGet("cases"))||{};
-ITEMS = (await dbGet("items"))||{};
-$("#adminBody").innerHTML = `
-<div class="card">
-<input id="cName" placeholder="${L.caseName}">
-<input id="cPrice" inputmode="numeric" placeholder="${L.casePrice}" style="margin:8px 0">
-<div class="file-btn" onclick="pickImage(d=>{$('#cIcon').src=d;$('#cIcon').classList.remove('hidden')})">${L.caseIcon}</div>
-<img id="cIcon" class="hidden" style="width:70px;height:70px;object-fit:cover;border-radius:10px">
-<input id="cTotal" inputmode="numeric" placeholder="${L.caseTotalLimit}" style="margin-top:8px">
-<input id="cUser" inputmode="numeric" placeholder="${L.caseUserLimit}" style="margin:8px 0">
-<input id="cCd" inputmode="numeric" placeholder="${L.caseCooldown}">
-<input id="cExp" inputmode="numeric" placeholder="${L.caseExpire}" style="margin:8px 0">
-<div class="muted" style="margin:10px 0 4px">${L.caseContents}</div>
-<div id="cPick">${Object.entries(ITEMS).map(([k,v])=>`
-<div class="row" style="margin-bottom:6px">
-<input type="checkbox" id="ck_${k}" style="width:20px">
-<span class="grow small">${esc(v.name)} · ${fmt(v.price)}</span>
-<input id="cc_${k}" inputmode="numeric" placeholder="%" style="width:70px;padding:6px">
-</div>`).join("")||`<span class="muted">${L.noData}</span>`}</div>
-<button class="btn" style="width:100%;margin-top:10px" onclick="addCase()">${L.add}</button>
-</div>
-<div class="grid">${Object.entries(CASES).map(([k,v])=>`
-<div class="item-card"><img src="${v.icon||defaultGoldIcon()}">
-<div class="item-name">${esc(v.name)}</div><div class="item-price">${fmt(v.price)} ${L.gold}</div>
-<button class="btn ghost" style="width:100%;padding:7px;font-size:12px" onclick="delCase('${k}')">${L.del}</button></div>`).join("")}</div>`;
+async function toggleMod(id, on) {
+  if (on) await db.ref('roles/' + id).set('moderator');
+  else await db.ref('roles/' + id).remove();
+  toast(on ? 'Назначен модератором' : 'Роль снята');
 }
-async function addCase(){
-const name = $("#cName").value.trim(), price = parseInt($("#cPrice").value.replace(/\D/g,""));
-if(!name||!price) return toast(L.errFill);
-const contents = {};
-Object.keys(ITEMS).forEach(k=>{
-if($("#ck_"+k).checked){
-const w = parseInt($("#cc_"+k).value)||0;
-if(w>0) contents[k] = {chance:w};
+
+/* --- Объявления --- */
+function adminAnnsHTML() {
+  const editing = ANN_EDIT && ANNS[ANN_EDIT];
+  const cur = editing ? ANNS[ANN_EDIT] : (ANN_DRAFT || { text:'', img:'', btnName:'', btnLink:'' });
+  return `<div class="card"><h2>➕ ${editing ? '✏️ Изменить объявление' : 'Новое объявление'}</h2>
+    <label>Текст</label><textarea id="an-text" rows="3">${esc(cur.text)}</textarea>
+    <label>Фото (необязательно)</label>
+    <input type="file" accept="image/*" onchange="onAnFile(event)">
+    <img id="an-prev" class="preview" style="width:100%; height:auto; max-height:120px; ${cur.img ? '' : 'display:none'}" src="${esc(cur.img)}">
+    <label>Кнопка: название (необязательно)</label><input id="an-btn-name" value="${esc(cur.btnName)}" placeholder="Например: Наш канал">
+    <label>Кнопка: ссылка</label><input id="an-btn-link" value="${esc(cur.btnLink)}" placeholder="https://...">
+    <button class="btn" onclick="saveAnn()">${editing ? 'Сохранить изменения' : 'Создать объявление'}</button>
+    ${editing ? '<button class="btn sec" style="margin-top:6px" onclick="cancelAnnEdit()">Отмена редактирования</button>' : ''}
+    <hr class="divider">
+    <p class="muted">Объявления показываются на главной каруселью: автолистование каждые 10 секунд, игрок может листать свайпом и стрелками.</p></div>
+  <div class="card"><h2>📢 Объявления (${Object.keys(ANNS).length})</h2>
+    ${Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0)).map(([id, a]) =>
+      `<div class="ticket-row">
+        <div class="row" style="align-items:center">
+          <div style="flex:1">
+            <div style="font-size:13px">${esc(a.text.slice(0, 60))}${a.text.length > 60 ? '…' : ''}</div>
+            <div class="chips">${a.img ? '📷 фото · ' : ''}${a.btnName ? `кнопка: ${esc(a.btnName)}` : 'без кнопки'}</div>
+          </div>
+          <button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button>
+          <button class="del" onclick="delAnn('${id}')">Удалить</button>
+        </div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>'}
+  </div>`;
 }
-});
-if(!Object.keys(contents).length) return toast(L.caseContents+": 0");
-const total = parseInt($("#cTotal").value)||0, userL = parseInt($("#cUser").value)||0;
-const cd = parseInt($("#cCd").value)||0, exp = parseInt($("#cExp").value)||0;
-await dbPush("cases", {
-name, price, icon:($("#cIcon")&&!$("#cIcon").classList.contains("hidden"))?$("#cIcon").src:"",
-contents, totalLimit:total, userLimit:userL, cooldown:cd,
-expiresAt: exp>0 ? Date.now()+exp*3600000 : 0
-});
-toast(L.done); aCases();
+function readAnnForm() {
+  return {
+    text: document.getElementById('an-text').value.trim(),
+    img: document.getElementById('an-prev')?.src || '',
+    btnName: document.getElementById('an-btn-name').value.trim(),
+    btnLink: document.getElementById('an-btn-link').value.trim()
+  };
 }
-async function delCase(k){ await db.ref("cases/"+k).remove(); aCases(); }
-async function aAnn(){
-ANN = (await dbGet("announcements"))||{};
-$("#adminBody").innerHTML = `
-<div class="card">
-<textarea id="aText" rows="3" placeholder="${L.annText}"></textarea>
-<div class="file-btn" onclick="pickImage(d=>{$('#aImg').src=d;$('#aImg').classList.remove('hidden')})">${L.annImage}</div>
-<img id="aImg" class="hidden" style="border-radius:10px;max-height:120px">
-<button class="btn" style="width:100%;margin-top:8px" onclick="addAnn()">${L.publish}</button>
-</div>
-${Object.entries(ANN).sort((a,b)=>b[1].ts-a[1].ts).map(([k,v])=>`
-<div class="card ann"><div class="row"><div class="grow">${esc(v.text||"")}</div>
-<button class="btn ghost" style="padding:6px 10px;font-size:12px" onclick="delAnn('${k}')">${L.del}</button></div>
-${v.image?`<img src="${v.image}">`:""}</div>`).join("")||`<p class="muted">${L.noData}</p>`}`;
+function onAnFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToPhoto(f, url => {
+    const p = document.getElementById('an-prev');
+    p.src = url; p.style.display = 'block';
+    toast('Фото загружено');
+  });
 }
-async function addAnn(){
-const text = $("#aText").value.trim();
-const hasImg = $("#aImg") && !$("#aImg").classList.contains("hidden");
-if(!text && !hasImg) return toast(L.errFill);
-await dbPush("announcements", {text, image:hasImg?$("#aImg").src:"", ts:Date.now()});
-toast(L.done); aAnn();
+async function saveAnn() {
+  const data = readAnnForm();
+  if (!data.text) return toast('Введи текст объявления');
+  if (data.btnName && !data.btnLink) return toast('Укажи ссылку для кнопки');
+  const payload = { text: data.text, img: data.img, btnName: data.btnName, btnLink: data.btnLink };
+  if (ANN_EDIT) {
+    await db.ref('anns/' + ANN_EDIT).update(payload);
+    ANN_EDIT = null;
+    toast('Объявление обновлено');
+  } else {
+    await db.ref('anns').push().set({ ...payload, createdAt: Date.now() });
+    toast('Объявление создано');
+  }
+  drawAdminBody();
 }
-async function delAnn(k){ await db.ref("announcements/"+k).remove(); aAnn(); }
-async function aUsers(){
-const q = ($("#uq")?$("#uq").value.trim():"");
-let users = (await dbGet("users"))||{};
-let list = Object.entries(users);
-if(q) list = list.filter(([id])=>id.includes(q));
-list.sort((a,b)=>b[0].localeCompare(a[0]));
-$("#adminBody").innerHTML = `
-<input id="uq" placeholder="${L.searchById}" value="${esc(q)}" oninput="clearTimeout(window._ut);window._ut=setTimeout(aUsers,500)">
-<div style="margin-top:12px">${list.slice(0,30).map(([id,u])=>`
-<div class="card">
-<div class="row">
-<b class="grow">${esc(u.name||"")}</b>
-<span class="small">ID ${id}</span>
-</div>
-<div class="stat"><span>${L.userBalance}</span><b>${fmt(u.balance)} ${L.gold}</b></div>
-<div class="stat"><span>${L.role}</span><b>${u.role==="moderator"?L.roleModer:(ADMIN_IDS.map(String).includes(id)?"admin":L.rolePlayer)}</b></div>
-<div class="row" style="margin-top:8px;gap:8px">
-<button class="btn ghost grow" style="padding:8px" onclick="editUser('${id}',${u.balance||0},'${esc(u.name||"")}')">${L.edit}</button>
-<button class="btn grow" style="padding:8px" onclick="toggleRole('${id}','${u.role||"player"}')">${L.role}</button>
-</div>
-</div>`).join("")}</div>`;
+function editAnn(id) { ANN_EDIT = id; drawAdminBody(); }
+function cancelAnnEdit() { ANN_EDIT = null; drawAdminBody(); }
+async function delAnn(id) {
+  if (!confirm('Удалить объявление?')) return;
+  await db.ref('anns/' + id).remove();
+  if (ANN_EDIT === id) ANN_EDIT = null;
+  toast('Объявление удалено');
+  drawAdminBody();
 }
-function editUser(id, bal, name){
-openModal(`<h2>${L.adminUsers}</h2>
-<input id="eName" value="${esc(name)}" placeholder="${L.playerName}" style="margin:10px 0">
-<input id="eBal" inputmode="numeric" value="${bal}" placeholder="${L.userBalance}">
-<button class="btn" style="width:100%;margin-top:12px" onclick="saveUser('${id}')">${L.save}</button>`);
+
+/* --- Валюта --- */
+function adminCurHTML() {
+  return `<div class="card"><h2>🪙 Иконка валюты</h2>
+    <p class="muted">Появится рядом с балансом и во всех ценах. Файл сжимается до 96×96 и хранится в базе.</p>
+    <label>Файл (PNG / JPG)</label>
+    <input type="file" accept="image/*" onchange="onCurFile(event)">
+    <img id="cur-prev" class="preview" style="border-radius:50%; ${CUR_ICON ? '' : 'display:none'}" src="${CUR_ICON}">
+    <button class="btn" style="margin-top:10px" id="cur-save" onclick="saveCur()" ${CUR_DRAFT ? '' : 'disabled'}>Сохранить иконку</button>
+    ${CUR_ICON ? '<button class="btn sec" style="margin-top:6px" onclick="delCur()">Убрать иконку</button>' : ''}</div>`;
 }
-async function saveUser(id){
-const name = $("#eName").value.trim(), bal = parseInt($("#eBal").value.replace(/\D/g,""))||0;
-await dbUpd("users/"+id, {name, balance:bal});
-closeModal(); toast(L.saved); aUsers();
+function onCurFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToDataUrl(f, url => {
+    CUR_DRAFT = url;
+    const p = document.getElementById('cur-prev');
+    p.src = url; p.style.display = 'block';
+    document.getElementById('cur-save').disabled = false;
+    toast('Картинка загружена');
+  });
 }
-async function toggleRole(id, cur){
-const next = cur==="moderator" ? "player" : "moderator";
-await dbSet("users/"+id+"/role", next);
-toast(L.changeRole); aUsers();
+async function saveCur() {
+  if (!CUR_DRAFT) return;
+  await db.ref('config/currency').set({ icon: CUR_DRAFT, updatedAt: Date.now() });
+  CUR_DRAFT = '';
+  toast('Иконка сохранена');
+  drawAdminBody();
 }
-async function aFin(){
-CONFIG = Object.assign({house:{income:0,outcome:0}}, (await dbGet("config"))||{});
-const h = CONFIG.house||{};
-const diff = (h.income||0)-(h.outcome||0);
-$("#adminBody").innerHTML = `
-<div class="card">
-<div class="stat"><span>${L.houseIncome}</span><b>${fmt(h.income||0)}</b></div>
-<div class="stat"><span>${L.houseOutcome}</span><b>${fmt(h.outcome||0)}</b></div>
-<div class="stat"><span>${L.houseDiff}</span><b style="color:${diff>=0?"#fff":"#888"}">${fmt(diff)}</b></div>
-<p class="small" style="margin-top:8px">${HOUSE_EDGE}% — ${L.app}. ${L.chance} = (100−${HOUSE_EDGE})% / ${L.multiplier.toLowerCase()}</p>
-</div>
-<div class="card">
-<div class="muted" style="margin-bottom:8px">${L.curIcon} / ${L.balIcon}</div>
-<div class="file-btn" onclick="pickImage(d=>setCurIcon(d))">${L.curIcon}</div>
-</div>`;
-}
-async function setCurIcon(d){
-await dbSet("config/currencyIcon", d);
-toast(L.saved); aFin();
-}
-/* ============ КАЗНА (helper) ============ */
-async function houseAdd(field, v){
-await db.ref("config/house/"+field).transaction(cur=>(cur||0)+Math.round(v));
-}
-/* ============ START ============ */
-(async function init(){
-try{ fbInit(); }catch(e){ $("#app").innerHTML = "<p style='padding:20px'>Ошибка Firebase: проверьте FIREBASE_CONFIG</p>"; return; }
-const tg = getTgUser();
-if(tg){ await ensureUser(tg); startApp(); }
-else {
-const saved = localStorage.getItem("zxu_id");
-if(saved){ await ensureUser({id:saved, name:localStorage.getItem("zxu_name")||("id"+saved)}); startApp(); }
-else renderLogin();
-}
-})();
-function startApp(){
-$("#header").style.visibility="visible";
-renderHeader(); buildMenu(); go("main");
-}
+async function delCur() { if (confirm('Убрать иконку валюты?')) { await db.ref('config/currency').remove(); CUR_DRAFT = ''; drawAdminBody(); } }
 </script>
 </body>
 </html>
