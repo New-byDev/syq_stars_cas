@@ -147,15 +147,10 @@
 
 <div id="auth-screen">
   <h1>ZombixUP</h1>
-  <p class="sub">Вход по Telegram ID и паролю</p>
+  <p class="sub">Вход через Telegram</p>
   <div class="card">
-    <label>Telegram ID (только цифры)</label>
-    <input id="a-id" inputmode="numeric" placeholder="8158896250">
-    <label>Пароль (мин. 6 символов)</label>
-    <input id="a-pass" type="password">
-    <p class="muted" id="a-msg" style="margin:6px 0 4px; min-height:18px"></p>
-    <button class="btn" onclick="doAuth()">Войти / Зарегистрироваться</button>
-    <p class="muted" style="margin-top:10px">Если аккаунта с таким ID ещё нет — он создастся автоматически.</p>
+    <p class="muted" id="a-msg" style="margin:6px 0 12px; min-height:18px">Открой приложение через Telegram — вход и создание профиля выполняются автоматически.</p>
+    <button class="btn" id="manual-auth-btn" onclick="doAuth()" style="display:none">Войти вручную</button>
   </div>
 </div>
 
@@ -217,13 +212,15 @@ const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 const TG_USER = tg.initDataUnsafe?.user || null;
 const TG_ID = TG_USER ? String(TG_USER.id) : null;
+const TG_INIT_DATA = tg.initData || '';
+let autoTelegramStarted = false;
 
 let CURRENT_ID = null, CURRENT_PASS = null, profileRef = null, profile = null;
-const WORKER_URL = 'https://strike-arena-kv.mirikpirik2009.workers.dev';
+const WORKER_URL = 'https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev';
 async function workerRequest(path, payload = {}) {
-  if (!CURRENT_ID || !CURRENT_PASS) throw new Error('Сессия не подтверждена. Войдите заново.');
+  if (!CURRENT_ID || (!CURRENT_PASS && !TG_INIT_DATA)) throw new Error('Сессия не подтверждена. Откройте приложение через Telegram.');
   if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Укажи URL Cloudflare Worker в WORKER_URL в index.html');
-  const response = await fetch(WORKER_URL + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:CURRENT_ID, password:CURRENT_PASS, ...payload }) });
+  const response = await fetch(WORKER_URL + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:CURRENT_ID, password:CURRENT_PASS, initData:TG_INIT_DATA, ...payload }) });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.ok) throw new Error(data.error || 'Ошибка серверной операции');
   return data;
@@ -295,6 +292,22 @@ function aMsg(t, cls) {
   const m = document.getElementById('a-msg');
   m.textContent = t; m.style.color = cls === 'err' ? '#ef5350' : '#8d8d8d';
 }
+async function telegramAutoLogin(firebaseUser) {
+  if (!TG_USER || !TG_INIT_DATA) throw new Error('Telegram не передал данные авторизации. Откройте Mini App кнопкой бота.');
+  if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Не настроен URL Cloudflare Worker.');
+  aMsg('Выполняется вход через Telegram…');
+  const idToken = await firebaseUser.getIdToken();
+  const response = await fetch(WORKER_URL + '/api/telegram-session', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ initData:TG_INIT_DATA, uid:firebaseUser.uid, idToken })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось выполнить вход через Telegram');
+  CURRENT_ID = String(data.id || TG_USER.id);
+  CURRENT_PASS = '';
+  enterApp(CURRENT_ID);
+}
+
 async function doAuth() {
   const id = document.getElementById('a-id').value.trim();
   const pass = document.getElementById('a-pass').value;
@@ -372,9 +385,17 @@ function updateStaffBtn() {
 }
 
 auth.onAuthStateChanged(u => {
-  // Каждый вход требует пароль, чтобы Worker мог серверно проверить аккаунт.
-  // Не выполняем вход только по Firebase Anonymous UID или Telegram initDataUnsafe.
+  if (TG_USER && TG_INIT_DATA) {
+    if (autoTelegramStarted) return;
+    if (!u) { auth.signInAnonymously().catch(e => { showAuth(); aMsg('Ошибка Firebase: ' + e.message, 'err'); }); return; }
+    autoTelegramStarted = true;
+    telegramAutoLogin(u).catch(e => { showAuth(); aMsg('Не удалось войти автоматически: ' + e.message, 'err'); });
+    return;
+  }
   showAuth();
+  const manualButton = document.getElementById('manual-auth-btn');
+  if (manualButton) manualButton.style.display = 'block';
+  aMsg('Откройте сайт внутри Telegram, чтобы входить автоматически.');
 });
 function showAuth() {
   document.getElementById('auth-screen').classList.add('show');
