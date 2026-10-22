@@ -106,9 +106,31 @@
   .ann-dot.on { background:var(--accent); width:20px; border-radius:6px; }
 
   /* ---------- ПРОКРУТКА КЕЙСА ---------- */
-  #case-modal { position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:400; display:none; align-items:center; justify-content:center; flex-direction:column; padding:24px; }
+  #case-modal { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:400; display:none; align-items:center; justify-content:center; flex-direction:column; padding:14px; backdrop-filter:blur(9px); }
   #case-modal.show { display:flex; }
-  .cm-box { display:flex; flex-direction:column; align-items:center; text-align:center; width:100%; max-width:420px; }
+  .cm-box { display:flex; flex-direction:column; align-items:stretch; text-align:center; width:100%; max-width:560px; max-height:92vh; background:linear-gradient(160deg,#1a1a1d,#0d0d0f); border:1px solid #333; border-radius:20px; padding:16px; box-shadow:0 25px 90px #000b; overflow:hidden; animation:rise .3s ease; }
+  .case-detail-top { flex:0 0 auto; display:flex; align-items:center; gap:12px; text-align:left; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .case-detail-img { width:64px; height:64px; flex:0 0 64px; display:flex; align-items:center; justify-content:center; border-radius:14px; background:#111; border:1px solid #353535; overflow:hidden; font-size:30px; }
+  .case-detail-img img { width:100%; height:100%; object-fit:contain; }
+  .case-detail-title { flex:1; min-width:0; }
+  .case-detail-title h2 { font-size:18px; margin:0 0 5px; }
+  .case-open-btn { flex:0 0 auto; border:0; border-radius:12px; padding:11px 14px; font-weight:800; background:linear-gradient(135deg,#fff,#bfc4cc); color:#111; cursor:pointer; transition:transform .2s,opacity .2s; }
+  .case-open-btn:active { transform:scale(.96); }
+  .case-open-btn:disabled { opacity:.45; cursor:wait; }
+  .case-counts { display:flex; gap:7px; margin:12px 0; }
+  .case-counts button { flex:1; background:#111; border:1px solid #383838; border-radius:10px; color:var(--text); padding:9px 5px; font-weight:700; cursor:pointer; transition:.2s; }
+  .case-counts button.on { background:#f0f0f0; color:#111; border-color:#fff; box-shadow:0 0 15px #ffffff22; }
+  .case-prize-list { overflow-y:auto; min-height:100px; max-height:42vh; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:2px 3px 8px 0; text-align:left; overscroll-behavior:contain; }
+  .case-prize-row { display:flex; align-items:center; gap:9px; min-width:0; background:#101012; border:1px solid color-mix(in srgb,var(--rarity,#777) 60%,#222); border-radius:12px; padding:8px; box-shadow:inset 0 0 14px var(--rarity-glow,#7772); }
+  .case-prize-row img,.case-prize-placeholder { width:42px; height:42px; flex:0 0 42px; object-fit:contain; display:flex; align-items:center; justify-content:center; font-size:23px; }
+  .case-prize-info { min-width:0; flex:1; }
+  .case-prize-info b { display:block; font-size:11px; overflow-wrap:anywhere; }
+  .case-prize-info span { display:block; color:var(--muted); font-size:10px; margin-top:4px; }
+  .case-result-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; margin:14px 0; overflow:auto; }
+  .case-result-card { background:#101012; border:1px solid #555; border-radius:12px; padding:10px 6px; animation:prizeIn .45s ease both; }
+  .case-result-card img { width:58px; height:58px; object-fit:contain; }
+  .case-result-card b { display:block; font-size:11px; overflow-wrap:anywhere; margin-top:5px; }
+  @media(max-width:420px) { .case-detail-top { gap:8px; } .case-detail-img { width:48px;height:48px;flex-basis:48px; } .case-detail-title h2 {font-size:15px;} .case-open-btn {padding:10px 9px;font-size:11px;} .case-prize-list {grid-template-columns:1fr;} .case-prize-row {padding:7px;} }
   .rl-window { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#0f0f0f; position:relative; height:130px; width:100%; }
   .rl-window::before, .rl-window::after { content:''; position:absolute; top:0; bottom:0; width:18%; z-index:5; pointer-events:none; }
   .rl-window::before { left:0; background:linear-gradient(90deg, #0f0f0f, transparent); }
@@ -196,6 +218,11 @@
   .upg-pointer:before { content:''; position:absolute; top:0; left:-5px; border-left:8px solid transparent; border-right:8px solid transparent; border-top:18px solid #fff; filter:drop-shadow(0 0 6px #fff8); }
   .upg-percent { position:relative; z-index:1; font-size:28px; font-weight:800; letter-spacing:-1px; }
   .upg-result { min-height:20px; font-size:13px; color:var(--muted); margin:8px 0; }
+  .upg-wheel-legend { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin:2px 0 8px; font-size:11px; color:var(--muted); }
+  .upg-wheel-legend span { display:inline-flex; align-items:center; gap:5px; }
+  .upg-wheel-legend i { width:9px; height:9px; border-radius:3px; display:inline-block; }
+  .upg-wheel-legend .success-dot { background:#f5f5f5; box-shadow:0 0 8px #fff8; }
+  .upg-wheel-legend .fail-dot { background:#252525; border:1px solid #555; }
   @media(max-width:560px) { .upg-layout { grid-template-columns:1fr; } .upg-scroll { height:230px; min-height:180px; } .upg-panel h3 { font-size:13px; } .upg-wheel { width:132px; height:132px; } .upg-pointer { transform-origin:3px 60px; height:51px; } }
 </style>
 </head>
@@ -335,6 +362,7 @@ let ANN_EDIT = null, ANN_DRAFT = null;
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
 let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
+let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0;
 const IMG_SIZE = 128;
 const DAY = 24 * 3600 * 1000;
 
@@ -641,7 +669,7 @@ function renderUpgrader(c) {
   c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря. Шанс рассчитывается по формуле: цена предмета игрока ÷ цена цели × 100%. При неудаче исходный предмет расходуется.</p></div>
   <div class="upg-layout"><section class="upg-panel"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=ITEMS[entry.itemId]||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
   <section class="upg-panel"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
-  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent">${target?target.chance.toFixed(1)+'%':'—'}</div></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Готово к запуску':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
+  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent">${target?target.chance.toFixed(1)+'%':'—'}</div></div><div class="upg-wheel-legend"><span><i class="success-dot"></i>Успех ${target?target.chance.toFixed(1):'0'}%</span><span><i class="fail-dot"></i>Неудача ${target?(100-target.chance).toFixed(1):'100'}%</span></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Светлый сектор — шанс улучшить предмет':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
 }
 function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
 function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
@@ -697,73 +725,94 @@ function renderCasesShop(c) {
       </div>`;
     }).join('') + '</div>').join('');
 }
-async function openCase(caseId) {
+function openCase(caseId) {
   const k = CASES[caseId]; if (!k) return;
-  try { const result = await workerRequest('/api/case/open', { caseId }); showCaseRoulette(k, result.winnerId); }
-  catch (e) { toast(e.message || 'Не удалось открыть кейс'); }
+  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false;
+  renderCaseDetails(k);
+  document.getElementById('case-modal').classList.add('show');
 }
-
+function setCaseOpenCount(count) {
+  if (CASE_OPEN_BUSY) return;
+  CASE_OPEN_COUNT = [1,3,5].includes(Number(count)) ? Number(count) : 1;
+  const k = CASES[CASE_DETAIL_ID]; if (k) renderCaseDetails(k);
+}
+function renderCaseDetails(k) {
+  const box = document.getElementById('cm-box');
+  const entries = Object.entries(k.items || {}).filter(([id,ch]) => ITEMS[id] && Number(ch)>0);
+  const totalWeight = entries.reduce((sum,[,ch])=>sum+Number(ch),0);
+  const count = CASE_OPEN_COUNT;
+  const totalPrice = Math.max(0, Number(k.price)||0) * count;
+  const remainingTotal = k.totalLimit ? Math.max(0,Number(k.totalLimit)-Number(k.opened||0)) : Infinity;
+  const remainingUser = k.perUserLimit ? Math.max(0,Number(k.perUserLimit)-Number(profile?.openedCases?.[CASE_DETAIL_ID]||0)) : Infinity;
+  const canOpen = !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (Number(profile?.balance||0)>=totalPrice);
+  box.innerHTML = `
+    <div class="case-detail-top">
+      <div class="case-detail-img">${k.img?`<img src="${esc(k.img)}" alt="">`:'📦'}</div>
+      <div class="case-detail-title"><h2>${esc(k.name||'Кейс')}</h2><div class="muted" style="font-size:11px">${entries.length} предметов · ${k.price>0?`Цена за кейс: ${Number(k.price)}`:'Бесплатный кейс'}</div></div>
+      <button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':`Открыть · ${totalPrice}`}</button>
+    </div>
+    <div class="case-counts" aria-label="Количество кейсов">
+      ${[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>Итого: ${totalPrice}</span></div>
+    <div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=totalWeight>0?Number(weight)/totalWeight*100:0;return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>
+    <button class="btn sec" style="margin-top:8px;flex:0 0 auto" onclick="closeCaseModal()">Закрыть</button>`;
+  const btn = document.getElementById('case-open-action');
+  if (!canOpen && btn) {
+    if (count>remainingTotal || count>remainingUser) btn.title='Недостаточно доступных открытий';
+    else if (Number(profile?.balance||0)<totalPrice) btn.title='Недостаточно средств';
+  }
+}
+async function performCaseOpen() {
+  const caseId = CASE_DETAIL_ID, k = CASES[caseId];
+  if (!k || CASE_OPEN_BUSY) return;
+  if (Date.now()-CASE_LAST_OPEN_AT < 1000) return toast('Подожди секунду между открытиями кейсов');
+  CASE_OPEN_BUSY = true; CASE_LAST_OPEN_AT = Date.now(); renderCaseDetails(k);
+  try {
+    const result = await workerRequest('/api/case/open', { caseId, count:CASE_OPEN_COUNT });
+    const winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
+    showCaseRoulette(k, winners.filter(Boolean));
+  } catch (e) {
+    CASE_OPEN_BUSY = false; renderCaseDetails(k); toast(e.message || 'Не удалось открыть кейс');
+  }
+}
 /* ---------- ПРОКРУТКА ---------- */
 const STEP = 110, ITEM_W = 100;
-function showCaseRoulette(k, winnerId) {
+function showCaseRoulette(k, winnerIds) {
   const modal = document.getElementById('case-modal');
   const box = document.getElementById('cm-box');
-  box.innerHTML = `
-    <p class="muted" style="margin-bottom:14px">${esc(k.name)}</p>
-    <div class="rl-window"><div class="rl-marker"></div><div class="rl-strip" id="rl-strip"></div></div>`;
+  const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
+  box.innerHTML = `<div style="font-weight:800;font-size:18px;margin-bottom:14px">${esc(k.name)} · открытие ${winners.length} ${winners.length===1?'кейса':'кейсов'}</div><div id="case-roulette-rows" style="display:grid;gap:10px;width:100%;overflow:auto;max-height:68vh"></div><p class="muted" style="margin-top:12px">Рулетка останавливается на выигранном предмете</p>`;
   modal.classList.add('show');
-
+  const rows = document.getElementById('case-roulette-rows');
   const pool = Object.keys(k.items || {}).filter(id => ITEMS[id]);
-  const ids = pool.length ? pool : Object.keys(ITEMS).length ? Object.keys(ITEMS) : [winnerId];
-  const seq = [];
-  for (let i = 0; i < 48; i++) seq.push(ids[Math.floor(Math.random() * ids.length)]);
-  seq[40] = winnerId;
-  const strip = document.getElementById('rl-strip');
-  strip.innerHTML = seq.map(id => {
-    const it = ITEMS[id] || {};
-    return `<div class="rl-item">${it.img ? `<img src="${esc(it.img)}">` : '<span>🎁</span>'}
-      <span>${esc(it.name || id)}</span></div>`;
-  }).join('');
-
-  const winW = box.querySelector('.rl-window').clientWidth;
-  const targetX = 40 * STEP - winW / 2 + ITEM_W / 2;
-  const DURATION = 5200;
-  const items = [...strip.children];
-  let start = null;
-
-  function frame(now) {
-    if (!start) start = now;
-    const t = Math.min(1, (now - start) / DURATION);
-    const ease = 1 - Math.pow(1 - t, 4);
-    const x = -targetX * ease;
-    strip.style.transform = `translateX(${x}px)`;
-    items.forEach((el, i) => {
-      const center = i * STEP + ITEM_W / 2 + x;
-      const dist = Math.abs(center - winW / 2);
-      const scale = 1 + 0.45 * Math.max(0, 1 - dist / 80);
-      el.style.transform = `scale(${scale})`;
-      el.style.zIndex = Math.round(scale * 10);
-    });
-    if (t < 1) requestAnimationFrame(frame);
-    else setTimeout(() => showPrize(k, winnerId), 450);
-  }
-  requestAnimationFrame(frame);
+  const ids = pool.length ? pool : Object.keys(ITEMS).length ? Object.keys(ITEMS) : winners;
+  const duration = 3100;
+  const animations = winners.map((winnerId, rowIndex) => new Promise(resolve => {
+    const row = document.createElement('div');
+    row.className = 'rl-window'; row.style.height='104px'; row.innerHTML='<div class="rl-marker"></div><div class="rl-strip"></div>';
+    rows.appendChild(row);
+    const strip = row.querySelector('.rl-strip');
+    const seq=[]; for(let i=0;i<42;i++) seq.push(ids[Math.floor(Math.random()*ids.length)]);
+    seq[35]=winnerId;
+    strip.innerHTML=seq.map(id=>{const it=ITEMS[id]||{};return `<div class="rl-item price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}">`:'<span>🎁</span>'}<span>${esc(it.name||id)}</span></div>`;}).join('');
+    const winW=row.clientWidth, step=110, itemW=100;
+    const targetX=35*step-winW/2+itemW/2;
+    let start=null;
+    function frame(now){if(!start)start=now;const t=Math.min(1,(now-start)/duration);const ease=1-Math.pow(1-t,5);const x=-targetX*ease;strip.style.transform=`translateX(${x}px)`;if(t<1)requestAnimationFrame(frame);else setTimeout(resolve,200+rowIndex*100);}
+    requestAnimationFrame(frame);
+  }));
+  Promise.all(animations).then(()=>showPrize(k,winners));
 }
-function showPrize(k, winnerId) {
-  const win = ITEMS[winnerId] || {};
+function showPrize(k, winnerIds) {
+  const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
   const box = document.getElementById('cm-box');
-  box.innerHTML = `
-    <p class="muted" style="margin-bottom:6px">Вам выпало</p>
-    <div class="cm-prize" id="cm-prize">
-      <div class="frame">${win.img ? `<img src="${esc(win.img)}">` : '🎁'}</div>
-      <div class="pn">${esc(win.name || 'Предмет')}</div>
-      <div class="pp">${win.price > 0 ? `Стоимость: ${win.price}` : 'Без цены'}</div>
-    </div>
-    <button class="btn" style="max-width:220px; margin-top:22px" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
-  requestAnimationFrame(() => document.getElementById('cm-prize').classList.add('show'));
+  box.innerHTML = `<p style="font-size:18px;font-weight:800;margin-bottom:4px">${winners.length===1?'Вам выпало':'Результаты открытия'}</p><p class="muted" style="font-size:11px">${esc(k.name)}</p><div class="case-result-list">${winners.map((id,i)=>{const win=ITEMS[id]||{};return `<div class="case-result-card price-tier-${priceTier(win.price)}" style="animation-delay:${i*70}ms">${win.img?`<img src="${esc(win.img)}">`:'<div style="font-size:40px">🎁</div>'}<b>${esc(win.name||'Предмет')}</b><div class="muted" style="font-size:10px;margin-top:4px">Цена: ${Number(win.price||0)}</div></div>`;}).join('')}</div><button class="btn" style="max-width:260px;margin:8px auto 0" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
+  CASE_OPEN_BUSY = false;
 }
 function closeCaseModal() {
   document.getElementById('case-modal').classList.remove('show');
+  CASE_OPEN_BUSY = false; CASE_DETAIL_ID = null;
   rerender();
 }
 
