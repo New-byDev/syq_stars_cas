@@ -153,7 +153,25 @@
   .ticket-row { background:#111; border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:8px; }
   .ticket-row .tnum { font-weight:700; font-size:14px; }
   .ts-open { color:var(--green); } .ts-taken { color:#ffb74d; } .ts-closed { color:var(--muted); }
-  .chat { display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; padding:4px 0; }
+  .chat { display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; padding:4px 0; overscroll-behavior:contain; }
+  .ticket-chat-form { position:sticky; bottom:0; padding:8px 0 max(8px, env(safe-area-inset-bottom)); background:var(--card); }
+  .ticket-chat-form input { min-width:0; }
+  .ann-whole-link { display:flex; flex-direction:column; gap:10px; color:inherit; text-decoration:none; height:100%; }
+  .ann-whole-link:active { opacity:.88; }
+  .admin-search-row { display:flex; gap:8px; align-items:stretch; margin:10px 0; }
+  .admin-search-row input { min-width:0; flex:1; }
+  .player-info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
+  .player-info-cell { padding:10px; border:1px solid var(--line); border-radius:10px; background:#101010; min-width:0; }
+  .player-info-cell span { display:block; color:var(--muted); font-size:11px; margin-bottom:4px; }
+  .player-info-cell b { overflow-wrap:anywhere; }
+  #case-item-picker { position:fixed; inset:0; z-index:720; display:none; align-items:center; justify-content:center; padding:14px; background:#000d; backdrop-filter:blur(7px); }
+  #case-item-picker.show { display:flex; }
+  .picker-box { width:100%; max-width:620px; max-height:88vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; }
+  .picker-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(125px,1fr)); gap:8px; overflow:auto; padding:4px; min-height:120px; overscroll-behavior:contain; }
+  .picker-item { background:#101010; border:1px solid var(--line); border-radius:12px; padding:10px; color:var(--text); text-align:center; cursor:pointer; min-width:0; }
+  .picker-item img { width:58px; height:58px; object-fit:contain; display:block; margin:0 auto 6px; }
+  .picker-item b { display:block; font-size:12px; overflow-wrap:anywhere; }
+  .picker-item span { display:block; color:var(--muted); font-size:11px; margin-top:4px; }
   .msg { max-width:80%; padding:8px 12px; border-radius:12px; font-size:13px; word-break:break-word; animation:msgIn .25s ease; }
   @keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
   .msg.own { align-self:flex-end; background:var(--accent); color:#000; border-bottom-right-radius:4px; }
@@ -293,6 +311,8 @@
   </div>
 </div>
 <div id="role-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRoleModal()"><div class="role-box"><h2 style="margin-bottom:8px">Настройка прав игрока</h2><p id="role-player-label" class="muted"></p><label for="role-choice">Роль</label><select id="role-choice"><option value="player">Игрок</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select><div class="row"><button class="btn sec" onclick="closeRoleModal()">Отмена</button><button class="btn" onclick="savePlayerRole()">Сохранить</button></div></div></div>
+<div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
+<div id="case-item-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeCaseItemPicker()"><div class="picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">База предметов</h2><button class="btn sec small" onclick="closeCaseItemPicker()">Закрыть</button></div><input id="case-item-search" placeholder="Название предмета…" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCaseItemSearch()}"><button class="btn sec" style="margin-top:6px" onclick="applyCaseItemSearch()">Найти</button><div id="case-item-picker-list" class="picker-list" style="margin-top:10px"></div></div></div>
 <div id="maintenance-screen"><div class="maintenance-box"><div class="maintenance-icon">🛠️</div><h1 style="font-size:23px;margin-bottom:10px">Технический перерыв</h1><p id="maintenance-message" class="muted" style="font-size:14px;line-height:1.6">Ведутся технические работы. Попробуйте зайти позже.</p></div></div>
 <div id="toast"></div>
 
@@ -356,7 +376,8 @@ async function workerRequest(path, payload = {}) {
 let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
 let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
-let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '';
+let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
+let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = ''; 
 let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null;
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
@@ -498,9 +519,17 @@ async function enterApp(id) {
   db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
   db.ref('cases').on('value', s => { CASES = s.val() || {}; rerenderIfDepends(); });
   db.ref('users').on('value', s => { USERS = s.val() || {}; rerenderIfDepends(); });
-  db.ref('tickets').on('value', s => { TICKETS = s.val() || {}; sweepExpired(); rerenderIfDepends(); });
+  db.ref('tickets').on('value', s => {
+    const previous = TICKETS;
+    TICKETS = s.val() || {}; sweepExpired();
+    const activeTicket = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
+    const previousTicket = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
+    if (activeTicket && previousTicket && activeTicket.status === previousTicket.status && activeTicket.takenBy === previousTicket.takenBy && ['tickets','profile'].includes(CURRENT_TAB)) {
+      updateTicketChat(OPEN_TICKET_ID, activeTicket);
+    } else rerenderIfDepends();
+  });
   db.ref('roles').on('value', s => { ROLES = s.val() || {}; updateStaffBtn(); rerenderIfDepends(); });
-  db.ref('anns').on('value', s => { ANNS = s.val() || {}; if (CURRENT_TAB === 'home') rerender(); if (CURRENT_TAB === 'admin' && adminSub === 'anns') drawAdminBody(); });
+  db.ref('anns').on('value', s => { ANNS = s.val() || {}; if (CURRENT_TAB === 'home') rerender(); if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList(); });
   db.ref('config/maintenance').on('value', s => { MAINTENANCE = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'}; updateMaintenanceScreen(); });
   db.ref('config/currency').on('value', s => {
     CUR_ICON = s.val()?.icon || '';
@@ -513,6 +542,13 @@ async function enterApp(id) {
   window.setTimeout(hideAppLoader, 650);
 }
 function rerenderIfDepends() {
+  // Пока редактируется объявление, фоновые обновления БД не должны пересоздавать форму и очищать поля.
+  if (CURRENT_TAB === 'admin' && adminSub === 'anns') { updateAdminAnnList(); return; }
+  // Не пересоздаём форму чата при обновлении профиля/ролей: на телефонах это сбрасывает фокус и клавиатуру.
+  if (OPEN_TICKET_ID && ['tickets','profile'].includes(CURRENT_TAB)) {
+    const t = TICKETS[OPEN_TICKET_ID]; if (t) updateTicketChat(OPEN_TICKET_ID, t);
+    return;
+  }
   if (['admin', 'tickets', 'profile', 'home', 'cases', 'inventory'].includes(CURRENT_TAB) || (CURRENT_TAB === 'upgrader' && !UPG_BUSY)) rerender();
 }
 function updateStaffBtn() {
@@ -585,19 +621,21 @@ function renderHome(c) {
     annHtml = `
     <div class="ann-wrap" id="ann-wrap">
       <div class="ann-track" id="ann-track">
-        ${list.map(([id, a]) => `<div class="ann-slide">
-          ${a.img ? `<img src="${esc(a.img)}">` : ''}
-          <div class="atext">${esc(a.text)}</div>
-          ${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener">${esc(a.btnName)}</a>` : ''}
-        </div>`).join('')}
+        ${list.map(([id, a]) => {
+          const body = `${a.img ? `<img src="${esc(a.img)}" alt="">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener">${esc(a.btnName)}</a>` : ''}`;
+          const wholeLink = !a.btnName && a.btnLink && /^https:\/\//i.test(a.btnLink);
+          return `<div class="ann-slide">${wholeLink ? `<a class="ann-whole-link" href="${esc(a.btnLink)}" target="_blank" rel="noopener">${body}</a>` : body}</div>`;
+        }).join('')}
       </div>
       ${annCount > 1 ? `<button class="ann-nav l" onclick="annSlide(-1)">‹</button>
         <button class="ann-nav r" onclick="annSlide(1)">›</button>
         <div class="ann-dots">${list.map((_, i) => `<button class="ann-dot ${i === annIndex ? 'on' : ''}" onclick="annGo(${i})"></button>`).join('')}</div>` : ''}
     </div>`;
   } else annCount = 0;
+  const top = Object.entries(USERS).map(([id,u]) => ({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0).sort((a,b)=>b.spent-a.spent).slice(0,5);
+  const topHtml = `<div class="card"><h2>🏆 Топ трат</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'монет'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>`;
   c.innerHTML = annHtml + `<div class="card"><h2>Добро пожаловать${TG_USER ? ', ' + esc(TG_USER.first_name) : ''}!</h2>
-    <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>`;
+    <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>` + topHtml;
   if (annCount > 1) startAnnRotator();
 }
 function annUpdate() {
@@ -653,6 +691,16 @@ function upgradeChance(basePrice, targetPrice) {
   if (!(b > 0) || !(t > b)) return 0;
   return Math.max(0, Math.min(100, b / t * 100));
 }
+function formatChance(value) {
+  const n = Number(value) || 0;
+  return n < 0.1 ? n.toFixed(3) : n < 1 ? n.toFixed(2) : n.toFixed(1);
+}
+function chanceColor(value) {
+  const t = Math.max(0, Math.min(1, (Number(value) - 0.001) / 99.999));
+  const from = [255, 59, 48], to = [46, 204, 113];
+  const rgb = from.map((v,i)=>Math.round(v+(to[i]-v)*t));
+  return `rgb(${rgb.join(',')})`;
+}
 function renderUpgrader(c) {
   const inv = profile?.inventory || {};
   const invEntries = Object.entries(inv).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
@@ -669,7 +717,7 @@ function renderUpgrader(c) {
   c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря. Шанс рассчитывается по формуле: цена предмета игрока ÷ цена цели × 100%. При неудаче исходный предмет расходуется.</p></div>
   <div class="upg-layout"><section class="upg-panel"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=ITEMS[entry.itemId]||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
   <section class="upg-panel"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
-  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent">${target?target.chance.toFixed(1)+'%':'—'}</div></div><div class="upg-wheel-legend"><span><i class="success-dot"></i>Успех ${target?target.chance.toFixed(1):'0'}%</span><span><i class="fail-dot"></i>Неудача ${target?(100-target.chance).toFixed(1):'100'}%</span></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Светлый сектор — шанс улучшить предмет':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
+  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent" style="color:${target?chanceColor(target.chance):'#aaa'};text-shadow:0 0 16px ${target?chanceColor(target.chance)+'66':'transparent'}">${target?formatChance(target.chance)+'%':'—'}</div></div><div class="upg-wheel-legend"><span><i class="success-dot"></i>Успех ${target?formatChance(target.chance):'0'}%</span><span><i class="fail-dot"></i>Неудача ${target?formatChance(100-target.chance):'100'}%</span></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Светлый сектор — шанс улучшить предмет':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
 }
 function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
 function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
@@ -683,11 +731,11 @@ async function runUpgrade() {
     const pointer = document.getElementById('upg-pointer');
     const pct = document.getElementById('upg-percent');
     const label = document.getElementById('upg-result');
-    if (pct) pct.textContent = `${Number(result.chance).toFixed(1)}%`;
+    if (pct) { pct.textContent = `${formatChance(result.chance)}%`; pct.style.color = chanceColor(result.chance); pct.style.textShadow = `0 0 16px ${chanceColor(result.chance)}88`; }
     if (pointer) { const sector = Math.max(0, Math.min(360, Number(result.chance) * 3.6)); const landing = result.success ? Math.random() * sector : sector + Math.random() * Math.max(1, 360 - sector); pointer.style.transform = `rotate(${1440 + landing}deg)`; }
     if (label) label.textContent = 'Стрелка раскручивается…';
     await new Promise(resolve=>setTimeout(resolve,2700));
-    toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : 'Неудача. Исходный предмет израсходован.');
+    toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : (result.consolationItemName ? `Неудача. Получен утешительный предмет: ${result.consolationItemName}` : 'Неудача. Исходный предмет уничтожен.'));
     UPG_BASE_KEY=null; UPG_TARGET_ID=null;
     rerender();
   } catch(e) { UPG_BUSY=false; rerender(); toast(e.message || 'Не удалось выполнить апгрейд'); return; }
@@ -937,6 +985,19 @@ function ticketRowHTML(id, t, btn) {
       ${btn ? `<button class="btn small" style="flex:0 0 auto" onclick="${btn.action}('${id}')">${btn.label}</button>` : ''}
     </div></div>`;
 }
+function ticketMessagesHTML(msgs) {
+  return msgs.map(m => `<div class="msg ${m.from === CURRENT_ID ? 'own' : 'them'}"><div class="who">${esc(m.name || m.from)}${m.role === 'admin' ? ' · админ' : m.role === 'moderator' ? ' · модератор' : ''}</div>${esc(m.text)}<div class="when" style="color:${m.from === CURRENT_ID ? 'rgba(0,0,0,.5)' : 'var(--muted)'}">${fmtTime(m.at)}</div></div>`).join('') || '<p class="muted">Сообщений пока нет.</p>';
+}
+function updateTicketChat(id, ticket) {
+  const host = document.getElementById('chat-messages');
+  const box = document.getElementById('chat-box');
+  if (!host || !box || id !== OPEN_TICKET_ID) return;
+  const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+  const msgs = Object.entries(ticket.messages || {}).map(([mid,m])=>({mid,...m})).sort((a,b)=>(a.at||0)-(b.at||0));
+  host.innerHTML = ticketMessagesHTML(msgs);
+  if (nearBottom) box.scrollTop = box.scrollHeight;
+}
+
 /* --- просмотр тикета с чатом --- */
 function ticketViewHTML(id, t, backFn) {
   const msgs = Object.entries(t.messages || {})
@@ -956,16 +1017,12 @@ function ticketViewHTML(id, t, backFn) {
       ${t.takenByName ? ` · взял: ${esc(t.takenByName)}` : ''}</div>
     ${t.reason ? `<p class="muted" style="margin-top:6px">Причина закрытия: <b>${esc(t.reason)}</b></p>` : ''}
     <hr class="divider">
-    <div class="chat" id="chat-box">
-      ${msgs.map(m => `<div class="msg ${m.from === CURRENT_ID ? 'own' : 'them'}">
-        <div class="who">${esc(m.name || m.from)}${m.role === 'admin' ? ' · админ' : m.role === 'moderator' ? ' · модератор' : ''}</div>
-        ${esc(m.text)}<div class="when" style="color:${m.from === CURRENT_ID ? 'rgba(0,0,0,.5)' : 'var(--muted)'}">${fmtTime(m.at)}</div></div>`).join('') || '<p class="muted">Сообщений пока нет.</p>'}
-    </div>
+    <div class="chat" id="chat-box"><div id="chat-messages">${ticketMessagesHTML(msgs)}</div></div>
     ${canTake ? `<button class="btn" style="margin-top:10px" onclick="uiTake('${id}')">Взять тикет</button>` : ''}
     ${canClose ? `<button class="btn" style="margin-top:10px; background:var(--red); color:#fff" onclick="closeTicket('${id}')">Закрыть тикет</button>` : ''}
-    ${canWrite ? `<div class="row" style="margin-top:10px">
-      <input id="msg-input" placeholder="Сообщение…">
-      <button class="btn small" style="flex:0 0 auto; padding:10px 16px" onclick="sendMsg('${id}','msg-input')">➤</button></div>` : ''}
+    ${canWrite ? `<form class="row ticket-chat-form" style="margin-top:10px" onsubmit="event.preventDefault();sendMsg('${id}','msg-input')">
+      <input id="msg-input" autocomplete="off" enterkeyhint="send" placeholder="Сообщение…">
+      <button class="btn small" type="submit" style="flex:0 0 auto; padding:10px 16px">➤</button></form>` : ''}
   </div>`;
 }
 
@@ -1035,7 +1092,7 @@ function renderStaffTickets(c) {
 
   c.innerHTML = `<div class="card"><h2>🎫 Тикеты</h2>
       <p class="muted">Взятый тикет исчезает из списка у всех. Невзятый тикет закроется сам через 24 часа («Время истекло»).</p>
-      <input placeholder="Поиск по номеру тикета…" value="${esc(ticketSearch)}" oninput="ticketSearch=this.value; rerender()">
+      <form class="admin-search-row" onsubmit="event.preventDefault();applyTicketSearch()"><input id="ticket-search-input" placeholder="Номер тикета…" value="${esc(ticketSearchDraft || ticketSearch)}" oninput="ticketSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
       <div class="subtabs">
         <button class="${ticketSubTab === 'open' ? 'on' : ''}" onclick="setSub2('open')">Не выполненные (${open.length})</button>
         <button class="${ticketSubTab === 'mine' ? 'on' : ''}" onclick="setSub2('mine')">Текущие (${mine.length})</button>
@@ -1049,6 +1106,7 @@ function renderStaffTickets(c) {
         ticketRowHTML(id, t, { action: 'openStaffTicket', label: 'Открыть' })).join('') || '<p class="muted">Пока нет закрытых.</p>') : ''}
     </div>`;
 }
+function applyTicketSearch() { ticketSearch = ticketSearchDraft.trim(); rerender(); }
 function setSub2(v) { ticketSubTab = v; OPEN_TICKET_ID = null; rerender(); }
 function backToStaff() { OPEN_TICKET_ID = null; rerender(); }
 function openStaffTicket(id) { OPEN_TICKET_ID = id; rerender(); }
@@ -1170,8 +1228,8 @@ function adminCasesHTML() {
     <label>Исчезнет через (часов, 0 = никогда)</label><input id="cs-hours" type="number" value="${draft.hours}">
     <hr class="divider">
     <label>Предметы и шансы</label>
-    <div class="row">
-      <select id="cs-item">${Object.entries(ITEMS).map(([id, it]) => `<option value="${id}">${esc(it.name)}</option>`).join('')}</select>
+    <div class="row" style="align-items:center">
+      <button class="btn sec" type="button" style="flex:1;min-width:0" onclick="openCaseItemPicker()">${CASE_ITEM_SELECTED_ID && ITEMS[CASE_ITEM_SELECTED_ID] ? `📦 ${esc(ITEMS[CASE_ITEM_SELECTED_ID].name)} · ${Number(ITEMS[CASE_ITEM_SELECTED_ID].price||0)}` : '📚 Выбрать предмет из базы'}</button>
       <input id="cs-chance" type="number" placeholder="Шанс, %" value="10" style="flex:0 0 90px">
       <button class="btn sec" style="flex:0 0 auto; padding:10px" onclick="draftAddItem()">+</button>
     </div>
@@ -1198,14 +1256,35 @@ function readDraft() {
 function onCaseFile(e) {
   const f = e.target.files[0];
   if (!f) return;
+  readDraft();
   fileToDataUrl(f, url => {
     draft.img = url;
     drawAdminBody();
     toast('Картинка загружена');
   });
 }
+function openCaseItemPicker() {
+  readDraft();
+  caseItemSearchDraft = '';
+  const input = document.getElementById('case-item-search'); if (input) input.value = '';
+  document.getElementById('case-item-picker').classList.add('show');
+  renderCaseItemPicker();
+}
+function closeCaseItemPicker() { document.getElementById('case-item-picker').classList.remove('show'); }
+function applyCaseItemSearch() { caseItemSearchDraft = (document.getElementById('case-item-search')?.value || '').trim().toLowerCase(); renderCaseItemPicker(); }
+function renderCaseItemPicker() {
+  const host = document.getElementById('case-item-picker-list'); if (!host) return;
+  const entries = Object.entries(ITEMS).filter(([id,it]) => !caseItemSearchDraft || String(it.name||'').toLowerCase().includes(caseItemSearchDraft) || id.toLowerCase().includes(caseItemSearchDraft)).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
+  host.innerHTML = entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" onclick="chooseCaseItem('${id}')">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('') || '<p class="muted" style="grid-column:1/-1;text-align:center">Предметы не найдены.</p>';
+}
+function chooseCaseItem(id) {
+  CASE_ITEM_SELECTED_ID = id; closeCaseItemPicker();
+  const btn = document.querySelector('#admin-body button[onclick="openCaseItemPicker()"]');
+  const it = ITEMS[id]; if (btn) btn.textContent = it ? `📦 ${it.name} · ${Number(it.price||0)}` : '📚 Выбрать предмет из базы';
+}
+
 function draftAddItem() {
-  const id = document.getElementById('cs-item').value;
+  const id = CASE_ITEM_SELECTED_ID;
   const chance = +document.getElementById('cs-chance').value || 0;
   if (!id || chance <= 0) return toast('Выбери предмет и шанс больше 0');
   readDraft();
@@ -1226,7 +1305,7 @@ async function saveCase() {
     items: Object.fromEntries(draft.items.map(d => [d.id, d.chance])),
     createdAt: Date.now()
   });
-  draft = null;
+  draft = null; CASE_ITEM_SELECTED_ID = '';
   toast('Кейс создан!');
   drawAdminBody();
 }
@@ -1234,19 +1313,56 @@ async function delCase(id) { if (confirm('Удалить кейс?')) { await db
 
 /* --- Игроки и роли --- */
 function adminUsersHTML() {
-  const entries = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
-  return `<div class="card"><h2>👥 Игроки (${entries.length})</h2>
-    <p class="muted">Выберите «Настроить» у игрока, чтобы назначить роль. Администратор имеет полный доступ, модератор — доступ к тикетам.</p>
+  const all = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+  const q = adminUserSearch.trim().toLowerCase();
+  const entries = q ? all.filter(([id,u]) => id.toLowerCase().includes(q) || String(u.name||'').toLowerCase().includes(q)) : all;
+  return `<div class="card"><h2>👥 Игроки (${all.length})</h2>
+    <p class="muted">Ищи по Telegram ID или имени. «Подробно» открывает статистику и управление балансом; «Настроить» меняет роль.</p>
+    <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="numeric" placeholder="Telegram ID или имя" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
     ${entries.map(([id, u]) => {
       const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
       const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
       return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
         <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span></div><div class="chips">ID: ${esc(id)} · баланс: ${u.balance ?? 0}</div></div>
-        <button class="btn small" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
       </div>`;
-    }).join('') || '<p class="muted">Игроков пока нет.</p>'}
+    }).join('') || '<p class="muted">Игроки не найдены.</p>'}
   </div>`;
 }
+function applyAdminUserSearch() { adminUserSearch = adminUserSearchDraft.trim(); drawAdminBody(); }
+function openPlayerAdminModal(id) {
+  PLAYER_ADMIN_ID = id;
+  const u = USERS[id] || {};
+  document.getElementById('player-admin-name').textContent = `${u.name || 'Игрок'} · Telegram ID ${id}`;
+  const role = id === ADMIN_ID || u.is_admin ? 'Администратор' : ROLES[id] === 'moderator' ? 'Модератор' : 'Игрок';
+  const inv = Object.keys(u.inventory || {}).length;
+  const opened = Object.values(u.openedCases || {}).reduce((a,b)=>a+(Number(b)||0),0);
+  const ticketCount = Object.values(TICKETS).filter(t=>t && String(t.owner)===id).length;
+  const created = u.createdAt ? new Date(u.createdAt).toLocaleString('ru-RU') : 'не указана';
+  const history = (Array.isArray(u.balanceHistory) ? [...u.balanceHistory] : []).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
+  const historyHtml = history.length ? `<div style="margin-top:10px"><h3 style="font-size:13px;margin-bottom:7px">Последние изменения баланса</h3>${history.map(h=>`<div class="ticket-row" style="margin-bottom:6px"><div class="row"><b style="color:${Number(h.delta)>=0?'var(--green)':'var(--red)'}">${Number(h.delta)>=0?'+':''}${Number(h.delta||0).toLocaleString('ru-RU')}</b><span style="flex:1;min-width:0;overflow-wrap:anywhere">${esc(h.reason||'Без причины')}</span></div><div class="chips">${h.at?fmtTime(h.at):'—'} · админ ID ${esc(h.by||'—')}</div></div>`).join('')}</div>` : '<p class="muted" style="margin-top:10px">История ручных корректировок пока пуста.</p>';
+  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${historyHtml}`;
+  document.getElementById('player-balance-amount').value = '';
+  document.getElementById('player-balance-reason').value = '';
+  document.getElementById('player-admin-modal').classList.add('show');
+}
+function closePlayerAdminModal() { document.getElementById('player-admin-modal').classList.remove('show'); PLAYER_ADMIN_ID = null; }
+async function adjustPlayerBalance(action) {
+  const targetId = PLAYER_ADMIN_ID;
+  const amount = Number(document.getElementById('player-balance-amount').value);
+  const reason = document.getElementById('player-balance-reason').value.trim();
+  if (!targetId) return;
+  if (!Number.isSafeInteger(amount) || amount <= 0) return toast('Введи целую сумму больше нуля');
+  if (!reason) return toast('Укажи причину изменения баланса');
+  try {
+    const result = await workerRequest('/api/admin/balance-adjust', {targetId, amount, action, reason});
+    toast(`Баланс обновлён: ${result.balance}`);
+    await db.ref('users/'+targetId).get().then(s=>{ if(s.exists()) USERS[targetId]=s.val(); });
+    openPlayerAdminModal(targetId);
+    drawAdminBody();
+  } catch(e) { toast(e.message || 'Не удалось изменить баланс'); }
+}
+
 function openRoleModal(id) {
   if (id === ADMIN_ID) return toast('Главного администратора нельзя понизить');
   ROLE_EDIT_ID = id;
@@ -1273,28 +1389,25 @@ function adminAnnsHTML() {
     <input type="file" accept="image/*" onchange="onAnFile(event)">
     <img id="an-prev" class="preview" style="width:100%; height:auto; max-height:120px; ${cur.img ? '' : 'display:none'}" src="${esc(cur.img)}">
     <label>Кнопка: название (необязательно)</label><input id="an-btn-name" value="${esc(cur.btnName)}" placeholder="Например: Наш канал">
-    <label>Кнопка: ссылка</label><input id="an-btn-link" value="${esc(cur.btnLink)}" placeholder="https://...">
+    <label>Ссылка (необязательно; если название кнопки пустое, кликабельно всё объявление)</label><input id="an-btn-link" value="${esc(cur.btnLink)}" placeholder="https://...">
     <button class="btn" onclick="saveAnn()">${editing ? 'Сохранить изменения' : 'Создать объявление'}</button>
     ${editing ? '<button class="btn sec" style="margin-top:6px" onclick="cancelAnnEdit()">Отмена редактирования</button>' : ''}
-    <hr class="divider">
-    <p class="muted">Объявления показываются на главной каруселью: автолистование каждые 10 секунд, игрок может листать свайпом и стрелками.</p></div>
-  <div class="card"><h2>📢 Объявления (${Object.keys(ANNS).length})</h2>
-    ${Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0)).map(([id, a]) =>
-      `<div class="ticket-row">
-        <div class="row" style="align-items:center">
-          <div style="flex:1">
-            <div style="font-size:13px">${esc(a.text.slice(0, 60))}${a.text.length > 60 ? '…' : ''}</div>
-            <div class="chips">${a.img ? '📷 фото · ' : ''}${a.btnName ? `кнопка: ${esc(a.btnName)}` : 'без кнопки'}</div>
-          </div>
-          <button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button>
-          <button class="del" onclick="delAnn('${id}')">Удалить</button>
-        </div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>'}
-  </div>`;
+    <hr class="divider"><p class="muted">Объявления показываются на главной каруселью: автолистование каждые 10 секунд, игрок может листать свайпом и стрелками.</p></div>
+  <div class="card" id="admin-ann-list"><h2>📢 Объявления (${Object.keys(ANNS).length})</h2>${adminAnnListItemsHTML()}</div>`;
 }
+function adminAnnListItemsHTML() {
+  return Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0)).map(([id, a]) =>
+    `<div class="ticket-row"><div class="row" style="align-items:center"><div style="flex:1"><div style="font-size:13px">${esc(a.text.slice(0,60))}${a.text.length>60?'…':''}</div><div class="chips">${a.img?'📷 фото · ':''}${a.btnName?`кнопка: ${esc(a.btnName)}`:a.btnLink?'всё объявление — ссылка':'без ссылки'}</div></div><button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button><button class="del" onclick="delAnn('${id}')">Удалить</button></div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>';
+}
+function updateAdminAnnList() {
+  const host = document.getElementById('admin-ann-list');
+  if (host) host.innerHTML = `<h2>📢 Объявления (${Object.keys(ANNS).length})</h2>${adminAnnListItemsHTML()}`;
+}
+
 function readAnnForm() {
   return {
     text: document.getElementById('an-text').value.trim(),
-    img: document.getElementById('an-prev')?.getAttribute('src') || '',
+    img: document.getElementById('an-prev')?.src && document.getElementById('an-prev').style.display !== 'none' ? document.getElementById('an-prev').src : '',
     btnName: document.getElementById('an-btn-name').value.trim(),
     btnLink: document.getElementById('an-btn-link').value.trim()
   };
@@ -1303,6 +1416,7 @@ function onAnFile(e) {
   const f = e.target.files[0];
   if (!f) return;
   fileToPhoto(f, url => {
+    ANN_DRAFT = readAnnForm(); ANN_DRAFT.img = url;
     const p = document.getElementById('an-prev');
     p.src = url; p.style.display = 'block';
     toast('Фото загружено');
@@ -1312,10 +1426,12 @@ async function saveAnn() {
   const data = readAnnForm();
   if (!data.text) return toast('Введи текст объявления');
   if (data.btnName && !data.btnLink) return toast('Укажи ссылку для кнопки');
-  if (data.btnLink && !/^https:\/\//i.test(data.btnLink)) return toast('Ссылка кнопки должна начинаться с https://');
+  if (data.btnLink && !/^https:\/\//i.test(data.btnLink)) return toast('Ссылка должна начинаться с https://');
   const payload = { ...data, id: ANN_EDIT || '' };
   try {
-    await workerRequest('/api/admin/announcement/save', payload);
+    const result = await workerRequest('/api/admin/announcement/save', payload);
+    const savedId = result.id;
+    ANNS[savedId] = {...(ANNS[savedId] || {}), ...data, createdAt:ANNS[savedId]?.createdAt || Date.now(), updatedAt:Date.now()};
     ANN_EDIT = null; ANN_DRAFT = null;
     toast('Объявление сохранено');
     drawAdminBody();
