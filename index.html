@@ -216,7 +216,7 @@ const TG_INIT_DATA = tg.initData || '';
 let autoTelegramStarted = false;
 
 let CURRENT_ID = null, CURRENT_PASS = null, profileRef = null, profile = null;
-const WORKER_URL = 'https://YOUR-WORKER.YOUR-SUBDOMAIN.workers.dev';
+const WORKER_URL = 'https://strike-arena-kv.mirikpirik2009.workers.dev';
 async function workerRequest(path, payload = {}) {
   if (!CURRENT_ID || (!CURRENT_PASS && !TG_INIT_DATA)) throw new Error('Сессия не подтверждена. Откройте приложение через Telegram.');
   if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Укажи URL Cloudflare Worker в WORKER_URL в index.html');
