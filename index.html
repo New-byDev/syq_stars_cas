@@ -70,8 +70,16 @@
   .del:active { transform:scale(.94); }
 
   .item-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .item-card { background:#111; border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center; transition:.25s; }
-  .item-card:hover { border-color:#555; transform:translateY(-2px); }
+  .item-card { --rarity:#777; --rarity-glow:rgba(119,119,119,.18); background:linear-gradient(145deg,#151515,#0e0e0e); border:1px solid color-mix(in srgb,var(--rarity) 72%,#222); border-radius:12px; padding:12px; text-align:center; transition:transform .28s cubic-bezier(.2,.8,.2,1),border-color .28s,box-shadow .28s,background .28s; box-shadow:inset 0 0 18px var(--rarity-glow),0 0 10px color-mix(in srgb,var(--rarity) 12%,transparent); position:relative; overflow:hidden; }
+  .item-card::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.55; background:linear-gradient(120deg,transparent 15%,color-mix(in srgb,var(--rarity) 10%,transparent) 50%,transparent 85%); }
+  .item-card:hover { border-color:var(--rarity); transform:translateY(-3px); box-shadow:inset 0 0 24px var(--rarity-glow),0 0 20px color-mix(in srgb,var(--rarity) 25%,transparent); }
+  .item-card > * { position:relative; }
+  .price-tier-common { --rarity:#9aa4b2; --rarity-glow:rgba(154,164,178,.12); }
+  .price-tier-uncommon { --rarity:#55d98a; --rarity-glow:rgba(85,217,138,.16); }
+  .price-tier-rare { --rarity:#4e9bff; --rarity-glow:rgba(78,155,255,.18); }
+  .price-tier-epic { --rarity:#bd70ff; --rarity-glow:rgba(189,112,255,.2); }
+  .price-tier-legendary { --rarity:#ffb547; --rarity-glow:rgba(255,181,71,.22); }
+  .price-tier-mythic { --rarity:#ff5e83; --rarity-glow:rgba(255,94,131,.24); }
   .item-card.wide { grid-column:span 2; text-align:left; }
   .item-card img { width:56px; height:56px; object-fit:contain; }
   .item-card .nm { font-size:13px; margin:8px 0 2px; word-break:break-word; }
@@ -131,6 +139,14 @@
   .msg .who { font-size:10px; opacity:.65; margin-bottom:2px; }
   .tx-box { background:#101010; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
   .tx-box label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; }
+  #ticket-close-modal { position:fixed; inset:0; z-index:450; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.82); backdrop-filter:blur(5px); }
+  #ticket-close-modal.show { display:flex; }
+  .ticket-confirm-box { width:100%; max-width:420px; max-height:90vh; overflow:auto; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:0 18px 60px rgba(0,0,0,.5); }
+  .ticket-confirm-box h2 { margin-bottom:8px; font-size:17px; }
+  .ticket-confirm-box .confirm-check { display:flex; align-items:flex-start; gap:10px; padding:12px; background:#101010; border:1px solid var(--line); border-radius:10px; margin:12px 0; color:var(--text); font-size:13px; line-height:1.4; }
+  .ticket-confirm-box .confirm-check input { margin:2px 0 0; flex:0 0 auto; width:18px; height:18px; }
+  .ticket-confirm-actions { display:flex; gap:8px; margin-top:10px; }
+  .ticket-confirm-actions .btn { flex:1; }
 
   #toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(80px); background:#f5f5f5; color:#000; padding:11px 18px; border-radius:12px; font-size:14px; font-weight:600; z-index:600; opacity:0; transition:.35s; max-width:86%; text-align:center; }
   #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
@@ -141,9 +157,56 @@
   .subtabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
   .subtabs button { background:#111; border:1px solid var(--line); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
   .subtabs button.on { background:var(--accent); color:#000; font-weight:700; }
+  /* ---------- СТАРТОВАЯ ЗАГРУЗКА ---------- */
+  #app-loader { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; background:radial-gradient(ellipse at 50% 35%,#242424 0%,#111 42%,#070707 100%); opacity:1; visibility:visible; transition:opacity .55s ease,visibility .55s ease; }
+  #app-loader.is-hidden { opacity:0; visibility:hidden; pointer-events:none; }
+  .loader-emblem { width:82px; height:82px; border-radius:25px; display:grid; place-items:center; font-size:34px; font-weight:900; color:#fff; background:linear-gradient(145deg,#292929,#0c0c0c); border:1px solid #555; box-shadow:0 0 35px #ffffff12,inset 0 0 22px #ffffff08; animation:loaderFloat 2s ease-in-out infinite; position:relative; }
+  .loader-emblem::before { content:''; position:absolute; inset:-6px; border-radius:29px; border:1px solid #ffffff20; animation:loaderRing 2.2s ease-out infinite; }
+  .loader-title { font-size:22px; font-weight:900; letter-spacing:4px; }
+  .loader-subtitle { font-size:12px; color:#8d8d8d; letter-spacing:1.2px; }
+  .loader-track { width:min(230px,70vw); height:3px; background:#292929; border-radius:9px; overflow:hidden; margin-top:4px; }
+  .loader-progress { height:100%; width:35%; border-radius:9px; background:linear-gradient(90deg,#777,#fff); box-shadow:0 0 12px #fff8; animation:loaderProgress 1.35s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes loaderFloat { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-6px) scale(1.035); } }
+  @keyframes loaderRing { 0% { transform:scale(.9); opacity:.6; } 100% { transform:scale(1.22); opacity:0; } }
+  @keyframes loaderProgress { 0% { transform:translateX(-120%); } 100% { transform:translateX(340%); } }
+  @media(prefers-reduced-motion:reduce) { #app-loader *,#app-loader *::before { animation-duration:.01ms !important; animation-iteration-count:1 !important; } .item-card { transition:none; } }
+  #maintenance-screen { display:none; position:fixed; inset:0; z-index:700; background:radial-gradient(circle at 50% 20%,#222,#080808 70%); align-items:center; justify-content:center; padding:24px; text-align:center; }
+  #maintenance-screen.show { display:flex; }
+  .maintenance-box { width:100%; max-width:460px; padding:30px 22px; background:#151515; border:1px solid #333; border-radius:22px; box-shadow:0 20px 70px #0009; animation:rise .45s ease; }
+  .maintenance-icon { font-size:44px; margin-bottom:16px; }
+  .role-modal { position:fixed; inset:0; z-index:650; display:none; align-items:center; justify-content:center; padding:18px; background:#000c; backdrop-filter:blur(5px); }
+  .role-modal.show { display:flex; }
+  .role-box { width:100%; max-width:380px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; }
+  .upg-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:start; }
+  .upg-panel { min-width:0; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .upg-scroll { height:min(48vh,440px); min-height:230px; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:8px; padding-right:2px; }
+  .upg-entry { display:flex; align-items:center; gap:9px; padding:9px; background:#101010; border:1px solid color-mix(in srgb,var(--rarity) 60%,#222); box-shadow:inset 0 0 16px var(--rarity-glow); border-radius:11px; text-align:left; cursor:pointer; transition:transform .22s,border-color .22s,background .22s,box-shadow .22s; color:var(--text); width:100%; }
+  .upg-entry:hover { border-color:var(--rarity); box-shadow:inset 0 0 20px var(--rarity-glow),0 0 12px var(--rarity-glow); transform:translateY(-1px); }
+  .upg-entry.selected { border-color:#fff; background:#242424; box-shadow:inset 0 0 18px var(--rarity-glow),0 0 0 1px #ffffff18,0 0 14px var(--rarity-glow); }
+  .upg-entry img { width:44px; height:44px; object-fit:contain; flex:0 0 44px; }
+  .upg-entry .upg-name { font-size:12px; font-weight:700; overflow-wrap:anywhere; }
+  .upg-entry .upg-meta { font-size:11px; color:var(--muted); margin-top:3px; }
+  .upg-filter { display:flex; flex-wrap:wrap; gap:5px; margin:8px 0; }
+  .upg-filter button { background:#101010; color:var(--text); border:1px solid var(--line); border-radius:9px; padding:7px 9px; font-size:11px; cursor:pointer; }
+  .upg-filter button.on { background:#fff; color:#000; }
+  .upg-stage { margin-top:12px; text-align:center; background:linear-gradient(150deg,#1b1b1b,#0c0c0c); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .upg-wheel { width:150px; height:150px; margin:4px auto 12px; border-radius:50%; border:2px solid #444; background:conic-gradient(from -90deg,#252525 0deg,#111 120deg,#242424 240deg,#111 360deg); display:flex; align-items:center; justify-content:center; position:relative; box-shadow:0 0 30px #ffffff0a,inset 0 0 25px #000; }
+  .upg-wheel:before { content:''; position:absolute; inset:10px; border:1px dashed #555; border-radius:50%; }
+  .upg-pointer { position:absolute; top:9px; left:calc(50% - 3px); width:6px; height:57px; transform-origin:3px 66px; transform:rotate(0deg); transition:transform 2.6s cubic-bezier(.12,.72,.12,1); z-index:2; }
+  .upg-pointer:before { content:''; position:absolute; top:0; left:-5px; border-left:8px solid transparent; border-right:8px solid transparent; border-top:18px solid #fff; filter:drop-shadow(0 0 6px #fff8); }
+  .upg-percent { position:relative; z-index:1; font-size:28px; font-weight:800; letter-spacing:-1px; }
+  .upg-result { min-height:20px; font-size:13px; color:var(--muted); margin:8px 0; }
+  @media(max-width:560px) { .upg-layout { grid-template-columns:1fr; } .upg-scroll { height:230px; min-height:180px; } .upg-panel h3 { font-size:13px; } .upg-wheel { width:132px; height:132px; } .upg-pointer { transform-origin:3px 60px; height:51px; } }
 </style>
 </head>
 <body>
+
+<div id="app-loader" role="status" aria-live="polite">
+  <div class="loader-emblem">Z</div>
+  <div class="loader-title">ZOMBIXUP</div>
+  <div class="loader-subtitle">ЗАГРУЗКА ПРИЛОЖЕНИЯ</div>
+  <div class="loader-track"><div class="loader-progress"></div></div>
+</div>
 
 <div id="auth-screen">
   <h1>ZombixUP</h1>
@@ -170,6 +233,7 @@
       <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
       <a class="nav-item" data-tab="cases"     onclick="go('cases')">📦 Кейсы</a>
       <a class="nav-item" data-tab="inventory" onclick="go('inventory')">🎒 Инвентарь</a>
+      <a class="nav-item" data-tab="upgrader" onclick="go('upgrader')">⚡ Апгрейдер</a>
       <a class="nav-item" data-tab="profile"   onclick="go('profile')">👤 Профиль</a>
       <a class="nav-item" data-tab="settings"  onclick="go('settings')">⚙️ Настройки</a>
       <a class="nav-item" id="staff-btn" style="display:none" onclick="go('tickets')">🎫 Тикеты</a>
@@ -187,9 +251,41 @@
 </div>
 
 <div id="case-modal"><div class="cm-box" id="cm-box"></div></div>
+<div id="ticket-close-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-close-title" onclick="if(event.target===this)cancelTicketClose()">
+  <div class="ticket-confirm-box">
+    <h2 id="ticket-close-title">Закрытие тикета</h2>
+    <p class="muted" id="ticket-close-summary">Проверь действие перед подтверждением.</p>
+    <label class="confirm-check"><input type="checkbox" id="tx-apply"><span id="tx-apply-label">Применить операцию к балансу</span></label>
+    <p class="muted" id="ticket-close-explainer">Если галочка снята, тикет будет закрыт без изменения баланса.</p>
+    <label for="ticket-close-reason">Причина закрытия</label>
+    <textarea id="ticket-close-reason" rows="3" maxlength="300" placeholder="Укажи причину закрытия тикета…"></textarea>
+    <div class="ticket-confirm-actions">
+      <button class="btn sec" type="button" onclick="cancelTicketClose()">Отмена</button>
+      <button class="btn" id="ticket-close-confirm-btn" type="button" style="background:var(--red);color:#fff" onclick="confirmTicketClose()">Подтвердить</button>
+    </div>
+  </div>
+</div>
+<div id="role-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRoleModal()"><div class="role-box"><h2 style="margin-bottom:8px">Настройка прав игрока</h2><p id="role-player-label" class="muted"></p><label for="role-choice">Роль</label><select id="role-choice"><option value="player">Игрок</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select><div class="row"><button class="btn sec" onclick="closeRoleModal()">Отмена</button><button class="btn" onclick="savePlayerRole()">Сохранить</button></div></div></div>
+<div id="maintenance-screen"><div class="maintenance-box"><div class="maintenance-icon">🛠️</div><h1 style="font-size:23px;margin-bottom:10px">Технический перерыв</h1><p id="maintenance-message" class="muted" style="font-size:14px;line-height:1.6">Ведутся технические работы. Попробуйте зайти позже.</p></div></div>
 <div id="toast"></div>
 
 <script>
+function hideAppLoader() {
+  const loader = document.getElementById('app-loader');
+  if (loader) loader.classList.add('is-hidden');
+}
+// Не оставляем экран загрузки навсегда при сетевой ошибке или недоступности базы.
+window.setTimeout(hideAppLoader, 15000);
+function priceTier(value) {
+  const price = Math.max(0, Number(value) || 0);
+  if (price >= 10000) return 'mythic';
+  if (price >= 5000) return 'legendary';
+  if (price >= 1000) return 'epic';
+  if (price >= 500) return 'rare';
+  if (price >= 100) return 'uncommon';
+  return 'common';
+}
+
 /* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
@@ -234,7 +330,10 @@ let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANN
 let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '';
+let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null;
+let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
+let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
 const IMG_SIZE = 128;
 const DAY = 24 * 3600 * 1000;
@@ -252,14 +351,14 @@ function toast(msg) {
   clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2400);
 }
 function toggleMenu() { document.getElementById('menu-panel').classList.toggle('open'); }
-function isAdmin() { return (profile && profile.is_admin === true) || CURRENT_ID === ADMIN_ID; }
+function isAdmin() { return (profile && profile.is_admin === true) || CURRENT_ID === ADMIN_ID || ROLES[CURRENT_ID] === 'admin'; }
 function isStaff() { return isAdmin() || ROLES[CURRENT_ID] === 'moderator'; }
 function fmtTime(ts) {
   const d = new Date(ts);
   return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit' }) + ' ' +
          d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
 }
-const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', upgrader:'Апгрейдер', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
 
 function fileToDataUrl(file, cb) {
   const r = new FileReader();
@@ -373,7 +472,8 @@ async function enterApp(id) {
   db.ref('users').on('value', s => { USERS = s.val() || {}; rerenderIfDepends(); });
   db.ref('tickets').on('value', s => { TICKETS = s.val() || {}; sweepExpired(); rerenderIfDepends(); });
   db.ref('roles').on('value', s => { ROLES = s.val() || {}; updateStaffBtn(); rerenderIfDepends(); });
-  db.ref('anns').on('value', s => { ANNS = s.val() || {}; if (CURRENT_TAB === 'home') rerender(); });
+  db.ref('anns').on('value', s => { ANNS = s.val() || {}; if (CURRENT_TAB === 'home') rerender(); if (CURRENT_TAB === 'admin' && adminSub === 'anns') drawAdminBody(); });
+  db.ref('config/maintenance').on('value', s => { MAINTENANCE = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'}; updateMaintenanceScreen(); });
   db.ref('config/currency').on('value', s => {
     CUR_ICON = s.val()?.icon || '';
     const el = document.getElementById('cur-icon');
@@ -381,12 +481,24 @@ async function enterApp(id) {
   });
 
   go('home');
+  // Даём первичным подпискам Firebase отдать данные, затем плавно открываем интерфейс.
+  window.setTimeout(hideAppLoader, 650);
 }
 function rerenderIfDepends() {
-  if (['admin', 'tickets', 'profile', 'home', 'cases'].includes(CURRENT_TAB)) rerender();
+  if (['admin', 'tickets', 'profile', 'home', 'cases', 'inventory'].includes(CURRENT_TAB) || (CURRENT_TAB === 'upgrader' && !UPG_BUSY)) rerender();
 }
 function updateStaffBtn() {
   document.getElementById('staff-btn').style.display = isStaff() ? 'block' : 'none';
+  document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
+  updateMaintenanceScreen();
+}
+function updateMaintenanceScreen() {
+  const screen = document.getElementById('maintenance-screen');
+  if (!screen) return;
+  const blocked = !!MAINTENANCE?.enabled && !isAdmin();
+  screen.classList.toggle('show', blocked);
+  const msg = document.getElementById('maintenance-message');
+  if (msg) msg.textContent = MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.';
 }
 
 auth.onAuthStateChanged(u => {
@@ -403,12 +515,14 @@ auth.onAuthStateChanged(u => {
   aMsg('Откройте сайт внутри Telegram, чтобы входить автоматически.');
 });
 function showAuth() {
+  hideAppLoader();
   document.getElementById('auth-screen').classList.add('show');
   document.getElementById('app').style.display = 'none';
 }
 
 /* ---------- НАВИГАЦИЯ ---------- */
 function go(tab) {
+  if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
   CURRENT_TAB = tab;
   OPEN_TICKET_ID = null;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
@@ -425,6 +539,7 @@ function rerender() {
     <p class="muted">Позже: тема, звук и т.д.</p>
     <button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта</button></div>`;
   if (CURRENT_TAB === 'inventory') renderInventory(c);
+  if (CURRENT_TAB === 'upgrader') renderUpgrader(c);
   if (CURRENT_TAB === 'cases') renderCasesShop(c);
   if (CURRENT_TAB === 'profile') renderProfile(c);
   if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
@@ -491,7 +606,7 @@ function renderInventory(c) {
     (keys.length === 0 ? '<p class="muted">Пусто. Открой кейс!</p>' :
       '<div class="item-grid">' + keys.map(k => {
         const it = ITEMS[inv[k].itemId] || { name: '?', price: 0, sellable: 0 };
-        return `<div class="item-card">
+        return `<div class="item-card price-tier-${priceTier(it.price)}">
           ${it.img ? `<img src="${esc(it.img)}">` : ''}
           <div class="nm">${esc(it.name)}</div>
           <div class="price-tag">${pcur(it.price)}</div>
@@ -502,6 +617,53 @@ function renderInventory(c) {
 async function sellItem(entryKey) {
   try { const result = await workerRequest('/api/item/sell', { entryKey }); toast(`Продано за ${result.amount}`); }
   catch (e) { toast(e.message || 'Не удалось продать предмет'); }
+}
+
+/* ---------- АПГРЕЙДЕР ---------- */
+function upgradeChance(basePrice, targetPrice) {
+  const b = Number(basePrice), t = Number(targetPrice);
+  if (!(b > 0) || !(t > b)) return 0;
+  return Math.max(0, Math.min(100, b / t * 100));
+}
+function renderUpgrader(c) {
+  const inv = profile?.inventory || {};
+  const invEntries = Object.entries(inv).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
+  const baseEntry = UPG_BASE_KEY && inv[UPG_BASE_KEY] ? inv[UPG_BASE_KEY] : null;
+  if (!baseEntry) UPG_BASE_KEY = null;
+  const baseItem = baseEntry ? ITEMS[baseEntry.itemId] : null;
+  const targets = Object.entries(ITEMS).filter(([id,it]) => Number(it.price||0) > Number(baseItem?.price||0) && Number(it.price||0)>0)
+    .map(([id,it]) => ({id,it,chance:upgradeChance(baseItem?.price,it.price)}));
+  const filtered = UPG_FILTER === 'all' ? targets : targets.filter(x => x.chance <= Number(UPG_FILTER) + 0.0001);
+  filtered.sort((a,b) => UPG_FILTER === 'all' ? Number(a.it.price)-Number(b.it.price) : Math.abs(a.chance-Number(UPG_FILTER))-Math.abs(b.chance-Number(UPG_FILTER)));
+  if (UPG_TARGET_ID && !filtered.some(x=>x.id===UPG_TARGET_ID)) UPG_TARGET_ID = null;
+  if (!UPG_TARGET_ID && filtered.length) UPG_TARGET_ID = filtered[0].id;
+  const target = filtered.find(x=>x.id===UPG_TARGET_ID);
+  c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря. Шанс рассчитывается по формуле: цена предмета игрока ÷ цена цели × 100%. При неудаче исходный предмет расходуется.</p></div>
+  <div class="upg-layout"><section class="upg-panel"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=ITEMS[entry.itemId]||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
+  <section class="upg-panel"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
+  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent">${target?target.chance.toFixed(1)+'%':'—'}</div></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Готово к запуску':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
+}
+function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
+function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
+function setUpgradeFilter(value) { if (UPG_BUSY) return; UPG_FILTER=value; UPG_TARGET_ID=null; rerender(); }
+async function runUpgrade() {
+  if (UPG_BUSY) return;
+  if (!UPG_BASE_KEY || !UPG_TARGET_ID) return toast('Выбери исходный предмет и цель');
+  UPG_BUSY=true; rerender();
+  try {
+    const result = await workerRequest('/api/upgrade', { entryKey:UPG_BASE_KEY, targetItemId:UPG_TARGET_ID });
+    const pointer = document.getElementById('upg-pointer');
+    const pct = document.getElementById('upg-percent');
+    const label = document.getElementById('upg-result');
+    if (pct) pct.textContent = `${Number(result.chance).toFixed(1)}%`;
+    if (pointer) { const sector = Math.max(0, Math.min(360, Number(result.chance) * 3.6)); const landing = result.success ? Math.random() * sector : sector + Math.random() * Math.max(1, 360 - sector); pointer.style.transform = `rotate(${1440 + landing}deg)`; }
+    if (label) label.textContent = 'Стрелка раскручивается…';
+    await new Promise(resolve=>setTimeout(resolve,2700));
+    toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : 'Неудача. Исходный предмет израсходован.');
+    UPG_BASE_KEY=null; UPG_TARGET_ID=null;
+    rerender();
+  } catch(e) { UPG_BUSY=false; rerender(); toast(e.message || 'Не удалось выполнить апгрейд'); return; }
+  UPG_BUSY=false; rerender();
 }
 
 /* ---------- МАГАЗИН КЕЙСОВ ---------- */
@@ -525,7 +687,7 @@ function renderCasesShop(c) {
       if (expired) state = 'Истёк';
       else if (totalLeft <= 0) state = 'Закончился';
       else if (userLeft <= 0) state = 'Лимит исчерпан';
-      return `<div class="item-card">
+      return `<div class="item-card price-tier-${priceTier(k.price)}">
         ${k.img ? `<img src="${esc(k.img)}">` : '<div style="font-size:44px; line-height:56px">📦</div>'}
         <div class="nm">${esc(k.name)}</div>
         <div class="chips">Предметов: ${Object.keys(k.items || {}).length}
@@ -641,20 +803,77 @@ async function takeTicket(id) {
   catch (e) { toast(e.message || 'Не удалось взять тикет'); }
 }
 
-async function closeTicket(id) {
+function closeTicket(id) {
   const t = TICKETS[id];
   if (!t || !isStaff()) return toast('Нет доступа к тикету');
   if (t.status === 'closed') return toast('Тикет уже закрыт');
   if (t.status !== 'taken' || t.takenBy !== CURRENT_ID) return toast('Сначала возьми этот тикет в работу');
-  const approve = document.getElementById('tx-apply')?.checked === true;
-  const reasonInput = prompt('Причина закрытия тикета:', approve ? 'Подтверждено' : 'Отклонено/закрыто без операции');
-  if (reasonInput === null) return;
-  const reason = reasonInput.trim(); if (!reason) return toast('Укажи причину закрытия');
+
+  PENDING_CLOSE_TICKET_ID = id;
+  TICKET_CLOSE_BUSY = false;
+  const modal = document.getElementById('ticket-close-modal');
+  const checkbox = document.getElementById('tx-apply');
+  const reason = document.getElementById('ticket-close-reason');
+  const confirmBtn = document.getElementById('ticket-close-confirm-btn');
+  const label = document.getElementById('tx-apply-label');
+  const summary = document.getElementById('ticket-close-summary');
+  const explainer = document.getElementById('ticket-close-explainer');
+
+  checkbox.checked = false;
+  reason.value = '';
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = 'Подтвердить закрытие';
+  const amount = Number(t.amount) || 0;
+  summary.textContent = `Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · сумма ${amount}.`;
+  label.textContent = t.type === 'deposit'
+    ? `Подтвердить пополнение: начислить игроку ${amount}`
+    : t.type === 'withdraw'
+      ? `Подтвердить вывод: списать у игрока ${amount}`
+      : 'Применить операцию к балансу';
+  explainer.textContent = 'Если галочка снята, тикет закроется без изменения баланса. Причина обязательна в обоих случаях.';
+  modal.classList.add('show');
+  setTimeout(() => reason.focus(), 30);
+}
+
+function cancelTicketClose() {
+  if (TICKET_CLOSE_BUSY) return;
+  document.getElementById('ticket-close-modal')?.classList.remove('show');
+  PENDING_CLOSE_TICKET_ID = null;
+}
+
+async function confirmTicketClose() {
+  if (TICKET_CLOSE_BUSY) return;
+  const id = PENDING_CLOSE_TICKET_ID;
+  const t = TICKETS[id];
+  if (!id || !t || !isStaff()) return toast('Тикет не найден или нет доступа');
+  const approve = document.getElementById('tx-apply').checked === true;
+  const reason = document.getElementById('ticket-close-reason').value.trim();
+  if (!reason) {
+    toast('Укажи причину закрытия');
+    document.getElementById('ticket-close-reason').focus();
+    return;
+  }
+  if (reason.length > 300) return toast('Причина должна быть не длиннее 300 символов');
+  if (approve && !['deposit', 'withdraw'].includes(t.type)) return toast('Неизвестный тип заявки');
+
+  TICKET_CLOSE_BUSY = true;
+  const confirmBtn = document.getElementById('ticket-close-confirm-btn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Обработка…';
   try {
     await workerRequest('/api/ticket/close', { ticketId:id, approve, reason });
-    toast(approve ? 'Заявка подтверждена сервером' : 'Тикет закрыт без изменения баланса');
-    OPEN_TICKET_ID = null; rerender();
-  } catch (e) { toast(e.message || 'Не удалось обработать тикет'); }
+    document.getElementById('ticket-close-modal').classList.remove('show');
+    PENDING_CLOSE_TICKET_ID = null;
+    toast(approve ? (t.type === 'deposit' ? 'Пополнение подтверждено сервером' : 'Вывод подтверждён сервером') : 'Тикет закрыт без изменения баланса');
+    OPEN_TICKET_ID = null;
+    rerender();
+  } catch (e) {
+    toast(e.message || 'Не удалось обработать тикет');
+  } finally {
+    TICKET_CLOSE_BUSY = false;
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Подтвердить закрытие';
+  }
 }
 
 /* --- карточка тикета со списком --- */
@@ -694,11 +913,7 @@ function ticketViewHTML(id, t, backFn) {
         ${esc(m.text)}<div class="when" style="color:${m.from === CURRENT_ID ? 'rgba(0,0,0,.5)' : 'var(--muted)'}">${fmtTime(m.at)}</div></div>`).join('') || '<p class="muted">Сообщений пока нет.</p>'}
     </div>
     ${canTake ? `<button class="btn" style="margin-top:10px" onclick="uiTake('${id}')">Взять тикет</button>` : ''}
-    ${canClose ? `<div class="tx-box">
-        <label><input type="checkbox" id="tx-apply" style="width:auto"> ${txLabel}</label>
-        <p class="muted" style="margin-top:6px">Поставь галочку, чтобы подтвердить заявку. Сервер проверит сумму и изменит баланс один раз.</p>
-      </div>
-      <button class="btn" style="margin-top:8px; background:var(--red); color:#fff" onclick="closeTicket('${id}')">Обработать тикет</button>` : ''}
+    ${canClose ? `<button class="btn" style="margin-top:10px; background:var(--red); color:#fff" onclick="closeTicket('${id}')">Закрыть тикет</button>` : ''}
     ${canWrite ? `<div class="row" style="margin-top:10px">
       <input id="msg-input" placeholder="Сообщение…">
       <button class="btn small" style="flex:0 0 auto; padding:10px 16px" onclick="sendMsg('${id}','msg-input')">➤</button></div>` : ''}
@@ -801,6 +1016,7 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='users'?'on':''}" onclick="setSub('users')">👥 Игроки</button>
         <button class="btn sec ${adminSub==='anns'?'on':''}" onclick="setSub('anns')">📢 Объявления</button>
         <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
+        <button class="btn sec ${adminSub==='system'?'on':''}" onclick="setSub('system')">🛠 Система</button>
       </div>
     </div>
     <div id="admin-body"></div>`;
@@ -816,6 +1032,7 @@ function drawAdminBody() {
   if (adminSub === 'users') b.innerHTML = adminUsersHTML();
   if (adminSub === 'anns')  b.innerHTML = adminAnnsHTML();
   if (adminSub === 'cur')   b.innerHTML = adminCurHTML();
+  if (adminSub === 'system') b.innerHTML = adminSystemHTML();
 }
 
 /* --- Предметы --- */
@@ -832,7 +1049,7 @@ function adminItemsHTML() {
     <button class="btn" onclick="addItem()">Создать предмет</button></div>
   <div class="card"><h2>📚 Предметы (${Object.keys(ITEMS).length})</h2>
     <div class="item-grid">${Object.entries(ITEMS).map(([id, it]) =>
-      `<div class="item-card">${it.img ? `<img src="${esc(it.img)}">` : ''}
+      `<div class="item-card price-tier-${priceTier(it.price)}">${it.img ? `<img src="${esc(it.img)}">` : ''}
         <div class="nm">${esc(it.name)}</div>
         <div class="chips">${it.price} · ${it.sellable ? 'продаётся' : 'не продаётся'}</div>
         <button class="del" style="margin-top:8px" onclick="delItem('${id}')">Удалить</button></div>`).join('')}
@@ -968,24 +1185,33 @@ async function delCase(id) { if (confirm('Удалить кейс?')) { await db
 
 /* --- Игроки и роли --- */
 function adminUsersHTML() {
-  return `<div class="card"><h2>👥 Игроки (${Object.keys(USERS).length})</h2>
-    <p class="muted">Модератор видит вкладку «Тикеты» и может брать и закрывать тикеты игроков.</p>
-    ${Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || '')).map(([id, u]) =>
-      `<div class="row" style="align-items:center; margin-bottom:8px">
-        <div style="flex:1">
-          <div style="font-size:14px">${esc(u.name || id)} ${u.is_admin ? '<span class="badge" style="margin:0">АДМИН</span>' : ''} ${ROLES[id] === 'moderator' ? '<span class="badge mod" style="margin:0">МОД</span>' : ''}</div>
-          <div class="chips">ID: ${id} · баланс: ${u.balance ?? 0}</div>
-        </div>
-        ${u.is_admin ? '' : (ROLES[id] === 'moderator'
-          ? `<button class="del" onclick="toggleMod('${id}', false)">Снять мода</button>`
-          : `<button class="btn small" style="flex:0 0 auto" onclick="toggleMod('${id}', true)">Сделать модом</button>`)}
-      </div>`).join('')}
+  const entries = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+  return `<div class="card"><h2>👥 Игроки (${entries.length})</h2>
+    <p class="muted">Выберите «Настроить» у игрока, чтобы назначить роль. Администратор имеет полный доступ, модератор — доступ к тикетам.</p>
+    ${entries.map(([id, u]) => {
+      const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
+      const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
+      return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
+        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span></div><div class="chips">ID: ${esc(id)} · баланс: ${u.balance ?? 0}</div></div>
+        <button class="btn small" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button>
+      </div>`;
+    }).join('') || '<p class="muted">Игроков пока нет.</p>'}
   </div>`;
 }
-async function toggleMod(id, on) {
-  if (on) await db.ref('roles/' + id).set('moderator');
-  else await db.ref('roles/' + id).remove();
-  toast(on ? 'Назначен модератором' : 'Роль снята');
+function openRoleModal(id) {
+  if (id === ADMIN_ID) return toast('Главного администратора нельзя понизить');
+  ROLE_EDIT_ID = id;
+  const u = USERS[id] || {};
+  document.getElementById('role-player-label').textContent = `${u.name || id} · ID ${id}`;
+  document.getElementById('role-choice').value = u.is_admin ? 'admin' : (ROLES[id] || 'player');
+  document.getElementById('role-modal').classList.add('show');
+}
+function closeRoleModal() { document.getElementById('role-modal').classList.remove('show'); ROLE_EDIT_ID = null; }
+async function savePlayerRole() {
+  const id = ROLE_EDIT_ID, role = document.getElementById('role-choice').value;
+  if (!id) return;
+  try { await workerRequest('/api/admin/role', { targetId:id, role }); closeRoleModal(); toast('Роль игрока обновлена'); drawAdminBody(); }
+  catch (e) { toast(e.message || 'Не удалось изменить роль'); }
 }
 
 /* --- Объявления --- */
@@ -1019,7 +1245,7 @@ function adminAnnsHTML() {
 function readAnnForm() {
   return {
     text: document.getElementById('an-text').value.trim(),
-    img: document.getElementById('an-prev')?.src || '',
+    img: document.getElementById('an-prev')?.getAttribute('src') || '',
     btnName: document.getElementById('an-btn-name').value.trim(),
     btnLink: document.getElementById('an-btn-link').value.trim()
   };
@@ -1037,25 +1263,35 @@ async function saveAnn() {
   const data = readAnnForm();
   if (!data.text) return toast('Введи текст объявления');
   if (data.btnName && !data.btnLink) return toast('Укажи ссылку для кнопки');
-  const payload = { text: data.text, img: data.img, btnName: data.btnName, btnLink: data.btnLink };
-  if (ANN_EDIT) {
-    await db.ref('anns/' + ANN_EDIT).update(payload);
-    ANN_EDIT = null;
-    toast('Объявление обновлено');
-  } else {
-    await db.ref('anns').push().set({ ...payload, createdAt: Date.now() });
-    toast('Объявление создано');
-  }
-  drawAdminBody();
+  if (data.btnLink && !/^https:\/\//i.test(data.btnLink)) return toast('Ссылка кнопки должна начинаться с https://');
+  const payload = { ...data, id: ANN_EDIT || '' };
+  try {
+    await workerRequest('/api/admin/announcement/save', payload);
+    ANN_EDIT = null; ANN_DRAFT = null;
+    toast('Объявление сохранено');
+    drawAdminBody();
+  } catch (e) { toast(e.message || 'Не удалось сохранить объявление'); }
 }
 function editAnn(id) { ANN_EDIT = id; drawAdminBody(); }
 function cancelAnnEdit() { ANN_EDIT = null; drawAdminBody(); }
 async function delAnn(id) {
   if (!confirm('Удалить объявление?')) return;
-  await db.ref('anns/' + id).remove();
-  if (ANN_EDIT === id) ANN_EDIT = null;
-  toast('Объявление удалено');
-  drawAdminBody();
+  try { await workerRequest('/api/admin/announcement/delete', { id }); if (ANN_EDIT === id) ANN_EDIT = null; toast('Объявление удалено'); drawAdminBody(); }
+  catch (e) { toast(e.message || 'Не удалось удалить объявление'); }
+}
+
+/* --- Технический перерыв --- */
+function adminSystemHTML() {
+  const enabled = !!MAINTENANCE?.enabled;
+  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением.</p>
+    <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
+    <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
+    <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p></div>`;
+}
+async function saveMaintenance(enabled) {
+  const message = document.getElementById('maintenance-text')?.value.trim() || 'Ведутся технические работы. Попробуйте зайти позже.';
+  try { await workerRequest('/api/admin/maintenance', { enabled, message }); MAINTENANCE = { enabled, message }; updateMaintenanceScreen(); toast(enabled ? 'Технический перерыв включён' : 'Технический перерыв выключен'); drawAdminBody(); }
+  catch (e) { toast(e.message || 'Не удалось изменить режим'); }
 }
 
 /* --- Валюта --- */
