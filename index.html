@@ -217,12 +217,17 @@ let autoTelegramStarted = false;
 
 let CURRENT_ID = null, CURRENT_PASS = null, profileRef = null, profile = null;
 const WORKER_URL = 'https://strike-arena-kv.mirikpirik2009.workers.dev';
+function formatApiError(data, status, fallback) {
+  const code = String(data?.code || `HTTP_${status || 0}`);
+  const message = String(data?.error || fallback || 'Неизвестная ошибка');
+  return `${message} [код: ${code}]`;
+}
 async function workerRequest(path, payload = {}) {
   if (!CURRENT_ID || (!CURRENT_PASS && !TG_INIT_DATA)) throw new Error('Сессия не подтверждена. Откройте приложение через Telegram.');
   if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Укажи URL Cloudflare Worker в WORKER_URL в index.html');
   const response = await fetch(WORKER_URL + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:CURRENT_ID, password:CURRENT_PASS, initData:TG_INIT_DATA, ...payload }) });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.ok) throw new Error(data.error || 'Ошибка серверной операции');
+  if (!response.ok || !data.ok) throw new Error(formatApiError(data, response.status, 'Ошибка серверной операции'));
   return data;
 }
 let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
@@ -302,7 +307,7 @@ async function telegramAutoLogin(firebaseUser) {
     body:JSON.stringify({ initData:TG_INIT_DATA, uid:firebaseUser.uid, idToken })
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось выполнить вход через Telegram');
+  if (!response.ok || !data.ok) throw new Error(formatApiError(data, response.status, 'Не удалось выполнить вход через Telegram'));
   CURRENT_ID = String(data.id || TG_USER.id);
   CURRENT_PASS = '';
   enterApp(CURRENT_ID);
@@ -332,10 +337,10 @@ async function doAuth() {
       if (id === ADMIN_ID) bootstrapSecret = prompt('Для первичной регистрации администратора введи ADMIN_BOOTSTRAP_SECRET из настроек Worker:') || '';
       result = await callSession(true, bootstrapSecret);
     }
-    if (!result.response.ok || !result.data.ok) return aMsg(result.data.error || 'Не удалось войти', 'err');
+    if (!result.response.ok || !result.data.ok) return aMsg(formatApiError(result.data, result.response.status, 'Не удалось войти'), 'err');
     CURRENT_ID = id;
     enterApp(id);
-  } catch (e) { aMsg('Ошибка входа: ' + e.message, 'err'); }
+  } catch (e) { aMsg('Ошибка входа: ' + (e?.message || 'Неизвестная ошибка') + (e instanceof TypeError ? ' [код: NETWORK_OR_CORS_ERROR]' : ''), 'err'); }
 }
 /* ---------- СТАРТ ---------- */
 async function enterApp(id) {
@@ -389,7 +394,7 @@ auth.onAuthStateChanged(u => {
     if (autoTelegramStarted) return;
     if (!u) { auth.signInAnonymously().catch(e => { showAuth(); aMsg('Ошибка Firebase: ' + e.message, 'err'); }); return; }
     autoTelegramStarted = true;
-    telegramAutoLogin(u).catch(e => { showAuth(); aMsg('Не удалось войти автоматически: ' + e.message, 'err'); });
+    telegramAutoLogin(u).catch(e => { showAuth(); aMsg('Не удалось войти автоматически: ' + (e?.message || 'Неизвестная ошибка') + (e instanceof TypeError ? ' [код: NETWORK_OR_CORS_ERROR]' : ''), 'err'); });
     return;
   }
   showAuth();
