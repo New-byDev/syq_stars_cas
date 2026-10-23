@@ -12,6 +12,9 @@
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   :root { --bg:#0b0b0b; --card:#171717; --text:#f5f5f5; --muted:#8d8d8d; --line:#2c2c2c; --accent:#fff; --green:#4caf50; --red:#ef5350; }
   html, body { background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; height:100%; overflow:hidden; }
+  /* Общий масштаб интерфейса уменьшен на 20%; zoom сохраняет работу фиксированных модальных окон и прокрутки. */
+  body { zoom:.8; width:125%; height:125%; }
+  @supports not (zoom: .8) { body { width:100%; height:100%; } .app { transform:scale(.8); transform-origin:top left; width:125%; height:125%; } }
 
   #auth-screen { position:fixed; inset:0; background:radial-gradient(circle at 50% 0%, #1e1e1e, #0b0b0b 70%); z-index:500; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
   #auth-screen.show { display:flex; }
@@ -20,7 +23,8 @@
   #auth-screen .card { width:100%; max-width:340px; animation:rise .4s ease; }
   @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
 
-  .app { height:100vh; display:flex; flex-direction:column; }
+  #ambient-canvas { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:.72; }
+  .app { height:100vh; display:flex; flex-direction:column; position:relative; z-index:1; }
   header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--line); background:#101010; z-index:10; }
   .logo { font-weight:800; letter-spacing:1.5px; font-size:16px; }
   .logo span { color:var(--muted); font-weight:400; font-size:11px; display:block; letter-spacing:0; margin-top:2px; }
@@ -94,6 +98,10 @@
   .ann-wrap { position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); margin-bottom:14px; touch-action:pan-y; }
   .ann-track { display:flex; transition:transform .55s cubic-bezier(.4,0,.2,1); }
   .ann-slide { min-width:100%; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .ann-slide.ann-reward-clickable { cursor:pointer; }
+  .ann-slide.ann-reward-clickable:active { background:#ffffff08; }
+  .ann-slide.ann-reward-clickable .atext { cursor:pointer; }
+  .ann-slide.ann-reward-clickable .ann-btn, .ann-slide.ann-reward-clickable a { position:relative; z-index:2; }
   .ann-slide img { width:100%; max-height:170px; object-fit:cover; border-radius:10px; }
   .ann-slide .atext { font-size:14px; line-height:1.45; word-break:break-word; }
   .ann-btn { display:inline-block; background:var(--accent); color:#000; font-weight:700; font-size:13px; padding:9px 16px; border-radius:10px; text-decoration:none; text-align:center; transition:.2s; }
@@ -159,7 +167,17 @@
   .ann-whole-link { display:flex; flex-direction:column; gap:10px; color:inherit; text-decoration:none; height:100%; }
   .ann-whole-link:active { opacity:.88; }
   .admin-search-row { display:flex; gap:8px; align-items:stretch; margin:10px 0; }
-  .admin-search-row input { min-width:0; flex:1; }
+  .admin-search-row { width:100%; gap:10px; }
+  .admin-search-row input { min-width:0; flex:1; height:48px; font-size:16px; padding:13px 14px; }
+  .admin-search-row .btn { width:auto; min-width:88px; flex:0 0 auto; }
+  .currency-fallback { display:inline-block; vertical-align:middle; font-size:13px; line-height:1; }
+  .ann-claim-btn { background:linear-gradient(135deg,#e9fff2,#75e6a0); color:#08140d; border:0; border-radius:10px; padding:10px 14px; font-weight:800; width:100%; cursor:pointer; }
+  .ann-claim-btn:disabled { opacity:.55; cursor:default; }
+  .ann-reward-chip { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border:1px solid var(--line); border-radius:9px; margin:3px 3px 0 0; font-size:11px; color:var(--muted); }
+  #ann-reward-picker { position:fixed; inset:0; z-index:730; display:none; align-items:center; justify-content:center; padding:14px; background:#000d; backdrop-filter:blur(7px); }
+  #ann-reward-picker.show { display:flex; }
+  .reward-picker-box { width:100%; max-width:650px; max-height:90vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; }
+  .reward-picker-box .picker-list { min-height:0; flex:1; }
   .player-info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
   .player-info-cell { padding:10px; border:1px solid var(--line); border-radius:10px; background:#101010; min-width:0; }
   .player-info-cell span { display:block; color:var(--muted); font-size:11px; margin-bottom:4px; }
@@ -245,6 +263,7 @@
 </style>
 </head>
 <body>
+<canvas id="ambient-canvas" aria-hidden="true"></canvas>
 
 <div id="app-loader" role="status" aria-live="polite">
   <div class="loader-emblem">Z</div>
@@ -313,6 +332,7 @@
 <div id="role-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRoleModal()"><div class="role-box"><h2 style="margin-bottom:8px">Настройка прав игрока</h2><p id="role-player-label" class="muted"></p><label for="role-choice">Роль</label><select id="role-choice"><option value="player">Игрок</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select><div class="row"><button class="btn sec" onclick="closeRoleModal()">Отмена</button><button class="btn" onclick="savePlayerRole()">Сохранить</button></div></div></div>
 <div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
 <div id="case-item-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeCaseItemPicker()"><div class="picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">База предметов</h2><button class="btn sec small" onclick="closeCaseItemPicker()">Закрыть</button></div><input id="case-item-search" placeholder="Название предмета…" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCaseItemSearch()}"><button class="btn sec" style="margin-top:6px" onclick="applyCaseItemSearch()">Найти</button><div id="case-item-picker-list" class="picker-list" style="margin-top:10px"></div></div></div>
+<div id="ann-reward-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAnnouncementRewardPicker()"><div class="reward-picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">Награды объявления</h2><button type="button" class="btn sec small" onclick="closeAnnouncementRewardPicker()">Готово</button></div><p class="muted">Отметь один или несколько предметов. Игрок сможет получить их только один раз.</p><input id="ann-reward-search" placeholder="Название предмета или ID" oninput="renderAnnouncementRewardPicker()"><div id="ann-reward-picker-list" class="picker-list" style="margin-top:10px"></div><button type="button" class="btn" style="margin-top:10px" onclick="closeAnnouncementRewardPicker()">Сохранить выбор (<span id="ann-reward-count">0</span>)</button></div></div>
 <div id="maintenance-screen"><div class="maintenance-box"><div class="maintenance-icon">🛠️</div><h1 style="font-size:23px;margin-bottom:10px">Технический перерыв</h1><p id="maintenance-message" class="muted" style="font-size:14px;line-height:1.6">Ведутся технические работы. Попробуйте зайти позже.</p></div></div>
 <div id="toast"></div>
 
@@ -379,13 +399,41 @@ let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
 let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = ''; 
 let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
-let ANN_EDIT = null, ANN_DRAFT = null;
+let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = []; 
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
 let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
-let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0;
+let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0, CASE_DYNAMIC_ODDS = null;
 const IMG_SIZE = 128;
 const DAY = 24 * 3600 * 1000;
+
+/* ---------- фоновые точки со световыми следами ---------- */
+(function startAmbientParticles(){
+  const canvas=document.getElementById('ambient-canvas'); if(!canvas) return;
+  const ctx=canvas.getContext('2d'); if(!ctx) return;
+  const reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let w=0,h=0,raf=0,particles=[];
+  function resize(){
+    const dpr=Math.min(window.devicePixelRatio||1,1.6); w=window.innerWidth; h=window.innerHeight;
+    canvas.width=Math.floor(w*dpr); canvas.height=Math.floor(h*dpr); canvas.style.width=w+'px'; canvas.style.height=h+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const count=Math.max(18,Math.min(58,Math.round(w*h/24000)));
+    particles=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,r:.7+Math.random()*1.7,vy:.25+Math.random()*.75,vx:-.25+Math.random()*.5,tail:8+Math.random()*20,a:.12+Math.random()*.36,phase:Math.random()*Math.PI*2}));
+  }
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      p.y+=p.vy; p.x+=p.vx+Math.sin(p.phase+p.y*.006)*.18;
+      if(p.y>h+24){p.y=-24;p.x=Math.random()*w;}
+      if(p.x<-24)p.x=w+24; if(p.x>w+24)p.x=-24;
+      const grad=ctx.createLinearGradient(p.x,p.y-p.tail,p.x,p.y+2);
+      grad.addColorStop(0,'rgba(160,190,255,0)'); grad.addColorStop(1,`rgba(190,215,255,${p.a})`);
+      ctx.strokeStyle=grad; ctx.lineWidth=p.r; ctx.beginPath(); ctx.moveTo(p.x,p.y-p.tail); ctx.lineTo(p.x,p.y); ctx.stroke();
+      ctx.fillStyle=`rgba(225,238,255,${Math.min(.7,p.a+.15)})`; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    }
+    if(!reduce) raf=requestAnimationFrame(frame);
+  }
+  resize(); frame(); window.addEventListener('resize',()=>{cancelAnimationFrame(raf);resize();if(!reduce)frame();},{passive:true});
+})();
 
 /* ---------- утилиты ---------- */
 async function sha256(str) {
@@ -408,6 +456,8 @@ function fmtTime(ts) {
          d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
 }
 const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', upgrader:'Апгрейдер', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+let inventoryCleanupCheckedFor = null;
+const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, caseOpen:true, itemSold:true, upgrade:true, reward:true };
 
 function fileToDataUrl(file, cb) {
   const r = new FileReader();
@@ -535,6 +585,7 @@ async function enterApp(id) {
     CUR_ICON = s.val()?.icon || '';
     const el = document.getElementById('cur-icon');
     if (CUR_ICON) { el.src = CUR_ICON; el.style.display = 'block'; } else el.style.display = 'none';
+    if (CURRENT_TAB === 'home') rerender();
   });
 
   go('home');
@@ -599,21 +650,37 @@ function go(tab) {
 function rerender() {
   const c = document.getElementById('content');
   if (CURRENT_TAB === 'home') renderHome(c);
-  if (CURRENT_TAB === 'settings') c.innerHTML = `<div class="card"><h2>⚙️ Настройки</h2>
-    <p class="muted">Позже: тема, звук и т.д.</p>
-    <button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта</button></div>`;
+  if (CURRENT_TAB === 'settings') renderSettings(c);
   if (CURRENT_TAB === 'inventory') renderInventory(c);
   if (CURRENT_TAB === 'upgrader') renderUpgrader(c);
   if (CURRENT_TAB === 'cases') renderCasesShop(c);
   if (CURRENT_TAB === 'profile') renderProfile(c);
   if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
-  if (CURRENT_TAB === 'admin') isAdmin() ? renderAdmin(c) : (c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>');
+  if (CURRENT_TAB === 'admin') { if(isAdmin()) { renderAdmin(c); loadAdminNotificationConfig(); } else c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>'; }
 }
 function logout() { auth.signOut().then(() => location.reload()); }
 
+function renderSettings(c) {
+  const prefs = {...DEFAULT_NOTIFICATION_SETTINGS, ...(profile?.notificationSettings || {})};
+  c.innerHTML = `<div class="card"><h2>⚙️ Настройки</h2>
+    <p class="muted">Управляй уведомлениями. Сообщения в Telegram придут, если ты уже запускал бота и он может отправлять тебе сообщения.</p>
+    <label style="display:flex;align-items:center;gap:10px;margin:12px 0"><input id="notif-telegram" type="checkbox" ${prefs.telegram?'checked':''} style="width:auto"> Отправлять уведомления в Telegram-бот</label>
+    <div style="border-top:1px solid var(--line);padding-top:10px"><p style="font-weight:700;margin-bottom:6px">События</p>
+      ${[['caseOpen','Открытие кейса'],['itemSold','Продажа предмета'],['upgrade','Результат апгрейда'],['reward','Получение награды']].map(([key,label])=>`<label style="display:flex;align-items:center;gap:10px;margin:10px 0"><input id="notif-${key}" type="checkbox" ${prefs[key]?'checked':''} style="width:auto"> ${label}</label>`).join('')}
+    </div>
+    <button class="btn" style="margin-top:8px" onclick="saveNotificationSettings()">Сохранить уведомления</button>
+    <a class="btn sec" href="https://t.me/Siqyal" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:10px">💬 Поддержка @Siqyal</a>
+    <button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта</button></div>`;
+}
+async function saveNotificationSettings() {
+  const settings={telegram:document.getElementById('notif-telegram').checked,caseOpen:document.getElementById('notif-caseOpen').checked,itemSold:document.getElementById('notif-itemSold').checked,upgrade:document.getElementById('notif-upgrade').checked,reward:document.getElementById('notif-reward').checked};
+  try { await workerRequest('/api/settings/notifications',{settings}); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast('Настройки уведомлений сохранены'); rerender(); }
+  catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
+}
+
 /* ---------- ГЛАВНАЯ: ОБЪЯВЛЕНИЯ ---------- */
 function renderHome(c) {
-  const list = Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+  const list = Object.entries(ANNS).filter(([id,a]) => !(a.oneTime && profile?.claimedAnnouncements?.[id])).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
   let annHtml = '';
   if (list.length) {
     annCount = list.length;
@@ -622,9 +689,11 @@ function renderHome(c) {
     <div class="ann-wrap" id="ann-wrap">
       <div class="ann-track" id="ann-track">
         ${list.map(([id, a]) => {
-          const body = `${a.img ? `<img src="${esc(a.img)}" alt="">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener">${esc(a.btnName)}</a>` : ''}`;
+          const body = `${a.img ? `<img src="${esc(a.img)}" alt="">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(a.btnName)}</a>` : ''}`;
           const wholeLink = !a.btnName && a.btnLink && /^https:\/\//i.test(a.btnLink);
-          return `<div class="ann-slide">${wholeLink ? `<a class="ann-whole-link" href="${esc(a.btnLink)}" target="_blank" rel="noopener">${body}</a>` : body}</div>`;
+          const slideClick = a.oneTime ? ` class="ann-slide ann-reward-clickable" role="button" tabindex="0" onclick="claimAnnouncement('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();claimAnnouncement('${id}')}"` : ` class="ann-slide"`;
+          const announcementBody = wholeLink ? `<a class="ann-whole-link" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${body}</a>` : body;
+          return `<div${slideClick}>${announcementBody}</div>`;
         }).join('')}
       </div>
       ${annCount > 1 ? `<button class="ann-nav l" onclick="annSlide(-1)">‹</button>
@@ -632,8 +701,8 @@ function renderHome(c) {
         <div class="ann-dots">${list.map((_, i) => `<button class="ann-dot ${i === annIndex ? 'on' : ''}" onclick="annGo(${i})"></button>`).join('')}</div>` : ''}
     </div>`;
   } else annCount = 0;
-  const top = Object.entries(USERS).map(([id,u]) => ({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0).sort((a,b)=>b.spent-a.spent).slice(0,5);
-  const topHtml = `<div class="card"><h2>🏆 Топ трат</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'монет'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>`;
+  const top = Object.entries(USERS).map(([id,u]) => ({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0 && x.id!==ADMIN_ID && x.u?.is_admin!==true && ROLES[x.id]!=='admin' && ROLES[x.id]!=='moderator').sort((a,b)=>b.spent-a.spent).slice(0,5);
+  const topHtml = `<div class="card"><h2>🏆 Топ трат</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>`;
   c.innerHTML = annHtml + `<div class="card"><h2>Добро пожаловать${TG_USER ? ', ' + esc(TG_USER.first_name) : ''}!</h2>
     <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>` + topHtml;
   if (annCount > 1) startAnnRotator();
@@ -665,23 +734,32 @@ document.addEventListener('touchend', e => {
 }, { passive: true });
 
 /* ---------- ИНВЕНТАРЬ ---------- */
+function getInventoryItemMeta(entry) {
+  const itemId = typeof entry?.itemId === 'string' ? entry.itemId : String(entry?.itemId?.id || entry?.id || '');
+  const catalog = ITEMS[itemId] || (entry?.item && typeof entry.item === 'object' ? entry.item : {});
+  const source = {...(entry && typeof entry === 'object' ? entry : {}), ...catalog};
+  return { id:itemId, name:String(source.name || source.title || source.label || entry?.name || entry?.itemName || ''), price:Number(source.price ?? source.cost ?? entry?.price ?? entry?.itemPrice ?? 0) || 0, img:String(source.img || source.image || source.icon || entry?.img || entry?.itemImg || ''), sellable:source.sellable ?? entry?.sellable ?? 0, valid:!!itemId && !!String(source.name || source.title || source.label || entry?.name || entry?.itemName || '').trim() && Number(source.price ?? source.cost ?? entry?.price ?? entry?.itemPrice ?? 0)>0 };
+}
 function renderInventory(c) {
   const inv = profile?.inventory || {};
-  const keys = Object.keys(inv).sort((a, b) => (inv[b].at || 0) - (inv[a].at || 0));
+  if (inventoryCleanupCheckedFor !== CURRENT_ID && CURRENT_ID) { inventoryCleanupCheckedFor = CURRENT_ID; workerRequest('/api/inventory/cleanup', {}).then(async result => { if (result.removed > 0) { const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Удалено фантомных предметов: ${result.removed}`); if(CURRENT_TAB==='inventory') rerender(); } }).catch(()=>{}); }
+  const keys = Object.keys(inv).filter(k => getInventoryItemMeta(inv[k]).valid).sort((a, b) => (inv[b].at || 0) - (inv[a].at || 0));
   c.innerHTML = `<div class="card"><h2>🎒 Инвентарь (${keys.length})</h2>` +
     (keys.length === 0 ? '<p class="muted">Пусто. Открой кейс!</p>' :
       '<div class="item-grid">' + keys.map(k => {
-        const it = ITEMS[inv[k].itemId] || { name: '?', price: 0, sellable: 0 };
+        const it = getInventoryItemMeta(inv[k]);
+        const canSell = it.sellable === true || Number(it.sellable) === 1;
+        const saleAmount = Math.floor(it.price);
         return `<div class="item-card price-tier-${priceTier(it.price)}">
-          ${it.img ? `<img src="${esc(it.img)}">` : ''}
+          ${it.img ? `<img src="${esc(it.img)}" alt="">` : '<div style="font-size:32px">📦</div>'}
           <div class="nm">${esc(it.name)}</div>
           <div class="price-tag">${pcur(it.price)}</div>
-          ${it.sellable ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')">Продать за ${it.price}</button>` : ''}
+          ${canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')">Продать за ${saleAmount}</button>` : ''}
         </div>`;
       }).join('') + '</div>') + '</div>';
 }
 async function sellItem(entryKey) {
-  try { const result = await workerRequest('/api/item/sell', { entryKey }); toast(`Продано за ${result.amount}`); }
+  try { const result = await workerRequest('/api/item/sell', { entryKey }); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Продано: ${result.itemName || 'предмет'} · +${result.amount}`); rerender(); }
   catch (e) { toast(e.message || 'Не удалось продать предмет'); }
 }
 
@@ -706,7 +784,7 @@ function renderUpgrader(c) {
   const invEntries = Object.entries(inv).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
   const baseEntry = UPG_BASE_KEY && inv[UPG_BASE_KEY] ? inv[UPG_BASE_KEY] : null;
   if (!baseEntry) UPG_BASE_KEY = null;
-  const baseItem = baseEntry ? ITEMS[baseEntry.itemId] : null;
+  const baseItem = baseEntry ? getInventoryItemMeta(baseEntry) : null;
   const targets = Object.entries(ITEMS).filter(([id,it]) => Number(it.price||0) > Number(baseItem?.price||0) && Number(it.price||0)>0)
     .map(([id,it]) => ({id,it,chance:upgradeChance(baseItem?.price,it.price)}));
   const filtered = UPG_FILTER === 'all' ? targets : targets.filter(x => x.chance <= Number(UPG_FILTER) + 0.0001);
@@ -715,7 +793,7 @@ function renderUpgrader(c) {
   if (!UPG_TARGET_ID && filtered.length) UPG_TARGET_ID = filtered[0].id;
   const target = filtered.find(x=>x.id===UPG_TARGET_ID);
   c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря. Шанс рассчитывается по формуле: цена предмета игрока ÷ цена цели × 100%. При неудаче исходный предмет расходуется.</p></div>
-  <div class="upg-layout"><section class="upg-panel"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=ITEMS[entry.itemId]||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
+  <div class="upg-layout"><section class="upg-panel"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=getInventoryItemMeta(entry)||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
   <section class="upg-panel"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
   <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent" style="color:${target?chanceColor(target.chance):'#aaa'};text-shadow:0 0 16px ${target?chanceColor(target.chance)+'66':'transparent'}">${target?formatChance(target.chance)+'%':'—'}</div></div><div class="upg-wheel-legend"><span><i class="success-dot"></i>Успех ${target?formatChance(target.chance):'0'}%</span><span><i class="fail-dot"></i>Неудача ${target?formatChance(100-target.chance):'100'}%</span></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Светлый сектор — шанс улучшить предмет':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
 }
@@ -732,7 +810,7 @@ async function runUpgrade() {
     const pct = document.getElementById('upg-percent');
     const label = document.getElementById('upg-result');
     if (pct) { pct.textContent = `${formatChance(result.chance)}%`; pct.style.color = chanceColor(result.chance); pct.style.textShadow = `0 0 16px ${chanceColor(result.chance)}88`; }
-    if (pointer) { const sector = Math.max(0, Math.min(360, Number(result.chance) * 3.6)); const landing = result.success ? Math.random() * sector : sector + Math.random() * Math.max(1, 360 - sector); pointer.style.transform = `rotate(${1440 + landing}deg)`; }
+    if (pointer) { const landing = Math.max(0, Math.min(359.999, Number(result.rollPercent ?? (result.success ? Number(result.chance)/2 : Number(result.chance)+(100-Number(result.chance))/2))) * 3.6); pointer.style.transform = `rotate(${1440 + landing}deg)`; }
     if (label) label.textContent = 'Стрелка раскручивается…';
     await new Promise(resolve=>setTimeout(resolve,2700));
     toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : (result.consolationItemName ? `Неудача. Получен утешительный предмет: ${result.consolationItemName}` : 'Неудача. Исходный предмет уничтожен.'));
@@ -775,9 +853,10 @@ function renderCasesShop(c) {
 }
 function openCase(caseId) {
   const k = CASES[caseId]; if (!k) return;
-  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false;
+  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false; CASE_DYNAMIC_ODDS = null;
   renderCaseDetails(k);
   document.getElementById('case-modal').classList.add('show');
+  workerRequest('/api/case/odds', {caseId}).then(result => { if (CASE_DETAIL_ID === caseId && result.odds) { CASE_DYNAMIC_ODDS = result; renderCaseDetails(CASES[caseId] || k); } }).catch(() => {});
 }
 function setCaseOpenCount(count) {
   if (CASE_OPEN_BUSY) return;
@@ -803,7 +882,8 @@ function renderCaseDetails(k) {
       ${[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join('')}
     </div>
     <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>Итого: ${totalPrice}</span></div>
-    <div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=totalWeight>0?Number(weight)/totalWeight*100:0;return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>
+    <div style="font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 8px">Динамические шансы: если экономика проекта уходит в минус, дорогие предметы становятся реже, но кейсы продолжают открываться. Текущие вероятности показаны ниже.</div>
+    <div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=CASE_DYNAMIC_ODDS?.odds?.[id]!==undefined?Number(CASE_DYNAMIC_ODDS.odds[id]):(totalWeight>0?Number(weight)/totalWeight*100:0);return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%${CASE_DYNAMIC_ODDS?'':' · загрузка…'}</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>
     <button class="btn sec" style="margin-top:8px;flex:0 0 auto" onclick="closeCaseModal()">Закрыть</button>`;
   const btn = document.getElementById('case-open-action');
   if (!canOpen && btn) {
@@ -818,18 +898,31 @@ async function performCaseOpen() {
   CASE_OPEN_BUSY = true; CASE_LAST_OPEN_AT = Date.now(); renderCaseDetails(k);
   try {
     const result = await workerRequest('/api/case/open', { caseId, count:CASE_OPEN_COUNT });
-    const winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
-    showCaseRoulette(k, winners.filter(Boolean));
+    let winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
+    // Read the committed inventory entries and animate exactly what was actually stored.
+    const fresh = await db.ref('users/'+CURRENT_ID).get();
+    if (fresh.exists()) {
+      profile = fresh.val();
+      if (Array.isArray(result.inventoryKeys) && result.inventoryKeys.length) {
+        const committedIds = result.inventoryKeys.map(key=>profile?.inventory?.[key]?.itemId);
+        if (committedIds.length === result.inventoryKeys.length && committedIds.every(Boolean)) winners = committedIds;
+      }
+    }
+    const detailsById = Object.fromEntries((result.winnerItems || []).map(it=>[it.id,it]));
+    const winnerDetails = winners.map(id=>({id,...(ITEMS[id]||{}),...(detailsById[id]||{}),img:ITEMS[id]?.img||ITEMS[id]?.image||ITEMS[id]?.icon||''}));
+    showCaseRoulette(k, winners.filter(Boolean), winnerDetails);
   } catch (e) {
     CASE_OPEN_BUSY = false; renderCaseDetails(k); toast(e.message || 'Не удалось открыть кейс');
   }
 }
 /* ---------- ПРОКРУТКА ---------- */
 const STEP = 110, ITEM_W = 100;
-function showCaseRoulette(k, winnerIds) {
+function showCaseRoulette(k, winnerIds, winnerItems = null) {
   const modal = document.getElementById('case-modal');
   const box = document.getElementById('cm-box');
   const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
+  const winnerDetails = Array.isArray(winnerItems) ? winnerItems : winners.map(id=>({id,...(ITEMS[id]||{})}));
+  const resultItems = Object.fromEntries(winnerDetails.map(x=>[x.id,x]));
   box.innerHTML = `<div style="font-weight:800;font-size:18px;margin-bottom:14px">${esc(k.name)} · открытие ${winners.length} ${winners.length===1?'кейса':'кейсов'}</div><div id="case-roulette-rows" style="display:grid;gap:10px;width:100%;overflow:auto;max-height:68vh"></div><p class="muted" style="margin-top:12px">Рулетка останавливается на выигранном предмете</p>`;
   modal.classList.add('show');
   const rows = document.getElementById('case-roulette-rows');
@@ -843,19 +936,19 @@ function showCaseRoulette(k, winnerIds) {
     const strip = row.querySelector('.rl-strip');
     const seq=[]; for(let i=0;i<42;i++) seq.push(ids[Math.floor(Math.random()*ids.length)]);
     seq[35]=winnerId;
-    strip.innerHTML=seq.map(id=>{const it=ITEMS[id]||{};return `<div class="rl-item price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}">`:'<span>🎁</span>'}<span>${esc(it.name||id)}</span></div>`;}).join('');
+    strip.innerHTML=seq.map(id=>{const it=resultItems[id]||ITEMS[id]||{};return `<div class="rl-item price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}">`:'<span>🎁</span>'}<span>${esc(it.name||id)}</span></div>`;}).join('');
     const winW=row.clientWidth, step=110, itemW=100;
     const targetX=35*step-winW/2+itemW/2;
     let start=null;
     function frame(now){if(!start)start=now;const t=Math.min(1,(now-start)/duration);const ease=1-Math.pow(1-t,5);const x=-targetX*ease;strip.style.transform=`translateX(${x}px)`;if(t<1)requestAnimationFrame(frame);else setTimeout(resolve,200+rowIndex*100);}
     requestAnimationFrame(frame);
   }));
-  Promise.all(animations).then(()=>showPrize(k,winners));
+  Promise.all(animations).then(()=>showPrize(k,winners,resultItems));
 }
-function showPrize(k, winnerIds) {
+function showPrize(k, winnerIds, winnerItems = {}) {
   const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
   const box = document.getElementById('cm-box');
-  box.innerHTML = `<p style="font-size:18px;font-weight:800;margin-bottom:4px">${winners.length===1?'Вам выпало':'Результаты открытия'}</p><p class="muted" style="font-size:11px">${esc(k.name)}</p><div class="case-result-list">${winners.map((id,i)=>{const win=ITEMS[id]||{};return `<div class="case-result-card price-tier-${priceTier(win.price)}" style="animation-delay:${i*70}ms">${win.img?`<img src="${esc(win.img)}">`:'<div style="font-size:40px">🎁</div>'}<b>${esc(win.name||'Предмет')}</b><div class="muted" style="font-size:10px;margin-top:4px">Цена: ${Number(win.price||0)}</div></div>`;}).join('')}</div><button class="btn" style="max-width:260px;margin:8px auto 0" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
+  box.innerHTML = `<p style="font-size:18px;font-weight:800;margin-bottom:4px">${winners.length===1?'Вам выпало':'Результаты открытия'}</p><p class="muted" style="font-size:11px">${esc(k.name)}</p><div class="case-result-list">${winners.map((id,i)=>{const win=winnerItems[id]||ITEMS[id]||{};return `<div class="case-result-card price-tier-${priceTier(win.price)}" style="animation-delay:${i*70}ms">${win.img?`<img src="${esc(win.img)}">`:'<div style="font-size:40px">🎁</div>'}<b>${esc(win.name||'Предмет')}</b><div class="muted" style="font-size:10px;margin-top:4px">Цена: ${Number(win.price||0)}</div></div>`;}).join('')}</div><button class="btn" style="max-width:260px;margin:8px auto 0" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
   CASE_OPEN_BUSY = false;
 }
 function closeCaseModal() {
@@ -896,6 +989,7 @@ function sendMsg(id, inputId) {
   });
 }
 async function takeTicket(id) {
+  if (TICKETS[id] && String(TICKETS[id].owner) === String(CURRENT_ID)) return toast('Нельзя брать собственный тикет');
   try { const result = await workerRequest('/api/ticket/take', { ticketId:id }); OPEN_TICKET_ID = id; toast(result.message || 'Тикет взят'); }
   catch (e) { toast(e.message || 'Не удалось взять тикет'); }
 }
@@ -982,7 +1076,7 @@ function ticketRowHTML(id, t, btn) {
         <div class="chips">${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · ${tStatusHTML(t.status)}
           ${t.reason ? ` · причина: ${esc(t.reason)}` : ''}</div>
       </div>
-      ${btn ? `<button class="btn small" style="flex:0 0 auto" onclick="${btn.action}('${id}')">${btn.label}</button>` : ''}
+      ${btn ? `<button class="btn small" style="flex:0 0 auto" onclick="${btn.action}('${id}')">${btn.label}</button>` : (t.status==='open' && isStaff() && String(t.owner)===String(CURRENT_ID) ? '<span class="muted" style="font-size:11px">Свой тикет</span>' : '')}
     </div></div>`;
 }
 function ticketMessagesHTML(msgs) {
@@ -1006,7 +1100,7 @@ function ticketViewHTML(id, t, backFn) {
   const canWrite = t.status !== 'closed';
   const isHandler = isStaff() && t.owner !== CURRENT_ID;
   const canClose = isHandler && t.status !== 'closed';
-  const canTake = isHandler && t.status === 'open';
+  const canTake = isHandler && t.status === 'open' && String(t.owner)!==String(CURRENT_ID);
   const txLabel = t.type === 'deposit'
     ? `Выдать игроку ${t.amount} ${CUR_ICON ? '' : '(пополнение)'}`
     : `Забрать у игрока ${t.amount} ${CUR_ICON ? '' : '(вывод)'}`;
@@ -1091,7 +1185,7 @@ function renderStaffTickets(c) {
   const closed = all.filter(([, t]) => t.status === 'closed' && match([, t]));
 
   c.innerHTML = `<div class="card"><h2>🎫 Тикеты</h2>
-      <p class="muted">Взятый тикет исчезает из списка у всех. Невзятый тикет закроется сам через 24 часа («Время истекло»).</p>
+      <p class="muted">Можно вести несколько тикетов одновременно. Свои тикеты брать в работу нельзя.</p>
       <form class="admin-search-row" onsubmit="event.preventDefault();applyTicketSearch()"><input id="ticket-search-input" placeholder="Номер тикета…" value="${esc(ticketSearchDraft || ticketSearch)}" oninput="ticketSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
       <div class="subtabs">
         <button class="${ticketSubTab === 'open' ? 'on' : ''}" onclick="setSub2('open')">Не выполненные (${open.length})</button>
@@ -1099,7 +1193,7 @@ function renderStaffTickets(c) {
         <button class="${ticketSubTab === 'closed' ? 'on' : ''}" onclick="setSub2('closed')">Закрытые (${closed.length})</button>
       </div>
       ${ticketSubTab === 'open' ? (open.map(([id, t]) =>
-        ticketRowHTML(id, t, { action: 'uiTake', label: 'Взять' })).join('') || '<p class="muted">Свободных тикетов нет.</p>') : ''}
+        ticketRowHTML(id, t, String(t.owner)===String(CURRENT_ID) ? null : { action: 'uiTake', label: 'Взять' })).join('') || '<p class="muted">Свободных тикетов нет.</p>') : ''}
       ${ticketSubTab === 'mine' ? (mine.map(([id, t]) =>
         ticketRowHTML(id, t, { action: 'openStaffTicket', label: 'Открыть' })).join('') || '<p class="muted">Нет активных тикетов.</p>') : ''}
       ${ticketSubTab === 'closed' ? (closed.map(([id, t]) =>
@@ -1124,6 +1218,8 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='anns'?'on':''}" onclick="setSub('anns')">📢 Объявления</button>
         <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
         <button class="btn sec ${adminSub==='system'?'on':''}" onclick="setSub('system')">🛠 Система</button>
+        <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
+        <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
       </div>
     </div>
     <div id="admin-body"></div>`;
@@ -1140,6 +1236,8 @@ function drawAdminBody() {
   if (adminSub === 'anns')  b.innerHTML = adminAnnsHTML();
   if (adminSub === 'cur')   b.innerHTML = adminCurHTML();
   if (adminSub === 'system') b.innerHTML = adminSystemHTML();
+  if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
+  if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
 }
 
 /* --- Предметы --- */
@@ -1174,10 +1272,12 @@ function onItemFile(e) {
 }
 async function addItem() {
   const name = document.getElementById('it-name').value.trim();
+  const price = Number(document.getElementById('it-price').value);
   if (!name) return toast('Введи название');
+  if (!Number.isSafeInteger(price) || price <= 0) return toast('Цена предмета должна быть целым числом больше нуля');
   await db.ref('items').push().set({
     name, img: document.getElementById('it-img').value.trim(),
-    price: +document.getElementById('it-price').value || 0,
+    price,
     sellable: document.getElementById('it-sell').checked ? 1 : 0
   });
   toast('Предмет создан');
@@ -1274,7 +1374,7 @@ function closeCaseItemPicker() { document.getElementById('case-item-picker').cla
 function applyCaseItemSearch() { caseItemSearchDraft = (document.getElementById('case-item-search')?.value || '').trim().toLowerCase(); renderCaseItemPicker(); }
 function renderCaseItemPicker() {
   const host = document.getElementById('case-item-picker-list'); if (!host) return;
-  const entries = Object.entries(ITEMS).filter(([id,it]) => !caseItemSearchDraft || String(it.name||'').toLowerCase().includes(caseItemSearchDraft) || id.toLowerCase().includes(caseItemSearchDraft)).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
+  const entries = Object.entries(ITEMS).filter(([id,it]) => String(it.name||it.title||'').trim() && Number(it.price??it.cost)>0 && (!caseItemSearchDraft || String(it.name||'').toLowerCase().includes(caseItemSearchDraft) || id.toLowerCase().includes(caseItemSearchDraft))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
   host.innerHTML = entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" onclick="chooseCaseItem('${id}')">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('') || '<p class="muted" style="grid-column:1/-1;text-align:center">Предметы не найдены.</p>';
 }
 function chooseCaseItem(id) {
@@ -1379,6 +1479,18 @@ async function savePlayerRole() {
   catch (e) { toast(e.message || 'Не удалось изменить роль'); }
 }
 
+async function claimAnnouncement(id) {
+  if (!id) return;
+  if (profile?.claimedAnnouncements?.[id]) return toast('Ты уже получил награду за это объявление');
+  try {
+    const result=await workerRequest('/api/announcement/claim',{announcementId:id});
+    const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val();
+    const names=Array.isArray(result.rewardNames)?result.rewardNames:[];
+    toast(names.length ? `Награда получена: ${names.join(', ')}` : 'Награда получена');
+    if(CURRENT_TAB==='home') rerender(); else rerenderIfDepends();
+  } catch(e) { toast(e.message || 'Не удалось получить награду'); }
+}
+
 /* --- Объявления --- */
 function adminAnnsHTML() {
   const editing = ANN_EDIT && ANNS[ANN_EDIT];
@@ -1390,14 +1502,16 @@ function adminAnnsHTML() {
     <img id="an-prev" class="preview" style="width:100%; height:auto; max-height:120px; ${cur.img ? '' : 'display:none'}" src="${esc(cur.img)}">
     <label>Кнопка: название (необязательно)</label><input id="an-btn-name" value="${esc(cur.btnName)}" placeholder="Например: Наш канал">
     <label>Ссылка (необязательно; если название кнопки пустое, кликабельно всё объявление)</label><input id="an-btn-link" value="${esc(cur.btnLink)}" placeholder="https://...">
-    <button class="btn" onclick="saveAnn()">${editing ? 'Сохранить изменения' : 'Создать объявление'}</button>
+    <hr class="divider"><label style="display:flex;align-items:center;gap:9px;color:var(--text);font-size:13px"><input id="an-one-time" type="checkbox" ${cur.oneTime?'checked':''} onchange="toggleAnnouncementOneTime()"> Одноразовое объявление с наградой</label>
+    <div id="an-reward-controls" style="${cur.oneTime?'':'display:none'};margin-top:8px"><p class="muted">Награду можно забрать только один раз на аккаунт. Выбери несколько предметов из базы.</p><button type="button" class="btn sec" onclick="openAnnouncementRewardPicker()">🎁 Выбрать предметы награды</button><div id="an-reward-summary" style="margin-top:6px">${announcementRewardSummary()}</div></div>
+    <button class="btn" style="margin-top:10px" onclick="saveAnn()">${editing ? 'Сохранить изменения' : 'Создать объявление'}</button>
     ${editing ? '<button class="btn sec" style="margin-top:6px" onclick="cancelAnnEdit()">Отмена редактирования</button>' : ''}
     <hr class="divider"><p class="muted">Объявления показываются на главной каруселью: автолистование каждые 10 секунд, игрок может листать свайпом и стрелками.</p></div>
   <div class="card" id="admin-ann-list"><h2>📢 Объявления (${Object.keys(ANNS).length})</h2>${adminAnnListItemsHTML()}</div>`;
 }
 function adminAnnListItemsHTML() {
   return Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0)).map(([id, a]) =>
-    `<div class="ticket-row"><div class="row" style="align-items:center"><div style="flex:1"><div style="font-size:13px">${esc(a.text.slice(0,60))}${a.text.length>60?'…':''}</div><div class="chips">${a.img?'📷 фото · ':''}${a.btnName?`кнопка: ${esc(a.btnName)}`:a.btnLink?'всё объявление — ссылка':'без ссылки'}</div></div><button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button><button class="del" onclick="delAnn('${id}')">Удалить</button></div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>';
+    `<div class="ticket-row"><div class="row" style="align-items:center"><div style="flex:1"><div style="font-size:13px">${esc(a.text.slice(0,60))}${a.text.length>60?'…':''}</div><div class="chips">${a.img?'📷 фото · ':''}${a.oneTime?`🎁 одноразовая награда: ${(a.rewardIds||[]).length} предметов · `:''}${a.btnName?`кнопка: ${esc(a.btnName)}`:a.btnLink?'всё объявление — ссылка':'без ссылки'}</div></div><button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button><button class="del" onclick="delAnn('${id}')">Удалить</button></div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>';
 }
 function updateAdminAnnList() {
   const host = document.getElementById('admin-ann-list');
@@ -1409,7 +1523,9 @@ function readAnnForm() {
     text: document.getElementById('an-text').value.trim(),
     img: document.getElementById('an-prev')?.src && document.getElementById('an-prev').style.display !== 'none' ? document.getElementById('an-prev').src : '',
     btnName: document.getElementById('an-btn-name').value.trim(),
-    btnLink: document.getElementById('an-btn-link').value.trim()
+    btnLink: document.getElementById('an-btn-link').value.trim(),
+    oneTime: !!document.getElementById('an-one-time')?.checked,
+    rewardIds: ANN_REWARD_IDS.slice()
   };
 }
 function onAnFile(e) {
@@ -1426,24 +1542,57 @@ async function saveAnn() {
   const data = readAnnForm();
   if (!data.text) return toast('Введи текст объявления');
   if (data.btnName && !data.btnLink) return toast('Укажи ссылку для кнопки');
+  if (data.oneTime && !data.rewardIds.length) return toast('Выбери хотя бы один предмет награды');
   if (data.btnLink && !/^https:\/\//i.test(data.btnLink)) return toast('Ссылка должна начинаться с https://');
   const payload = { ...data, id: ANN_EDIT || '' };
   try {
     const result = await workerRequest('/api/admin/announcement/save', payload);
     const savedId = result.id;
     ANNS[savedId] = {...(ANNS[savedId] || {}), ...data, createdAt:ANNS[savedId]?.createdAt || Date.now(), updatedAt:Date.now()};
-    ANN_EDIT = null; ANN_DRAFT = null;
+    ANN_EDIT = null; ANN_DRAFT = null; ANN_REWARD_IDS = [];
+    ANNS[savedId].rewardIds = data.oneTime ? data.rewardIds.slice() : [];
     toast('Объявление сохранено');
     drawAdminBody();
   } catch (e) { toast(e.message || 'Не удалось сохранить объявление'); }
 }
-function editAnn(id) { ANN_EDIT = id; drawAdminBody(); }
-function cancelAnnEdit() { ANN_EDIT = null; drawAdminBody(); }
+function editAnn(id) { ANN_EDIT = id; ANN_REWARD_IDS = Array.isArray(ANNS[id]?.rewardIds) ? [...ANNS[id].rewardIds] : []; drawAdminBody(); }
+function cancelAnnEdit() { ANN_EDIT = null; ANN_REWARD_IDS = []; ANN_DRAFT = null; drawAdminBody(); }
+function toggleAnnouncementOneTime() { const el=document.getElementById('an-one-time'), box=document.getElementById('an-reward-controls'), name=document.getElementById('an-btn-name'), link=document.getElementById('an-btn-link'); const on=!!el?.checked; if(box) box.style.display=on?'block':'none'; if(name){name.disabled=on;if(on)name.value='';} if(link){link.disabled=on;if(on)link.value='';} }
+function announcementRewardSummary() { const chosen=ANN_REWARD_IDS.map(id=>({id,it:ITEMS[id]})).filter(x=>x.it); return chosen.length ? chosen.map(x=>`<span class="ann-reward-chip">${x.it.img?`<img src="${esc(x.it.img)}" style="width:20px;height:20px;object-fit:contain">`:''}${esc(x.it.name||x.id)} · ${Number(x.it.price||0)}</span>`).join('') : '<p class="muted">Награды не выбраны.</p>'; }
+function openAnnouncementRewardPicker() { const input=document.getElementById('ann-reward-search'); if(input) input.value=''; document.getElementById('ann-reward-picker').classList.add('show'); renderAnnouncementRewardPicker(); }
+function closeAnnouncementRewardPicker() { document.getElementById('ann-reward-picker').classList.remove('show'); const summary=document.getElementById('an-reward-summary'); if(summary) summary.innerHTML=announcementRewardSummary(); const count=document.getElementById('ann-reward-count'); if(count) count.textContent=ANN_REWARD_IDS.length; }
+function toggleAnnouncementReward(id) { const i=ANN_REWARD_IDS.indexOf(id); if(i>=0) ANN_REWARD_IDS.splice(i,1); else if(ANN_REWARD_IDS.length<20) ANN_REWARD_IDS.push(id); else return toast('Можно выбрать максимум 20 предметов'); renderAnnouncementRewardPicker(); }
+function renderAnnouncementRewardPicker() { const host=document.getElementById('ann-reward-picker-list'); if(!host) return; const q=String(document.getElementById('ann-reward-search')?.value||'').trim().toLowerCase(); const entries=Object.entries(ITEMS).filter(([id,it])=>String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0&&(!q||String(it.name||'').toLowerCase().includes(q)||id.toLowerCase().includes(q))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0)); host.innerHTML=entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" style="border-color:${ANN_REWARD_IDS.includes(id)?'var(--green)':'var(--line)'};box-shadow:${ANN_REWARD_IDS.includes(id)?'0 0 0 1px var(--green)':''}" onclick="toggleAnnouncementReward('${id}')">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${ANN_REWARD_IDS.includes(id)?'✓ ':''}${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('')||'<p class="muted">В базе пока нет предметов.</p>'; const count=document.getElementById('ann-reward-count'); if(count) count.textContent=ANN_REWARD_IDS.length; }
 async function delAnn(id) {
   if (!confirm('Удалить объявление?')) return;
   try { await workerRequest('/api/admin/announcement/delete', { id }); if (ANN_EDIT === id) ANN_EDIT = null; toast('Объявление удалено'); drawAdminBody(); }
   catch (e) { toast(e.message || 'Не удалось удалить объявление'); }
 }
+
+function adminStatsHTML() {
+  const users=Object.entries(USERS||{}), totalBalance=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.balance)||0),0), totalSpent=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.spentCurrency)||0),0), totalEarned=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.earnedCurrency)||0),0);
+  const openings=users.reduce((n,[,u])=>n+Object.values(u?.openedCases||{}).reduce((x,v)=>x+Math.max(0,Number(v)||0),0),0);
+  const validInventory=users.reduce((n,[,u])=>n+Object.values(u?.inventory||{}).filter(e=>{const it=ITEMS[String(e?.itemId||e?.id||'')];return !!it&&!!String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0;}).length,0);
+  const allTickets=Object.values(TICKETS||{}), openTickets=allTickets.filter(t=>t?.status==='open').length, activeTickets=allTickets.filter(t=>t?.status==='taken').length, closedTickets=allTickets.filter(t=>t?.status==='closed').length;
+  const ranking=users.map(([id,u])=>({id,u,spent:Number(u?.spentCurrency)||0,earned:Number(u?.earnedCurrency)||0})).sort((a,b)=>b.spent-a.spent).slice(0,10);
+  return `<div class="card"><h2>📊 Подробная статистика</h2><p class="muted">Исторические продажи, которые раньше не учитывались, задним числом восстановить нельзя.</p><div class="player-info-grid">
+    ${[['Игроков',users.length],['Общий баланс',totalBalance],['Расходы на кейсы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Открытия кейсов',openings],['Валидные предметы в инвентарях',validInventory],['Кейсов в каталоге',Object.keys(CASES||{}).length],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
+    </div><h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<button class="btn sec" style="margin-top:10px" onclick="drawAdminBody()">Обновить статистику</button></div>`;
+}
+function adminNotificationsHTML() {
+  const cfg=window._adminNotificationConfig||{}; const defaults={caseOpen:'📦 {name}, ты открыл кейс «{case}». Потрачено: {amount}. Баланс: {balance}.',itemSold:'💰 {name}, предмет «{item}» продан за {amount}. Баланс: {balance}.',upgrade:'⚡ {name}, апгрейд: {result}. Предмет: {item}.',reward:'🎁 {name}, ты получил награду: {item}.'}; const t={...defaults,...(cfg.templates||{})};
+  return `<div class="card"><h2>🔔 Уведомления Telegram-бота</h2><p class="muted">Сообщения получают только пользователи, включившие их в настройках и запустившие бота. Ошибка отправки не отменяет игровую операцию.</p>
+    <label style="display:flex;align-items:center;gap:10px;margin:8px 0"><input id="bot-notif-enabled" type="checkbox" ${cfg.enabled?'checked':''} style="width:auto"> Глобально включить отправку</label>
+    <label>HTTPS-ссылка на Mini App</label><input id="bot-notif-app-url" value="${esc(cfg.appUrl||location.href.split('#')[0])}" placeholder="https://...github.io/...">
+    <p class="muted">Ссылка для кнопки «Открыть приложение» в сообщении бота.</p>
+    <label>Шаблон: открытие кейса</label><textarea id="bot-tpl-caseOpen" rows="2">${esc(t.caseOpen)}</textarea><label>Шаблон: продажа</label><textarea id="bot-tpl-itemSold" rows="2">${esc(t.itemSold)}</textarea><label>Шаблон: апгрейд</label><textarea id="bot-tpl-upgrade" rows="2">${esc(t.upgrade)}</textarea><label>Шаблон: награда</label><textarea id="bot-tpl-reward" rows="2">${esc(t.reward)}</textarea>
+    <p class="muted">Переменные: {name}, {amount}, {balance}, {case}, {item}, {result}.</p><button class="btn" onclick="saveAdminNotificationConfig()">Сохранить настройки и тексты</button></div>`;
+}
+async function saveAdminNotificationConfig() {
+  const appUrl=document.getElementById('bot-notif-app-url').value.trim(), templates={caseOpen:document.getElementById('bot-tpl-caseOpen').value,itemSold:document.getElementById('bot-tpl-itemSold').value,upgrade:document.getElementById('bot-tpl-upgrade').value,reward:document.getElementById('bot-tpl-reward').value};
+  try { const r=await workerRequest('/api/admin/notifications',{enabled:document.getElementById('bot-notif-enabled').checked,appUrl,templates}); window._adminNotificationConfig=r.config||{enabled:document.getElementById('bot-notif-enabled').checked,appUrl,templates}; toast('Настройки уведомлений сохранены'); drawAdminBody(); } catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
+}
+async function loadAdminNotificationConfig() { try { const r=await workerRequest('/api/admin/notifications/get',{}); window._adminNotificationConfig=r.config||{}; if(CURRENT_TAB==='admin'&&adminSub==='notifications') drawAdminBody(); } catch(e) {} }
 
 /* --- Технический перерыв --- */
 function adminSystemHTML() {
