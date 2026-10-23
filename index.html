@@ -12,9 +12,9 @@
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   :root { --bg:#0b0b0b; --card:#171717; --text:#f5f5f5; --muted:#8d8d8d; --line:#2c2c2c; --accent:#fff; --green:#4caf50; --red:#ef5350; }
   html, body { background:var(--bg); color:var(--text); font-family:-apple-system,'Segoe UI',Roboto,sans-serif; height:100%; overflow:hidden; }
-  /* Общий масштаб интерфейса уменьшен на 20%; zoom сохраняет работу фиксированных модальных окон и прокрутки. */
-  body { zoom:.8; width:125%; height:125%; }
-  @supports not (zoom: .8) { body { width:100%; height:100%; } .app { transform:scale(.8); transform-origin:top left; width:125%; height:125%; } }
+  /* Адаптивная ширина без масштабирования всей страницы: предотвращает выход интерфейса за край телефона. */
+  html, body { width:100%; max-width:100%; min-width:0; }
+  body { height:100%; overflow:hidden; }
 
   #auth-screen { position:fixed; inset:0; background:radial-gradient(circle at 50% 0%, #1e1e1e, #0b0b0b 70%); z-index:500; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
   #auth-screen.show { display:flex; }
@@ -260,6 +260,59 @@
   .upg-wheel-legend .success-dot { background:#f5f5f5; box-shadow:0 0 8px #fff8; }
   .upg-wheel-legend .fail-dot { background:#252525; border:1px solid #555; }
   @media(max-width:560px) { .upg-layout { grid-template-columns:1fr; } .upg-scroll { height:230px; min-height:180px; } .upg-panel h3 { font-size:13px; } .upg-wheel { width:132px; height:132px; } .upg-pointer { transform-origin:3px 60px; height:51px; } }
+
+  /* ---------- МОБИЛЬНАЯ АДАПТАЦИЯ ---------- */
+  *, *::before, *::after { min-width:0; }
+  html { overflow-x:clip; }
+  body { overflow-x:hidden; }
+  .app { width:100%; max-width:100vw; min-width:0; height:100dvh; }
+  header { width:100%; min-width:0; gap:8px; }
+  header .logo { min-width:0; flex:1 1 auto; overflow-wrap:anywhere; }
+  .balance { flex:0 1 auto; min-width:0; max-width:58%; padding:7px 9px; gap:5px; }
+  #balance { overflow-wrap:anywhere; }
+  main { width:100%; min-width:0; padding:clamp(10px,3.5vw,16px); overflow-x:hidden; }
+  .card, .ann-wrap, .menu-panel, .menu-inner { min-width:0; max-width:100%; }
+  .row { min-width:0; }
+  .row > * { min-width:0; }
+  img, video, canvas, iframe { max-width:100%; }
+  .item-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #case-modal, #ticket-close-modal, .role-modal { padding:10px; }
+  .cm-box, .reward-picker-box, .picker-box, .ticket-confirm-box, .role-box { width:100%; max-width:100%; min-width:0; }
+  .case-prize-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .case-result-list { width:100%; min-width:0; }
+  .case-result-card { min-width:0; overflow-wrap:anywhere; }
+  .admin-tabs { max-width:100%; min-width:0; }
+  .upg-layout { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  @media (max-width:560px) {
+    header { padding:10px 12px; }
+    .logo { font-size:14px; letter-spacing:1px; }
+    .logo span { font-size:10px; }
+    .balance { font-size:14px; max-width:54%; padding:6px 8px; }
+    .burger { flex:0 0 38px; width:38px; height:38px; }
+    .menu-inner { padding:10px 12px; gap:6px; }
+    .nav-item { padding:9px 10px; font-size:12px; }
+    .card { padding:12px; }
+    .item-grid { gap:8px; }
+    .item-card { padding:9px; }
+    .item-card.wide { grid-column:span 2; }
+    .row { flex-wrap:wrap; }
+    .row > .btn { min-width:0; }
+    .case-prize-list { grid-template-columns:minmax(0,1fr); }
+    .cm-box { padding:12px; border-radius:15px; }
+    .cm-prize .frame { width:min(150px,42vw); height:min(150px,42vw); }
+    .ticket-confirm-actions { flex-wrap:wrap; }
+    .ticket-confirm-actions .btn { min-width:calc(50% - 4px); }
+    .upg-layout { grid-template-columns:minmax(0,1fr); }
+  }
+  @media (max-width:360px) {
+    header { gap:6px; padding:8px; }
+    .logo { font-size:12px; }
+    .balance { font-size:12px; gap:3px; padding:5px 6px; }
+    #cur-icon { width:16px; height:16px; }
+    main { padding:8px; }
+    .card { padding:10px; }
+    .nav-item { padding:8px; font-size:11px; }
+  }
 </style>
 </head>
 <body>
