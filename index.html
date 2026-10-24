@@ -37,6 +37,7 @@
   .menu-panel { background:var(--card); border-bottom:1px solid var(--line); max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1); }
   .menu-panel.open { max-height:420px; }
   .menu-inner { display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px; }
+  .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
   .nav-item { background:#111; border:1px solid var(--line); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px; transition:.2s; user-select:none; }
   .nav-item:hover { border-color:#555; }
   .nav-item:active { transform:scale(.95); }
@@ -95,14 +96,19 @@
   .preview { width:64px; height:64px; border-radius:12px; border:1px solid var(--line); object-fit:cover; margin-top:8px; }
 
   /* ---------- ОБЪЯВЛЕНИЯ ---------- */
-  .ann-wrap { position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); margin-bottom:14px; touch-action:pan-y; }
+  .ann-wrap { position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); margin-bottom:14px; touch-action:pan-y; min-width:0; }
+  .ann-wrap.no-frame { border:0; border-radius:0; overflow:hidden; background:transparent; }
+  .ann-wrap.no-frame .ann-slide { padding:0; }
+  .ann-wrap.no-frame .ann-slide .atext, .ann-wrap.no-frame .ann-btn { margin-left:2px; margin-right:2px; }
+  .ann-wrap.no-frame .ann-slide img { border-radius:16px; }
+  .ann-wrap .ann-slide img { display:block; width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:12px; background:transparent; }
   .ann-track { display:flex; transition:transform .55s cubic-bezier(.4,0,.2,1); }
   .ann-slide { min-width:100%; padding:16px; display:flex; flex-direction:column; gap:10px; }
   .ann-slide.ann-reward-clickable { cursor:pointer; }
   .ann-slide.ann-reward-clickable:active { background:#ffffff08; }
   .ann-slide.ann-reward-clickable .atext { cursor:pointer; }
   .ann-slide.ann-reward-clickable .ann-btn, .ann-slide.ann-reward-clickable a { position:relative; z-index:2; }
-  .ann-slide img { width:100%; max-height:170px; object-fit:cover; border-radius:10px; }
+  .ann-slide img { width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:10px; background:transparent; }
   .ann-slide .atext { font-size:14px; line-height:1.45; word-break:break-word; }
   .ann-btn { display:inline-block; background:var(--accent); color:#000; font-weight:700; font-size:13px; padding:9px 16px; border-radius:10px; text-decoration:none; text-align:center; transition:.2s; }
   .ann-btn:active { transform:scale(.96); }
@@ -209,8 +215,19 @@
   #toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(80px); background:#f5f5f5; color:#000; padding:11px 18px; border-radius:12px; font-size:14px; font-weight:600; z-index:600; opacity:0; transition:.35s; max-width:86%; text-align:center; }
   #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
 
-  .admin-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; }
-  .admin-tabs .btn.sec { padding:9px 12px; font-size:13px; white-space:nowrap; }
+  .admin-tabs { display:flex; gap:8px; overflow-x:auto; overflow-y:hidden; padding:4px 2px 10px; max-width:100%; min-width:0; scrollbar-width:thin; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+  .admin-tabs .btn.sec { flex:0 0 auto; width:auto; min-height:44px; padding:12px 16px; font-size:14px; line-height:1.2; white-space:nowrap; border-radius:12px; touch-action:pan-x; }
+  .admin-tabs .btn.sec.on { box-shadow:0 0 0 1px var(--accent); }
+  .visibility-list { display:grid; gap:8px; }
+  .visibility-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px; min-height:48px; background:#101010; border:1px solid var(--line); border-radius:12px; }
+  .visibility-row span { font-size:14px; line-height:1.35; }
+  .visibility-row input { width:22px; height:22px; flex:0 0 22px; accent-color:#fff; }
+  .visibility-item { border:1px solid var(--line); border-radius:12px; padding:10px; background:#101010; margin-bottom:8px; }
+  .visibility-item .visibility-row { border:0; padding:4px 2px 10px; background:transparent; }
+  .visibility-message-input { width:100%; min-height:62px; resize:vertical; margin-top:5px; font-size:13px; }
+  .feature-disabled-message { color:var(--muted); border:1px dashed var(--line); border-radius:10px; padding:12px; margin:8px 0; font-size:13px; line-height:1.45; overflow-wrap:anywhere; }
+  #admin-body .btn, #admin-body .btn.sec, #admin-body .del { min-height:42px; }
+  #admin-body .btn.small { min-height:38px; padding:9px 12px; }
   .admin-tabs .btn.sec.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
   .subtabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
   .subtabs button { background:#111; border:1px solid var(--line); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
@@ -290,7 +307,8 @@
     .balance { font-size:14px; max-width:54%; padding:6px 8px; }
     .burger { flex:0 0 38px; width:38px; height:38px; }
     .menu-inner { padding:10px 12px; gap:6px; }
-    .nav-item { padding:9px 10px; font-size:12px; }
+    .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
+  .nav-item { padding:9px 10px; font-size:12px; }
     .card { padding:12px; }
     .item-grid { gap:8px; }
     .item-card { padding:9px; }
@@ -311,7 +329,8 @@
     #cur-icon { width:16px; height:16px; }
     main { padding:8px; }
     .card { padding:10px; }
-    .nav-item { padding:8px; font-size:11px; }
+    .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
+  .nav-item { padding:8px; font-size:11px; }
   }
 </style>
 </head>
@@ -452,7 +471,12 @@ let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
 let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = ''; 
 let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
-let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = []; 
+let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
+let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
+const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true };
+let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
+let UI_VISIBILITY_MESSAGES = {};
+function featurePlaceholder(key, extraClass='') { const message=String(UI_VISIBILITY_MESSAGES?.[key]||'').trim(); return message ? `<div class="feature-disabled-message ${extraClass}">${esc(message)}</div>` : ''; }
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
 let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
@@ -624,7 +648,16 @@ async function enterApp(id) {
   db.ref('users').on('value', s => { USERS = s.val() || {}; rerenderIfDepends(); });
   db.ref('tickets').on('value', s => {
     const previous = TICKETS;
-    TICKETS = s.val() || {}; sweepExpired();
+    const nextTickets = s.val() || {};
+    if (TICKET_NOTIF_READY && CURRENT_ID) {
+      for (const [ticketId, ticket] of Object.entries(nextTickets)) {
+        const oldTicket = previous[ticketId];
+        if (ticket?.owner === CURRENT_ID && oldTicket && oldTicket.status !== 'closed' && ticket.status === 'closed') {
+          toast(`Тикет #${ticket.num || ticketId} закрыт${ticket.reason ? ': ' + String(ticket.reason).slice(0,110) : ''}`);
+        }
+      }
+    }
+    TICKETS = nextTickets; TICKET_NOTIF_READY = true; sweepExpired();
     const activeTicket = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
     const previousTicket = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
     if (activeTicket && previousTicket && activeTicket.status === previousTicket.status && activeTicket.takenBy === previousTicket.takenBy && ['tickets','profile'].includes(CURRENT_TAB)) {
@@ -632,8 +665,31 @@ async function enterApp(id) {
     } else rerenderIfDepends();
   });
   db.ref('roles').on('value', s => { ROLES = s.val() || {}; updateStaffBtn(); rerenderIfDepends(); });
-  db.ref('anns').on('value', s => { ANNS = s.val() || {}; if (CURRENT_TAB === 'home') rerender(); if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList(); });
-  db.ref('config/maintenance').on('value', s => { MAINTENANCE = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'}; updateMaintenanceScreen(); });
+  db.ref('anns').on('value', s => {
+    const nextAnns = s.val() || {};
+    if (ANN_NOTIF_READY) {
+      const added = Object.keys(nextAnns).filter(id => !ANNS[id]);
+      if (added.length) toast(added.length === 1 ? 'Появилось новое объявление' : `Новых объявлений: ${added.length}`);
+    }
+    ANNS = nextAnns; ANN_NOTIF_READY = true;
+    if (CURRENT_TAB === 'home') rerender();
+    if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
+  });
+  db.ref('config/maintenance').on('value', s => {
+    const nextMaintenance = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'};
+    if (MAINTENANCE_NOTIF_READY && nextMaintenance.enabled !== !!MAINTENANCE?.enabled) {
+      if (nextMaintenance.enabled) toast(`Технический перерыв: ${nextMaintenance.message || 'Ведутся технические работы.'}`);
+      else toast('Технический перерыв окончен. Приложение снова доступно.');
+    }
+    MAINTENANCE = nextMaintenance; MAINTENANCE_NOTIF_READY = true; updateMaintenanceScreen();
+  });
+  db.ref('config/uiVisibility').on('value', s => {
+    UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(s.val() || {})};
+    UI_VISIBILITY_MESSAGES = {...((s.val() || {}).messages || {})};
+    applyUIVisibility();
+    if (CURRENT_TAB === 'admin' && adminSub === 'visibility') drawAdminBody();
+    if (CURRENT_TAB === 'cases' || CURRENT_TAB === 'inventory' || CURRENT_TAB === 'upgrader' || CURRENT_TAB === 'profile') rerender();
+  });
   db.ref('config/currency').on('value', s => {
     CUR_ICON = s.val()?.icon || '';
     const el = document.getElementById('cur-icon');
@@ -656,9 +712,31 @@ function rerenderIfDepends() {
   if (['admin', 'tickets', 'profile', 'home', 'cases', 'inventory'].includes(CURRENT_TAB) || (CURRENT_TAB === 'upgrader' && !UPG_BUSY)) rerender();
 }
 function updateStaffBtn() {
-  document.getElementById('staff-btn').style.display = isStaff() ? 'block' : 'none';
+  const staffBtn=document.getElementById('staff-btn');
+  if(staffBtn) { const msg=String(UI_VISIBILITY_MESSAGES?.tickets||'').trim(); if(isStaff() && featureVisible('tickets')) { staffBtn.style.display='block'; staffBtn.style.pointerEvents=''; staffBtn.textContent='🎫 Тикеты'; } else if(isStaff() && msg) { staffBtn.style.display='block'; staffBtn.style.pointerEvents='none'; staffBtn.textContent=msg; } else staffBtn.style.display='none'; }
   document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
   updateMaintenanceScreen();
+}
+function featureVisible(key) { return UI_VISIBILITY[key] !== false; }
+function applyUIVisibility() {
+  const map = {cases:'cases', inventory:'inventory', upgrader:'upgrader', profile:'profile', settings:'settings'};
+  document.querySelectorAll('.nav-item[data-tab]').forEach(el => {
+    const key = map[el.dataset.tab];
+    if (!key) return;
+    const message = String(UI_VISIBILITY_MESSAGES?.[key]||'').trim();
+    if (featureVisible(key)) {
+      el.style.display = ''; el.style.pointerEvents = ''; el.removeAttribute('aria-disabled');
+      if (el.dataset.originalLabel) el.innerHTML = el.dataset.originalLabel; el.classList.remove('nav-item-disabled');
+    } else if (message) {
+      if (!el.dataset.originalLabel) el.dataset.originalLabel = el.innerHTML;
+      el.style.display = ''; el.style.pointerEvents = 'none'; el.setAttribute('aria-disabled','true');
+      el.textContent = message;
+      el.classList.add('nav-item-disabled');
+    } else { el.style.display = 'none'; }
+  });
+  const staffBtn = document.getElementById('staff-btn');
+  if (staffBtn) { const msg=String(UI_VISIBILITY_MESSAGES?.tickets||'').trim(); if(isStaff() && featureVisible('tickets')) { staffBtn.style.display='block'; staffBtn.style.pointerEvents=''; staffBtn.textContent='🎫 Тикеты'; } else if(isStaff() && msg) { staffBtn.style.display='block'; staffBtn.style.pointerEvents='none'; staffBtn.textContent=msg; } else staffBtn.style.display='none'; }
+  if (!isAdmin() && map[CURRENT_TAB] && !featureVisible(map[CURRENT_TAB])) go('home');
 }
 function updateMaintenanceScreen() {
   const screen = document.getElementById('maintenance-screen');
@@ -691,6 +769,8 @@ function showAuth() {
 /* ---------- НАВИГАЦИЯ ---------- */
 function go(tab) {
   if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
+  const visibilityKey = ({cases:'cases',inventory:'inventory',upgrader:'upgrader',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
+  if (visibilityKey && !featureVisible(visibilityKey)) { toast('Этот раздел временно скрыт'); tab='home'; }
   CURRENT_TAB = tab;
   OPEN_TICKET_ID = null;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
@@ -716,14 +796,14 @@ function logout() { auth.signOut().then(() => location.reload()); }
 function renderSettings(c) {
   const prefs = {...DEFAULT_NOTIFICATION_SETTINGS, ...(profile?.notificationSettings || {})};
   c.innerHTML = `<div class="card"><h2>⚙️ Настройки</h2>
-    <p class="muted">Управляй уведомлениями. Сообщения в Telegram придут, если ты уже запускал бота и он может отправлять тебе сообщения.</p>
+    ${featureVisible('settingsNotifications') ? `<p class="muted">Управляй уведомлениями. Сообщения в Telegram придут, если ты уже запускал бота и он может отправлять тебе сообщения.</p>
     <label style="display:flex;align-items:center;gap:10px;margin:12px 0"><input id="notif-telegram" type="checkbox" ${prefs.telegram?'checked':''} style="width:auto"> Отправлять уведомления в Telegram-бот</label>
     <div style="border-top:1px solid var(--line);padding-top:10px"><p style="font-weight:700;margin-bottom:6px">События</p>
       ${[['caseOpen','Открытие кейса'],['itemSold','Продажа предмета'],['upgrade','Результат апгрейда'],['reward','Получение награды']].map(([key,label])=>`<label style="display:flex;align-items:center;gap:10px;margin:10px 0"><input id="notif-${key}" type="checkbox" ${prefs[key]?'checked':''} style="width:auto"> ${label}</label>`).join('')}
     </div>
-    <button class="btn" style="margin-top:8px" onclick="saveNotificationSettings()">Сохранить уведомления</button>
-    <a class="btn sec" href="https://t.me/Siqyal" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:10px">💬 Поддержка @Siqyal</a>
-    <button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта</button></div>`;
+    <button class="btn" style="margin-top:8px" onclick="saveNotificationSettings()">Сохранить уведомления</button>` : featurePlaceholder('settingsNotifications')}
+    ${featureVisible('settingsSupport') ? '<a class="btn sec" href="https://t.me/Siqyal" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:10px">💬 Поддержка @Siqyal</a>' : featurePlaceholder('settingsSupport')}
+    ${featureVisible('settingsLogout') ? '<button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта</button>' : featurePlaceholder('settingsLogout')}</div>`;
 }
 async function saveNotificationSettings() {
   const settings={telegram:document.getElementById('notif-telegram').checked,caseOpen:document.getElementById('notif-caseOpen').checked,itemSold:document.getElementById('notif-itemSold').checked,upgrade:document.getElementById('notif-upgrade').checked,reward:document.getElementById('notif-reward').checked};
@@ -735,16 +815,16 @@ async function saveNotificationSettings() {
 function renderHome(c) {
   const list = Object.entries(ANNS).filter(([id,a]) => !(a.oneTime && profile?.claimedAnnouncements?.[id])).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
   let annHtml = '';
-  if (list.length) {
+  if (list.length && featureVisible('homeAnnouncements')) {
     annCount = list.length;
     if (annIndex >= annCount) annIndex = 0;
     annHtml = `
-    <div class="ann-wrap" id="ann-wrap">
+    <div class="ann-wrap ${list[annIndex]?.[1]?.noFrame ? 'no-frame' : ''}" id="ann-wrap">
       <div class="ann-track" id="ann-track">
         ${list.map(([id, a]) => {
-          const body = `${a.img ? `<img src="${esc(a.img)}" alt="">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(a.btnName)}</a>` : ''}`;
+          const body = `${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(a.btnName)}</a>` : ''}`;
           const wholeLink = !a.btnName && a.btnLink && /^https:\/\//i.test(a.btnLink);
-          const slideClick = a.oneTime ? ` class="ann-slide ann-reward-clickable" role="button" tabindex="0" onclick="claimAnnouncement('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();claimAnnouncement('${id}')}"` : ` class="ann-slide"`;
+          const slideClick = a.oneTime && featureVisible('announcementRewards') ? ` class="ann-slide ann-reward-clickable" role="button" tabindex="0" onclick="claimAnnouncement('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();claimAnnouncement('${id}')}"` : ` class="ann-slide"`;
           const announcementBody = wholeLink ? `<a class="ann-whole-link" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${body}</a>` : body;
           return `<div${slideClick}>${announcementBody}</div>`;
         }).join('')}
@@ -754,16 +834,21 @@ function renderHome(c) {
         <div class="ann-dots">${list.map((_, i) => `<button class="ann-dot ${i === annIndex ? 'on' : ''}" onclick="annGo(${i})"></button>`).join('')}</div>` : ''}
     </div>`;
   } else annCount = 0;
+  if (!featureVisible('homeAnnouncements')) annHtml = featurePlaceholder('homeAnnouncements');
   const top = Object.entries(USERS).map(([id,u]) => ({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0 && x.id!==ADMIN_ID && x.u?.is_admin!==true && ROLES[x.id]!=='admin' && ROLES[x.id]!=='moderator').sort((a,b)=>b.spent-a.spent).slice(0,5);
-  const topHtml = `<div class="card"><h2>🏆 Топ трат</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>`;
-  c.innerHTML = annHtml + `<div class="card"><h2>Добро пожаловать${TG_USER ? ', ' + esc(TG_USER.first_name) : ''}!</h2>
-    <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>` + topHtml;
+  const topHtml = featureVisible('topSpenders') ? `<div class="card"><h2>🏆 Топ трат</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>` : featurePlaceholder('topSpenders');
+  const welcomeHtml = featureVisible('homeWelcome') ? `<div class="card"><h2>Добро пожаловать${TG_USER ? ', ' + esc(TG_USER.first_name) : ''}!</h2>
+    <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>` : featurePlaceholder('homeWelcome');
+  c.innerHTML = annHtml + welcomeHtml + topHtml;
   if (annCount > 1) startAnnRotator();
 }
 function annUpdate() {
   const track = document.getElementById('ann-track');
   if (!track) return;
   track.style.transform = `translateX(-${annIndex * 100}%)`;
+  const wrap = document.getElementById('ann-wrap');
+  const visible = Object.entries(ANNS).filter(([id,a]) => !(a.oneTime && profile?.claimedAnnouncements?.[id])).sort((a,b)=>(a[1].createdAt||0)-(b[1].createdAt||0));
+  wrap?.classList.toggle('no-frame', !!visible[annIndex]?.[1]?.noFrame);
   document.querySelectorAll('.ann-dot').forEach((d, i) => d.classList.toggle('on', i === annIndex));
 }
 function annSlide(dir) { annIndex = (annIndex + dir + annCount) % annCount; annUpdate(); restartAnnTimer(); }
@@ -807,11 +892,12 @@ function renderInventory(c) {
           ${it.img ? `<img src="${esc(it.img)}" alt="">` : '<div style="font-size:32px">📦</div>'}
           <div class="nm">${esc(it.name)}</div>
           <div class="price-tag">${pcur(it.price)}</div>
-          ${canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')">Продать за ${saleAmount}</button>` : ''}
+          ${featureVisible('inventorySell') && canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')">Продать за ${saleAmount}</button>` : (!featureVisible('inventorySell') ? featurePlaceholder('inventorySell') : '')}
         </div>`;
       }).join('') + '</div>') + '</div>';
 }
 async function sellItem(entryKey) {
+  if (!featureVisible('inventorySell')) return toast('Продажа предметов временно отключена');
   try { const result = await workerRequest('/api/item/sell', { entryKey }); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Продано: ${result.itemName || 'предмет'} · +${result.amount}`); rerender(); }
   catch (e) { toast(e.message || 'Не удалось продать предмет'); }
 }
@@ -846,14 +932,15 @@ function renderUpgrader(c) {
   if (!UPG_TARGET_ID && filtered.length) UPG_TARGET_ID = filtered[0].id;
   const target = filtered.find(x=>x.id===UPG_TARGET_ID);
   c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер</h2><p class="muted">Выбери предмет из инвентаря. Шанс рассчитывается по формуле: цена предмета игрока ÷ цена цели × 100%. При неудаче исходный предмет расходуется.</p></div>
-  <div class="upg-layout"><section class="upg-panel"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=getInventoryItemMeta(entry)||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
-  <section class="upg-panel"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
-  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(2)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(2)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent" style="color:${target?chanceColor(target.chance):'#aaa'};text-shadow:0 0 16px ${target?chanceColor(target.chance)+'66':'transparent'}">${target?formatChance(target.chance)+'%':'—'}</div></div><div class="upg-wheel-legend"><span><i class="success-dot"></i>Успех ${target?formatChance(target.chance):'0'}%</span><span><i class="fail-dot"></i>Неудача ${target?formatChance(100-target.chance):'100'}%</span></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Светлый сектор — шанс улучшить предмет':'Выбери подходящий предмет')}</div><button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button></div>`;
+  <div class="upg-layout">${!featureVisible('upgraderSourceList')?featurePlaceholder('upgraderSourceList'):''}${!featureVisible('upgraderTargetList')?featurePlaceholder('upgraderTargetList'):''}<section class="upg-panel" style="${featureVisible('upgraderSourceList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎒 Твой предмет</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=getInventoryItemMeta(entry)||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
+  <section class="upg-panel" style="${featureVisible('upgraderTargetList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
+  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-wheel" style="background:conic-gradient(from -90deg,#f5f5f5 0deg,#f5f5f5 ${target?((target.chance*3.6).toFixed(8)):0}deg,#252525 ${target?((target.chance*3.6).toFixed(8)):0}deg,#111 360deg)"><div id="upg-pointer" class="upg-pointer"></div><div id="upg-percent" class="upg-percent" style="color:${target?chanceColor(target.chance):'#aaa'};text-shadow:0 0 16px ${target?chanceColor(target.chance)+'66':'transparent'}">${target?formatChance(target.chance)+'%':'—'}</div></div><div class="upg-wheel-legend"><span><i class="success-dot"></i>Успех ${target?formatChance(target.chance):'0'}%</span><span><i class="fail-dot"></i>Неудача ${target?formatChance(100-target.chance):'100'}%</span></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Апгрейд выполняется…':(target?'Светлый сектор — шанс улучшить предмет':'Выбери подходящий предмет')}</div>${featureVisible('upgraderSpin') ? `<button class="btn" onclick="runUpgrade()" ${!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button>` : featurePlaceholder('upgraderSpin')}</div>`;
 }
 function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
 function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
 function setUpgradeFilter(value) { if (UPG_BUSY) return; UPG_FILTER=value; UPG_TARGET_ID=null; rerender(); }
 async function runUpgrade() {
+  if (!featureVisible('upgraderSpin')) return toast('Апгрейд временно отключён');
   if (UPG_BUSY) return;
   if (!UPG_BASE_KEY || !UPG_TARGET_ID) return toast('Выбери исходный предмет и цель');
   UPG_BUSY=true; rerender();
@@ -863,7 +950,7 @@ async function runUpgrade() {
     const pct = document.getElementById('upg-percent');
     const label = document.getElementById('upg-result');
     if (pct) { pct.textContent = `${formatChance(result.chance)}%`; pct.style.color = chanceColor(result.chance); pct.style.textShadow = `0 0 16px ${chanceColor(result.chance)}88`; }
-    if (pointer) { const landing = Math.max(0, Math.min(359.999, Number(result.rollPercent ?? (result.success ? Number(result.chance)/2 : Number(result.chance)+(100-Number(result.chance))/2))) * 3.6); pointer.style.transform = `rotate(${1440 + landing}deg)`; }
+    if (pointer) { const landing = Math.max(0, Math.min(359.999999, Number(result.rollPercent ?? (result.success ? Number(result.chance)/2 : Number(result.chance)+(100-Number(result.chance))/2))) * 3.6); pointer.style.transform = `rotate(${1440 + landing}deg)`; }
     if (label) label.textContent = 'Стрелка раскручивается…';
     await new Promise(resolve=>setTimeout(resolve,2700));
     toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : (result.consolationItemName ? `Неудача. Получен утешительный предмет: ${result.consolationItemName}` : 'Неудача. Исходный предмет уничтожен.'));
@@ -924,19 +1011,19 @@ function renderCaseDetails(k) {
   const totalPrice = Math.max(0, Number(k.price)||0) * count;
   const remainingTotal = k.totalLimit ? Math.max(0,Number(k.totalLimit)-Number(k.opened||0)) : Infinity;
   const remainingUser = k.perUserLimit ? Math.max(0,Number(k.perUserLimit)-Number(profile?.openedCases?.[CASE_DETAIL_ID]||0)) : Infinity;
-  const canOpen = !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (Number(profile?.balance||0)>=totalPrice);
+  const canOpen = featureVisible('caseOpen') && !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (Number(profile?.balance||0)>=totalPrice);
   box.innerHTML = `
     <div class="case-detail-top">
       <div class="case-detail-img">${k.img?`<img src="${esc(k.img)}" alt="">`:'📦'}</div>
       <div class="case-detail-title"><h2>${esc(k.name||'Кейс')}</h2><div class="muted" style="font-size:11px">${entries.length} предметов · ${k.price>0?`Цена за кейс: ${Number(k.price)}`:'Бесплатный кейс'}</div></div>
-      <button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':`Открыть · ${totalPrice}`}</button>
+      ${featureVisible('caseOpen') ? `<button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':`Открыть · ${totalPrice}`}</button>` : featurePlaceholder('caseOpen')}
     </div>
     <div class="case-counts" aria-label="Количество кейсов">
-      ${[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join('')}
+      ${featureVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
     </div>
     <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>Итого: ${totalPrice}</span></div>
-    <div style="font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 8px">Динамические шансы: если экономика проекта уходит в минус, дорогие предметы становятся реже, но кейсы продолжают открываться. Текущие вероятности показаны ниже.</div>
-    <div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=CASE_DYNAMIC_ODDS?.odds?.[id]!==undefined?Number(CASE_DYNAMIC_ODDS.odds[id]):(totalWeight>0?Number(weight)/totalWeight*100:0);return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%${CASE_DYNAMIC_ODDS?'':' · загрузка…'}</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>
+    ${featureVisible('caseOddsInfo') ? '<div style="font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 8px">Динамические шансы: если экономика проекта уходит в минус, дорогие предметы становятся реже, но кейсы продолжают открываться. Текущие вероятности показаны ниже.</div>' : featurePlaceholder('caseOddsInfo')}
+    ${featureVisible('casePrizeList') ? `<div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=CASE_DYNAMIC_ODDS?.odds?.[id]!==undefined?Number(CASE_DYNAMIC_ODDS.odds[id]):(totalWeight>0?Number(weight)/totalWeight*100:0);return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%${CASE_DYNAMIC_ODDS?'':' · загрузка…'}</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>` : featurePlaceholder('casePrizeList')}
     <button class="btn sec" style="margin-top:8px;flex:0 0 auto" onclick="closeCaseModal()">Закрыть</button>`;
   const btn = document.getElementById('case-open-action');
   if (!canOpen && btn) {
@@ -945,23 +1032,26 @@ function renderCaseDetails(k) {
   }
 }
 async function performCaseOpen() {
+  if (!featureVisible('caseOpen')) return toast('Открытие кейсов временно отключено');
   const caseId = CASE_DETAIL_ID, k = CASES[caseId];
   if (!k || CASE_OPEN_BUSY) return;
   if (Date.now()-CASE_LAST_OPEN_AT < 1000) return toast('Подожди секунду между открытиями кейсов');
   CASE_OPEN_BUSY = true; CASE_LAST_OPEN_AT = Date.now(); renderCaseDetails(k);
   try {
     const result = await workerRequest('/api/case/open', { caseId, count:CASE_OPEN_COUNT });
-    let winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
-    // Read the committed inventory entries and animate exactly what was actually stored.
-    const fresh = await db.ref('users/'+CURRENT_ID).get();
-    if (fresh.exists()) {
-      profile = fresh.val();
-      if (Array.isArray(result.inventoryKeys) && result.inventoryKeys.length) {
-        const committedIds = result.inventoryKeys.map(key=>profile?.inventory?.[key]?.itemId);
-        if (committedIds.length === result.inventoryKeys.length && committedIds.every(Boolean)) winners = committedIds;
-      }
-    }
+    const winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
     const detailsById = Object.fromEntries((result.winnerItems || []).map(it=>[it.id,it]));
+    // Worker response contains the committed winner IDs and inventory keys; avoid a second full profile read before the roulette starts.
+    profile = profile || {};
+    profile.balance = Math.max(0, Number(profile.balance || 0) - Number(result.totalPrice || 0));
+    profile.spentCurrency = Math.max(0, Number(profile.spentCurrency || 0)) + Number(result.totalPrice || 0);
+    profile.openedCases = {...(profile.openedCases || {}), [caseId]: Number(profile.openedCases?.[caseId] || 0) + winners.length};
+    profile.inventory = {...(profile.inventory || {})};
+    const keys = Array.isArray(result.inventoryKeys) ? result.inventoryKeys : [];
+    winners.forEach((id, i) => {
+      const meta = {...(ITEMS[id] || {}), ...(detailsById[id] || {})};
+      if (keys[i]) profile.inventory[keys[i]] = {itemId:id,name:meta.name||meta.title||'Предмет',price:Number(meta.price||meta.cost||0),img:meta.img||meta.image||meta.icon||'',at:Date.now(),source:'case',caseId};
+    });
     const winnerDetails = winners.map(id=>({id,...(ITEMS[id]||{}),...(detailsById[id]||{}),img:ITEMS[id]?.img||ITEMS[id]?.image||ITEMS[id]?.icon||''}));
     showCaseRoulette(k, winners.filter(Boolean), winnerDetails);
   } catch (e) {
@@ -1184,26 +1274,26 @@ function renderProfile(c) {
   const closed = my.filter(([, t]) => t.status === 'closed');
   const list = profileTicketTab === 'open' ? open : closed;
 
-  c.innerHTML = `<div class="card"><h2>👤 Профиль</h2>
+  c.innerHTML = `${featureVisible('profileInfo') ? `<div class="card"><h2>👤 Профиль</h2>
       <p class="muted">Telegram ID: <b>${esc(CURRENT_ID)}</b></p>
       <p class="muted">Имя: <b>${esc(profile?.name || '—')}</b></p>
       <p class="muted">Баланс: <b>${profile?.balance ?? 0}</b></p>
-      ${isAdmin() ? '<span class="badge">АДМИНИСТРАТОР</span>' : ROLES[CURRENT_ID] === 'moderator' ? '<span class="badge mod">МОДЕРАТОР</span>' : ''}</div>
-    <div class="card"><h2>🎫 Мои тикеты</h2>
+      ${isAdmin() ? '<span class="badge">АДМИНИСТРАТОР</span>' : ROLES[CURRENT_ID] === 'moderator' ? '<span class="badge mod">МОДЕРАТОР</span>' : ''}</div>` : featurePlaceholder('profileInfo')}
+    ${featureVisible('profileTickets') ? `<div class="card"><h2>🎫 Мои тикеты</h2>
       <div class="subtabs">
         <button class="${profileTicketTab === 'open' ? 'on' : ''}" onclick="setPTab('open')">Открытые (${open.length})</button>
         <button class="${profileTicketTab === 'closed' ? 'on' : ''}" onclick="setPTab('closed')">Закрытые (${closed.length})</button>
       </div>
       ${list.map(([id, t]) => ticketRowHTML(id, t, { action: 'openMyTicket', label: 'Открыть' })).join('') || '<p class="muted">Пока пусто.</p>'}
-      <hr class="divider">
+      ${featureVisible('profileCreateTicket') ? `<hr class="divider">
       <h2>➕ Создать тикет</h2>
       <label>Тип</label><select id="tk-type">
         <option value="deposit">Пополнение</option>
         <option value="withdraw">Вывод</option></select>
       <label>Сумма</label><input id="tk-amount" type="number" min="1">
       <p class="muted" id="tk-hint"></p>
-      <button class="btn" onclick="uiCreateTicket()">Создать тикет</button>
-    </div>`;
+      <button class="btn" onclick="uiCreateTicket()">Создать тикет</button>` : featurePlaceholder('profileCreateTicket')}
+    </div>` : featurePlaceholder('profileTickets')}`;
   updateTkHint();
 }
 function updateTkHint() {
@@ -1217,6 +1307,7 @@ function setPTab(v) { profileTicketTab = v; OPEN_TICKET_ID = null; rerender(); }
 function backToProfile() { OPEN_TICKET_ID = null; rerender(); }
 function openMyTicket(id) { OPEN_TICKET_ID = id; rerender(); }
 function uiCreateTicket() {
+  if (!featureVisible('profileCreateTicket')) return toast('Создание тикетов временно отключено');
   const type = document.getElementById('tk-type').value;
   const amount = +document.getElementById('tk-amount').value || 0;
   if (amount <= 0) return toast('Укажи сумму больше 0');
@@ -1273,6 +1364,7 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='system'?'on':''}" onclick="setSub('system')">🛠 Система</button>
         <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
         <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
+        <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button>
       </div>
     </div>
     <div id="admin-body"></div>`;
@@ -1291,6 +1383,34 @@ function drawAdminBody() {
   if (adminSub === 'system') b.innerHTML = adminSystemHTML();
   if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
   if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
+  if (adminSub === 'visibility') b.innerHTML = adminVisibilityHTML();
+}
+
+const UI_VISIBILITY_LABELS = {
+  homeAnnouncements:'Главная: блок объявлений', homeWelcome:'Главная: приветствие и описание', topSpenders:'Главная: рейтинг топа трат',
+  cases:'Кнопка меню «Кейсы»', caseOpen:'Открытие кейсов', multiCaseOpen:'Выбор открытия 3 и 5 кейсов', casePrizeList:'Список предметов внутри кейса', caseOddsInfo:'Информация о шансах и динамической экономике',
+  inventory:'Кнопка меню «Инвентарь»', inventorySell:'Продажа предметов из инвентаря',
+  upgrader:'Кнопка меню «Апгрейдер»', upgraderSourceList:'Список предметов для ставки в апгрейдере', upgraderTargetList:'Список целей и фильтры апгрейдера', upgraderSpin:'Запуск апгрейда',
+  profile:'Кнопка меню «Профиль»', profileInfo:'Профиль: ID, имя, баланс и роль', profileTickets:'Профиль: список моих тикетов', profileCreateTicket:'Профиль: создание тикетов пополнения/вывода',
+  settings:'Кнопка меню «Настройки»', settingsNotifications:'Настройки уведомлений Telegram (временно можно скрыть)', settingsSupport:'Ссылка на поддержку', settingsLogout:'Кнопка выхода из аккаунта',
+  tickets:'Кнопка меню «Тикеты» для стаффа', announcementRewards:'Получение наград из объявлений'
+};
+function adminVisibilityHTML() {
+  return `<div class="card"><h2>👁 Видимость функций игры</h2><p class="muted">Снимите галочку, чтобы скрыть функцию. В поле под ней можно указать текст, который будет показан вместо скрытого элемента. Оставьте поле пустым, чтобы ничего не показывать.</p>
+    <div class="row" style="margin:10px 0"><button class="btn sec" type="button" onclick="setAllUIVisibility(true)">Показать всё</button><button class="btn sec" type="button" onclick="setAllUIVisibility(false)">Скрыть всё</button></div>
+    <div class="visibility-list">${Object.entries(UI_VISIBILITY_LABELS).map(([key,label])=>`<div class="visibility-item"><label class="visibility-row"><span>${esc(label)}</span><input type="checkbox" id="vis-${key}" ${featureVisible(key)?'checked':''}></label><label class="muted" for="vismsg-${key}" style="display:block;font-size:12px">Текст вместо функции (необязательно)</label><textarea class="visibility-message-input" id="vismsg-${key}" maxlength="300" placeholder="Оставьте пустым, чтобы ничего не показывать">${esc(UI_VISIBILITY_MESSAGES[key]||'')}</textarea></div>`).join('')}</div>
+    <button class="btn" style="margin-top:14px" onclick="saveUIVisibility()">Сохранить настройки видимости</button></div>`;
+}
+function setAllUIVisibility(visible) { for (const key of Object.keys(UI_VISIBILITY_LABELS)) { const el=document.getElementById('vis-'+key); if(el) el.checked=!!visible; } }
+async function saveUIVisibility() {
+  const settings={}, messages={};
+  for (const key of Object.keys(UI_VISIBILITY_LABELS)) { settings[key]=!!document.getElementById('vis-'+key)?.checked; messages[key]=String(document.getElementById('vismsg-'+key)?.value||'').trim().slice(0,300); }
+  try {
+    const result=await workerRequest('/api/admin/ui-visibility',{settings,messages});
+    UI_VISIBILITY={...UI_VISIBILITY_DEFAULTS,...(result.settings||settings)};
+    UI_VISIBILITY_MESSAGES={...(result.messages||messages)};
+    applyUIVisibility(); rerender(); toast('Настройки видимости сохранены');
+  } catch(e) { toast(e.message||'Не удалось сохранить настройки видимости'); }
 }
 
 /* --- Предметы --- */
@@ -1550,9 +1670,10 @@ function adminAnnsHTML() {
   const cur = editing ? ANNS[ANN_EDIT] : (ANN_DRAFT || { text:'', img:'', btnName:'', btnLink:'' });
   return `<div class="card"><h2>➕ ${editing ? '✏️ Изменить объявление' : 'Новое объявление'}</h2>
     <label>Текст</label><textarea id="an-text" rows="3">${esc(cur.text)}</textarea>
-    <label>Фото (необязательно)</label>
+    <label>Фото (необязательно; целиком, без обрезки)</label>
     <input type="file" accept="image/*" onchange="onAnFile(event)">
-    <img id="an-prev" class="preview" style="width:100%; height:auto; max-height:120px; ${cur.img ? '' : 'display:none'}" src="${esc(cur.img)}">
+    <label style="display:flex;align-items:center;gap:10px;margin:8px 0 12px;color:var(--text);font-size:14px"><input id="an-no-frame" type="checkbox" ${cur.noFrame?'checked':''} style="width:18px;height:18px;margin:0;flex:0 0 auto"> Без рамки — только закруглённое фото</label>
+    <img id="an-prev" class="preview" style="width:100%; height:auto; max-height:240px; object-fit:contain; border-radius:14px; ${cur.img ? '' : 'display:none'}" src="${esc(cur.img)}">
     <label>Кнопка: название (необязательно)</label><input id="an-btn-name" value="${esc(cur.btnName)}" placeholder="Например: Наш канал">
     <label>Ссылка (необязательно; если название кнопки пустое, кликабельно всё объявление)</label><input id="an-btn-link" value="${esc(cur.btnLink)}" placeholder="https://...">
     <hr class="divider"><label style="display:flex;align-items:center;gap:9px;color:var(--text);font-size:13px"><input id="an-one-time" type="checkbox" ${cur.oneTime?'checked':''} onchange="toggleAnnouncementOneTime()"> Одноразовое объявление с наградой</label>
@@ -1564,7 +1685,7 @@ function adminAnnsHTML() {
 }
 function adminAnnListItemsHTML() {
   return Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0)).map(([id, a]) =>
-    `<div class="ticket-row"><div class="row" style="align-items:center"><div style="flex:1"><div style="font-size:13px">${esc(a.text.slice(0,60))}${a.text.length>60?'…':''}</div><div class="chips">${a.img?'📷 фото · ':''}${a.oneTime?`🎁 одноразовая награда: ${(a.rewardIds||[]).length} предметов · `:''}${a.btnName?`кнопка: ${esc(a.btnName)}`:a.btnLink?'всё объявление — ссылка':'без ссылки'}</div></div><button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button><button class="del" onclick="delAnn('${id}')">Удалить</button></div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>';
+    `<div class="ticket-row"><div class="row" style="align-items:center"><div style="flex:1"><div style="font-size:13px">${esc(a.text.slice(0,60))}${a.text.length>60?'…':''}</div><div class="chips">${a.img?'📷 фото · ':''}${a.noFrame?'без рамки · ':''}${a.oneTime?`🎁 одноразовая награда: ${(a.rewardIds||[]).length} предметов · `:''}${a.btnName?`кнопка: ${esc(a.btnName)}`:a.btnLink?'всё объявление — ссылка':'без ссылки'}</div></div><button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button><button class="del" onclick="delAnn('${id}')">Удалить</button></div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>';
 }
 function updateAdminAnnList() {
   const host = document.getElementById('admin-ann-list');
@@ -1578,6 +1699,7 @@ function readAnnForm() {
     btnName: document.getElementById('an-btn-name').value.trim(),
     btnLink: document.getElementById('an-btn-link').value.trim(),
     oneTime: !!document.getElementById('an-one-time')?.checked,
+    noFrame: !!document.getElementById('an-no-frame')?.checked,
     rewardIds: ANN_REWARD_IDS.slice()
   };
 }
