@@ -964,7 +964,8 @@ async function sellItem(entryKey) {
 function upgradeChance(basePrice, targetPrice) {
   const b = Number(basePrice), t = Number(targetPrice);
   if (!(b > 0) || !(t > b)) return 0;
-  return Math.max(0, Math.min(100, b / t * 100));
+  // Шанс снижен в 1,5 раза; формула синхронизирована с сервером.
+  return Math.max(0, Math.min(100, b / t * 100 / 1.5));
 }
 function formatChance(value) {
   const n = Number(value) || 0;
@@ -1170,17 +1171,18 @@ function sweepExpired() {
 const TYPE_NAME = { deposit: 'Пополнение', withdraw: 'Вывод' };
 const tStatusHTML = s => s === 'open' ? '<span class="ts-open">Открыт</span>' : s === 'taken' ? '<span class="ts-taken">Взят</span>' : '<span class="ts-closed">Закрыт</span>';
 
-async function createTicket(type, amount) {
-  const ref = db.ref('tickets').push();
-  const numSnap = await db.ref('counters/ticketNum').transaction(v => (v || 0) + 1);
-  await ref.set({
-    num: numSnap.snapshot.val(), owner: CURRENT_ID,
-    ownerName: profile?.name || CURRENT_ID,
-    type, amount: +amount || 0, status: 'open',
-    createdAt: Date.now(), messages: {}
-  });
-  OPEN_TICKET_ID = ref.key;
-  toast(`Тикет #${numSnap.snapshot.val()} создан`);
+const TICKET_LOCATIONS = {
+  home_zone: 'Домашняя зона',
+  monster_lair: 'Логово монстров',
+  survivor_base: 'База выживших',
+  hot_spot: 'Горячая точка'
+};
+async function createTicket(type, amount, location) {
+  if (!Object.prototype.hasOwnProperty.call(TICKET_LOCATIONS, location)) throw new Error('Выбери локацию тикета');
+  if (type === 'deposit' && (!Number.isSafeInteger(Number(amount)) || Number(amount) < 50)) throw new Error('Минимальное пополнение — 50 золота');
+  const result = await workerRequest('/api/ticket/create', { type, amount:Number(amount), location });
+  OPEN_TICKET_ID = result.ticketId;
+  toast(`Тикет #${result.num} создан`);
 }
 function sendMsg(id, inputId) {
   const inp = document.getElementById(inputId);
@@ -1220,7 +1222,7 @@ function closeTicket(id) {
   confirmBtn.disabled = false;
   confirmBtn.textContent = 'Подтвердить закрытие';
   const amount = Number(t.amount) || 0;
-  summary.textContent = `Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · сумма ${amount}.`;
+  summary.textContent = `Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · сумма ${amount}${t.location ? ' · локация: ' + (TICKET_LOCATIONS[t.location] || t.location) : ''}.`;
   label.textContent = t.type === 'deposit'
     ? `Подтвердить пополнение: начислить игроку ${amount}`
     : t.type === 'withdraw'
@@ -1279,6 +1281,7 @@ function ticketRowHTML(id, t, btn) {
       <div style="flex:1">
         <div class="tnum">#${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</div>
         <div class="chips">${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · ${tStatusHTML(t.status)}
+          ${t.location ? ` · 📍 ${esc(TICKET_LOCATIONS[t.location] || t.location)}` : ''}
           ${t.reason ? ` · причина: ${esc(t.reason)}` : ''}</div>
       </div>
       ${btn ? `<button class="btn small" style="flex:0 0 auto" onclick="${btn.action}('${id}')">${btn.label}</button>` : (t.status==='open' && isStaff() && String(t.owner)===String(CURRENT_ID) ? '<span class="muted" style="font-size:11px">Свой тикет</span>' : '')}
@@ -1313,6 +1316,7 @@ function ticketViewHTML(id, t, backFn) {
     <button class="btn sec small" onclick="${backFn}()">← Назад</button>
     <h2 style="margin-top:10px">Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</h2>
     <div class="chips">От: ${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · статус: ${tStatusHTML(t.status)}
+      ${t.location ? ` · 📍 ${esc(TICKET_LOCATIONS[t.location] || t.location)}` : ''}
       ${t.takenByName ? ` · взял: ${esc(t.takenByName)}` : ''}</div>
     ${t.reason ? `<p class="muted" style="margin-top:6px">Причина закрытия: <b>${esc(t.reason)}</b></p>` : ''}
     <hr class="divider">
@@ -1352,7 +1356,14 @@ function renderProfile(c) {
       <label>Тип</label><select id="tk-type">
         <option value="deposit">Пополнение</option>
         <option value="withdraw">Вывод</option></select>
-      <label>Сумма</label><input id="tk-amount" type="number" min="1">
+      <label>Сумма (золото)</label><input id="tk-amount" type="number" min="50" step="1" inputmode="numeric" placeholder="Минимум 50">
+      <label for="tk-location">Локация (обязательно)</label><select id="tk-location" required>
+        <option value="">Выбери локацию</option>
+        <option value="home_zone">Домашняя зона</option>
+        <option value="monster_lair">Логово монстров</option>
+        <option value="survivor_base">База выживших</option>
+        <option value="hot_spot">Горячая точка</option>
+      </select>
       <p class="muted" id="tk-hint"></p>
       <button class="btn" onclick="uiCreateTicket()" ${!featureVisible('profileCreateTicket')?'disabled':''}>Создать тикет</button>` : featurePlaceholder('profileCreateTicket')}
     </div>` : featurePlaceholder('profileTickets')}`;
@@ -1361,8 +1372,10 @@ function renderProfile(c) {
 function updateTkHint() {
   const typeEl = document.getElementById('tk-type');
   const hint = document.getElementById('tk-hint');
+  const amountEl = document.getElementById('tk-amount');
   if (typeEl && hint) hint.textContent = typeEl.value === 'withdraw'
-    ? `Максимум для вывода: ${profile?.balance ?? 0}` : 'Сумма пополнения — договоритесь в чате тикета';
+    ? `Максимум для вывода: ${profile?.balance ?? 0}` : 'Минимальное пополнение — 50 золота. Точная сумма будет обработана сотрудником в тикете.';
+  if (amountEl && typeEl) { amountEl.min = typeEl.value === 'deposit' ? '50' : '1'; amountEl.placeholder = typeEl.value === 'deposit' ? 'Минимум 50' : 'Сумма вывода'; }
   if (typeEl) typeEl.onchange = updateTkHint;
 }
 function setPTab(v) { profileTicketTab = v; OPEN_TICKET_ID = null; rerender(); }
@@ -1372,10 +1385,13 @@ function uiCreateTicket() {
   if (!featureVisible('profileCreateTicket') && !isAdmin()) return toast('Создание тикетов временно отключено');
   const type = document.getElementById('tk-type').value;
   const amount = +document.getElementById('tk-amount').value || 0;
-  if (amount <= 0) return toast('Укажи сумму больше 0');
+  const location = document.getElementById('tk-location')?.value || '';
+  if (!Number.isSafeInteger(amount) || amount <= 0) return toast('Укажи целую сумму больше 0');
+  if (type === 'deposit' && amount < 50) return toast('Минимальное пополнение — 50 золота');
+  if (!Object.prototype.hasOwnProperty.call(TICKET_LOCATIONS, location)) return toast('Обязательно выбери локацию');
   if (type === 'withdraw' && amount > (profile?.balance || 0))
     return toast('Сумма вывода не может превышать твой баланс');
-  createTicket(type, amount).then(rerender);
+  createTicket(type, amount, location).then(rerender).catch(e=>toast(e.message || 'Не удалось создать тикет'));
 }
 
 /* --- вкладка тикетов для стаффа --- */
