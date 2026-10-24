@@ -1082,7 +1082,7 @@ function upgradeChance(basePrice, targetPrice) {
   if (!(b > 0) || !(t > b)) return 0;
   // Дорогие цели получают дополнительный штраф; формула совпадает с серверной.
   const pricePenalty = Math.max(1, Math.log10(t + 1));
-  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 1.5) / 1.5 / pricePenalty));
+  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 1.5) / 1 / pricePenalty));
 }
 function formatChance(value) {
   const n = Number(value) || 0;
