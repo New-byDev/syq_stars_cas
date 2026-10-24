@@ -496,6 +496,7 @@ const TG_USER = tg.initDataUnsafe?.user || null;
 const TG_ID = TG_USER ? String(TG_USER.id) : null;
 const TG_INIT_DATA = tg.initData || '';
 let autoTelegramStarted = false;
+let REFERRAL_INFO = null, REFERRAL_INFO_LOADING_FOR = null;
 
 let CURRENT_ID = null, CURRENT_PASS = null, profileRef = null, profile = null;
 const WORKER_URL = 'https://strike-arena-kv.mirikpirik2009.workers.dev';
@@ -512,6 +513,30 @@ async function workerRequest(path, payload = {}) {
   if (!response.ok || !data.ok) throw new Error(formatApiError(data, response.status, 'Ошибка серверной операции'));
   return data;
 }
+async function loadReferralInfo(force = false) {
+  if (!CURRENT_ID || (!force && REFERRAL_INFO?.forId === CURRENT_ID) || REFERRAL_INFO_LOADING_FOR === CURRENT_ID) return;
+  REFERRAL_INFO_LOADING_FOR = CURRENT_ID;
+  const requestedId = CURRENT_ID;
+  try {
+    const data = await workerRequest('/api/referral/info', {});
+    if (CURRENT_ID !== requestedId) return;
+    REFERRAL_INFO = {...data, forId:requestedId};
+    if (CURRENT_TAB === 'profile') rerender();
+  } catch (_) {
+    if (CURRENT_ID === requestedId) REFERRAL_INFO = {forId:requestedId,link:'',invitedCount:0,earned:0,botConfigured:false};
+  } finally { if (REFERRAL_INFO_LOADING_FOR === requestedId) REFERRAL_INFO_LOADING_FOR = null; }
+}
+async function copyReferralLink() {
+  const link = String(REFERRAL_INFO?.link || '');
+  if (!link) return toast('Сначала настрой TELEGRAM_BOT_USERNAME в Cloudflare Worker');
+  try { await navigator.clipboard.writeText(link); toast('Реферальная ссылка скопирована'); }
+  catch (_) { prompt('Скопируй реферальную ссылку:', link); }
+}
+function syncReferralInfoFromLocalData() {
+  if (!REFERRAL_INFO || REFERRAL_INFO.forId !== CURRENT_ID) return;
+  const invitedCount = Object.entries(USERS || {}).filter(([id,u]) => String(u?.referredBy || '') === String(CURRENT_ID) && id !== ADMIN_ID && u?.is_admin !== true && u?.role !== 'admin' && u?.role !== 'moderator' && ROLES?.[id] !== 'admin' && ROLES?.[id] !== 'moderator').length;
+  REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:Math.max(0,Number(profile?.referralEarned ?? REFERRAL_INFO.earned)||0)};
+}
 let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
 let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
@@ -521,7 +546,7 @@ let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let TICKET_COOLDOWN_UNTIL = 0, TICKET_COOLDOWN_TIMER = null, TICKET_CREATE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
 let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
-const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true };
+const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, referrals:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true };
 let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
 let UI_VISIBILITY_MESSAGES = {};
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
@@ -730,6 +755,7 @@ async function enterApp(id) {
 
   profileRef.on('value', s => {
     profile = s.val() || {};
+    syncReferralInfoFromLocalData();
     document.getElementById('balance').textContent = profile.balance ?? 0;
     document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
     updateStaffBtn();
@@ -740,7 +766,7 @@ async function enterApp(id) {
   db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
   db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
   db.ref('cases').on('value', s => { CASES = s.val() || {}; rerenderIfDepends(); });
-  db.ref('users').on('value', s => { USERS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('users').on('value', s => { USERS = s.val() || {}; syncReferralInfoFromLocalData(); rerenderIfDepends(); });
   db.ref('tickets').on('value', s => {
     const previous = TICKETS;
     const nextTickets = s.val() || {};
@@ -759,7 +785,7 @@ async function enterApp(id) {
       updateTicketChat(OPEN_TICKET_ID, activeTicket);
     } else rerenderIfDepends();
   });
-  db.ref('roles').on('value', s => { ROLES = s.val() || {}; updateStaffBtn(); rerenderIfDepends(); });
+  db.ref('roles').on('value', s => { ROLES = s.val() || {}; syncReferralInfoFromLocalData(); updateStaffBtn(); rerenderIfDepends(); });
   db.ref('anns').on('value', s => {
     const nextAnns = s.val() || {};
     if (ANN_NOTIF_READY) {
@@ -793,6 +819,7 @@ async function enterApp(id) {
   });
 
   go('home');
+  loadReferralInfo();
   APP_BOOTSTRAPPING = false;
   // Даём первичным подпискам Firebase отдать данные, затем плавно открываем интерфейс.
   window.setTimeout(hideAppLoader, 650);
@@ -886,8 +913,39 @@ function go(tab) {
   c.classList.remove('tab-anim'); void c.offsetWidth; c.classList.add('tab-anim');
   rerender();
 }
+let FORM_STATE_SCOPE = '';
+function currentFormScope() { return CURRENT_TAB === 'admin' ? `admin:${adminSub}` : CURRENT_TAB; }
+function captureFormState(root) {
+  if (!root) return [];
+  return Array.from(root.querySelectorAll('input,textarea,select')).map((el, index) => {
+    if (el.type === 'file') return null;
+    const key = el.id ? `id:${el.id}` : el.name ? `name:${el.tagName}:${el.name}:${el.type||''}` : `idx:${index}:${el.tagName}:${el.type||''}`;
+    return { key, value: el.value, checked: ('checked' in el) ? el.checked : undefined,
+      selected: el.tagName === 'SELECT' ? Array.from(el.options).map(o=>o.selected) : undefined,
+      start: typeof el.selectionStart === 'number' ? el.selectionStart : null,
+      end: typeof el.selectionEnd === 'number' ? el.selectionEnd : null };
+  }).filter(Boolean);
+}
+function restoreFormState(root, snapshot) {
+  if (!root || !snapshot?.length) return;
+  const controls = Array.from(root.querySelectorAll('input,textarea,select'));
+  const byKey = new Map();
+  controls.forEach((el,index)=>{
+    const key = el.id ? `id:${el.id}` : el.name ? `name:${el.tagName}:${el.name}:${el.type||''}` : `idx:${index}:${el.tagName}:${el.type||''}`;
+    if (!byKey.has(key)) byKey.set(key,el);
+  });
+  for (const item of snapshot) {
+    const el=byKey.get(item.key); if(!el || el.type==='file') continue;
+    if (item.value !== undefined && el.tagName !== 'SELECT') el.value=item.value;
+    if (item.checked !== undefined) el.checked=item.checked;
+    if (item.selected && el.tagName==='SELECT') Array.from(el.options).forEach((o,i)=>o.selected=!!item.selected[i]);
+    if (item.start !== null && item.start !== undefined && typeof el.setSelectionRange==='function') { try { el.setSelectionRange(item.start,item.end); } catch(_) {} }
+  }
+}
 function rerender() {
   const c = document.getElementById('content');
+  const scope = currentFormScope();
+  const snapshot = FORM_STATE_SCOPE === scope ? captureFormState(c) : [];
   if (CURRENT_TAB === 'home') renderHome(c);
   if (CURRENT_TAB === 'settings') renderSettings(c);
   if (CURRENT_TAB === 'inventory') renderInventory(c);
@@ -896,6 +954,8 @@ function rerender() {
   if (CURRENT_TAB === 'profile') renderProfile(c);
   if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
   if (CURRENT_TAB === 'admin') { if(isAdmin()) { renderAdmin(c); loadAdminNotificationConfig(); } else c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>'; }
+  restoreFormState(c, snapshot);
+  FORM_STATE_SCOPE = scope;
 }
 function logout() { auth.signOut().then(() => location.reload()); }
 
@@ -1006,7 +1066,7 @@ function renderInventory(c) {
           ${it.img ? `<img src="${esc(it.img)}" alt="">` : '<div style="font-size:32px">📦</div>'}
           <div class="nm">${esc(it.name)}</div>
           <div class="price-tag">${pcur(it.price)}</div>
-          ${featureDisplayVisible('inventorySell') && canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')" ${!featureVisible('inventorySell')?'disabled':''}>Продать за ${saleAmount} ${hiddenAdminBadge('inventorySell')}</button>` : (!featureDisplayVisible('inventorySell') ? featurePlaceholder('inventorySell') : '')}
+          ${featureDisplayVisible('inventorySell') && canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')" ${!featureVisible('inventorySell')&&!isAdmin()?'disabled':''}>Продать за ${saleAmount} ${hiddenAdminBadge('inventorySell')}</button>` : (!featureDisplayVisible('inventorySell') ? featurePlaceholder('inventorySell') : '')}
         </div>`;
       }).join('') + '</div>') + '</div>';
 }
@@ -1022,7 +1082,7 @@ function upgradeChance(basePrice, targetPrice) {
   if (!(b > 0) || !(t > b)) return 0;
   // Дорогие цели получают дополнительный штраф; формула совпадает с серверной.
   const pricePenalty = Math.max(1, Math.log10(t + 1));
-  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 2) / 1.5 / pricePenalty));
+  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 1.5) / 1.5 / pricePenalty));
 }
 function formatChance(value) {
   const n = Number(value) || 0;
@@ -1050,7 +1110,7 @@ function renderUpgrader(c) {
   c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер ${hiddenAdminBadge('upgrader')}</h2><p class="muted">Выбери предмет из инвентаря. Шанс зависит от отношения цен и дополнительно уменьшается для дорогих целей: чем дороже предмет, тем ниже вероятность успеха. Точный шанс показан у каждой цели и рассчитывается сервером по той же формуле. При неудаче исходный предмет расходуется.</p></div>
   <div class="upg-layout">${!featureDisplayVisible('upgraderSourceList')?featurePlaceholder('upgraderSourceList'):''}${!featureDisplayVisible('upgraderTargetList')?featurePlaceholder('upgraderTargetList'):''}<section class="upg-panel" style="${featureDisplayVisible('upgraderSourceList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎒 Твой предмет ${hiddenAdminBadge('upgraderSourceList')}</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=getInventoryItemMeta(entry)||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
   <section class="upg-panel" style="${featureDisplayVisible('upgraderTargetList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда ${hiddenAdminBadge('upgraderTargetList')}</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
-  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-meter-wrap"><div class="upg-meter-labels"><span>УДАЧА · ${target?formatChance(target.chance):'0'}%</span><span>НЕУДАЧА · ${target?formatChance(100-target.chance):'100'}%</span></div><div class="upg-meter"><div class="upg-meter-success" style="width:${target?Math.max(0,Math.min(100,target.chance)):0}%"></div><div id="upg-pointer" class="upg-meter-marker" style="left:0%"></div></div><div class="upg-meter-scale"><span>0%</span><span id="upg-percent">${target?formatChance(target.chance)+'%':'—'}</span><span>100%</span></div></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Прокрутка выполняется…':(target?'Светлая зона — удача, тёмная — неудача':'Выбери подходящий предмет')}</div>${featureDisplayVisible('upgraderSpin') ? `${hiddenAdminBadge('upgraderSpin')}<button class="btn" onclick="runUpgrade()" ${!featureVisible('upgraderSpin')||!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button>` : featurePlaceholder('upgraderSpin')}</div>`;
+  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-meter-wrap"><div class="upg-meter-labels"><span>УДАЧА · ${target?formatChance(target.chance):'0'}%</span><span>НЕУДАЧА · ${target?formatChance(100-target.chance):'100'}%</span></div><div class="upg-meter"><div class="upg-meter-success" style="width:${target?Math.max(0,Math.min(100,target.chance)):0}%"></div><div id="upg-pointer" class="upg-meter-marker" style="left:0%"></div></div><div class="upg-meter-scale"><span>0%</span><span id="upg-percent">${target?formatChance(target.chance)+'%':'—'}</span><span>100%</span></div></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Прокрутка выполняется…':(target?'Светлая зона — удача, тёмная — неудача':'Выбери подходящий предмет')}</div>${featureDisplayVisible('upgraderSpin') ? `${hiddenAdminBadge('upgraderSpin')}<button class="btn" onclick="runUpgrade()" ${(!featureVisible('upgraderSpin')&&!isAdmin())||!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button>` : featurePlaceholder('upgraderSpin')}</div>`;
 }
 function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
 function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
@@ -1130,7 +1190,7 @@ function renderCaseDetails(k) {
   const totalPrice = Math.max(0, Number(k.price)||0) * count;
   const remainingTotal = k.totalLimit ? Math.max(0,Number(k.totalLimit)-Number(k.opened||0)) : Infinity;
   const remainingUser = k.perUserLimit ? Math.max(0,Number(k.perUserLimit)-Number(profile?.openedCases?.[CASE_DETAIL_ID]||0)) : Infinity;
-  const canOpen = featureVisible('caseOpen') && !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (Number(profile?.balance||0)>=totalPrice);
+  const canOpen = (featureVisible('caseOpen') || isAdmin()) && !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (Number(profile?.balance||0)>=totalPrice);
   box.innerHTML = `
     <div class="case-detail-top">
       <div class="case-detail-img">${k.img?`<img src="${esc(k.img)}" alt="">`:'📦'}</div>
@@ -1138,7 +1198,7 @@ function renderCaseDetails(k) {
       ${featureDisplayVisible('caseOpen') ? `${hiddenAdminBadge('caseOpen')}<button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':`Открыть · ${totalPrice}`}</button>` : featurePlaceholder('caseOpen')}
     </div>
     <div class="case-counts" aria-label="Количество кейсов">
-      ${featureDisplayVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY || (!featureVisible('multiCaseOpen') && isAdmin())?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
+      ${featureDisplayVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY || (!featureVisible('multiCaseOpen') && !isAdmin())?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
     </div>
     <button class="btn sec" type="button" style="width:100%;margin:0 0 10px" onclick="toggleCaseFastSpin()" ${CASE_OPEN_BUSY?'disabled':''}>${CASE_FAST_SPIN?'⚡ Быстрая прокрутка: ВКЛ':'⚡ Быстрая прокрутка: ВЫКЛ'}</button>
     <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>Итого: ${totalPrice}</span></div>
@@ -1152,7 +1212,7 @@ function renderCaseDetails(k) {
   }
 }
 async function performCaseOpen() {
-  if (!featureVisible('caseOpen')) return toast('Открытие кейсов временно отключено');
+  if (!featureVisible('caseOpen') && !isAdmin()) return toast('Открытие кейсов временно отключено');
   const caseId = CASE_DETAIL_ID, k = CASES[caseId];
   if (!k || CASE_OPEN_BUSY) return;
   if (Date.now()-CASE_LAST_OPEN_AT < 1000) return toast('Подожди секунду между открытиями кейсов');
@@ -1388,6 +1448,14 @@ function ticketViewHTML(id, t, backFn) {
   </div>`;
 }
 
+/* --- профиль: реферальная система --- */
+function referralCardHTML() {
+  if (!featureDisplayVisible('referrals')) return featurePlaceholder('referrals');
+  const info = REFERRAL_INFO?.forId === CURRENT_ID ? REFERRAL_INFO : null;
+  const link = String(info?.link || '');
+  return `<div class="card"><h2>🔗 Приглашай друзей ${hiddenAdminBadge('referrals')}</h2><p class="muted">Получай 1% от подтверждённых пополнений приглашённых игроков. Дробная часть копится и переводится в целое золото; бонус начисляется после одобрения пополнения, не за регистрацию. Учитываются только новые аккаунты, впервые открывшие Mini App по твоей ссылке.</p><div class="player-info-grid"><div class="player-info-cell"><span>Приглашено игроков</span><b>${Number(info?.invitedCount||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Получено бонусов</span><b>${Number(info?.earned||0).toLocaleString('ru-RU')} золота</b></div></div>${link ? `<label for="my-referral-link">Твоя реферальная ссылка</label><input id="my-referral-link" value="${esc(link)}" readonly><button class="btn" style="margin-top:8px;width:100%" onclick="copyReferralLink()">📋 Скопировать ссылку</button>` : `<p class="muted" style="margin-top:10px">${info && info.botConfigured===false ? 'Реферальная ссылка пока не настроена администратором. В Cloudflare Worker нужно задать TELEGRAM_BOT_USERNAME.' : 'Загружаем реферальную ссылку…'}</p>`}</div>`;
+}
+
 /* --- профиль: мои тикеты --- */
 function renderProfile(c) {
   const my = Object.entries(TICKETS).filter(([, t]) => t.owner === CURRENT_ID)
@@ -1404,6 +1472,7 @@ function renderProfile(c) {
       <p class="muted">Имя: <b>${esc(profile?.name || '—')}</b></p>
       <p class="muted">Баланс: <b>${profile?.balance ?? 0}</b></p>
       ${isAdmin() ? '<span class="badge">АДМИНИСТРАТОР</span>' : ROLES[CURRENT_ID] === 'moderator' ? '<span class="badge mod">МОДЕРАТОР</span>' : ''}</div>` : featurePlaceholder('profileInfo')}
+    ${referralCardHTML()}
     ${featureDisplayVisible('profileTickets') ? `<div class="card"><h2>🎫 Мои тикеты ${hiddenAdminBadge('profileTickets')}</h2>
       <div class="subtabs">
         <button class="${profileTicketTab === 'open' ? 'on' : ''}" onclick="setPTab('open')">Открытые (${open.length})</button>
@@ -1424,7 +1493,7 @@ function renderProfile(c) {
         <option value="hot_spot">Горячая точка</option>
       </select>
       <p class="muted" id="tk-hint"></p>
-      <button class="btn" id="tk-create-btn" onclick="uiCreateTicket()" ${!featureVisible('profileCreateTicket')?'disabled':''}>Создать тикет</button>
+      <button class="btn" id="tk-create-btn" onclick="uiCreateTicket()" ${!featureVisible('profileCreateTicket')&&!isAdmin()?'disabled':''}>Создать тикет</button>
       <p class="muted" id="tk-cooldown-label" style="font-size:12px;margin-top:6px"></p>` : featurePlaceholder('profileCreateTicket')}
     </div>` : featurePlaceholder('profileTickets')}`;
   updateTkHint();
@@ -1544,6 +1613,8 @@ function setSub(s) { adminSub = s; drawAdminBody(); }
 function drawAdminBody() {
   const b = document.getElementById('admin-body');
   if (!b) return;
+  const scope = `admin:${adminSub}`;
+  const snapshot = FORM_STATE_SCOPE === scope ? captureFormState(b) : [];
   if (adminSub === 'items') b.innerHTML = adminItemsHTML();
   if (adminSub === 'cats')  b.innerHTML = adminCatsHTML();
   if (adminSub === 'cases') b.innerHTML = adminCasesHTML();
@@ -1554,6 +1625,8 @@ function drawAdminBody() {
   if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
   if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
   if (adminSub === 'visibility') b.innerHTML = adminVisibilityHTML();
+  restoreFormState(b, snapshot);
+  FORM_STATE_SCOPE = scope;
 }
 
 const UI_VISIBILITY_LABELS = {
@@ -1561,7 +1634,7 @@ const UI_VISIBILITY_LABELS = {
   cases:'Кнопка меню «Кейсы»', caseOpen:'Открытие кейсов', multiCaseOpen:'Выбор открытия 3 и 5 кейсов', casePrizeList:'Список предметов внутри кейса', caseOddsInfo:'Информация о шансах и динамической экономике',
   inventory:'Кнопка меню «Инвентарь»', inventorySell:'Продажа предметов из инвентаря',
   upgrader:'Кнопка меню «Апгрейдер»', upgraderSourceList:'Список предметов для ставки в апгрейдере', upgraderTargetList:'Список целей и фильтры апгрейдера', upgraderSpin:'Запуск апгрейда',
-  profile:'Кнопка меню «Профиль»', profileInfo:'Профиль: ID, имя, баланс и роль', profileTickets:'Профиль: список моих тикетов', profileCreateTicket:'Профиль: создание тикетов пополнения/вывода',
+  profile:'Кнопка меню «Профиль»', profileInfo:'Профиль: ID, имя, баланс и роль', profileTickets:'Профиль: список моих тикетов', profileCreateTicket:'Профиль: создание тикетов пополнения/вывода', referrals:'Профиль: реферальная ссылка и бонусы',
   settings:'Кнопка меню «Настройки»', settingsNotifications:'Настройки уведомлений Telegram (временно можно скрыть)', settingsSupport:'Ссылка на поддержку', settingsLogout:'Кнопка выхода из аккаунта',
   tickets:'Кнопка меню «Тикеты» для стаффа', announcementRewards:'Получение наград из объявлений'
 };
@@ -1758,15 +1831,15 @@ async function delCase(id) { if (confirm('Удалить кейс?')) { await db
 function adminUsersHTML() {
   const all = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
   const q = adminUserSearch.trim().toLowerCase();
-  const entries = q ? all.filter(([id,u]) => id.toLowerCase().includes(q) || String(u.name||'').toLowerCase().includes(q)) : all;
+  const entries = q ? all.filter(([id,u]) => id.toLowerCase().includes(q) || String(u.name||'').toLowerCase().includes(q) || String(u.username||'').toLowerCase().replace(/^@/,'').includes(q.replace(/^@/,''))) : all;
   return `<div class="card"><h2>👥 Игроки (${all.length})</h2>
     <p class="muted">Ищи по Telegram ID или имени. «Подробно» открывает статистику и управление балансом; «Настроить» меняет роль.</p>
-    <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="numeric" placeholder="Telegram ID или имя" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
+    <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="numeric" placeholder="ID, имя или @ник" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
     ${entries.map(([id, u]) => {
       const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
       const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
       return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
-        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)} · баланс: ${u.balance ?? 0}</div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''} · баланс: ${u.balance ?? 0}</div></div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
       </div>`;
     }).join('') || '<p class="muted">Игроки не найдены.</p>'}
@@ -1777,7 +1850,7 @@ function openPlayerAdminModal(id) {
   PLAYER_ADMIN_ID = id;
   const u = USERS[id] || {};
   const banActive = isPlayerBanActive(u.ban);
-  document.getElementById('player-admin-name').textContent = `${u.name || 'Игрок'} · Telegram ID ${id}`;
+  document.getElementById('player-admin-name').textContent = `${u.name || 'Игрок'}${u.username ? ' · @'+String(u.username).replace(/^@/,'') : ''} · Telegram ID ${id}`;
   const role = id === ADMIN_ID || u.is_admin ? 'Администратор' : ROLES[id] === 'moderator' ? 'Модератор' : 'Игрок';
   const inv = Object.keys(u.inventory || {}).length;
   const opened = Object.values(u.openedCases || {}).reduce((a,b)=>a+(Number(b)||0),0);
@@ -1937,15 +2010,37 @@ async function delAnn(id) {
   catch (e) { toast(e.message || 'Не удалось удалить объявление'); }
 }
 
+function statsBarChartHTML(title, labels, values, suffix='') {
+  const max = Math.max(1, ...values.map(v => Number(v)||0));
+  const peak = Math.max(...values.map(v => Number(v)||0));
+  return `<div class="card" style="margin-top:10px"><h3 style="font-size:14px;margin-bottom:12px">${esc(title)}</h3><div style="display:flex;align-items:flex-end;gap:7px;height:145px;padding:8px 2px 0;border-bottom:1px solid var(--line)">${values.map((value,i)=>{const v=Math.max(0,Number(value)||0);const h=v===0?2:Math.max(5,v/max*100);return `<div title="${esc(labels[i])}: ${v.toLocaleString('ru-RU')}${suffix}" style="display:flex;flex:1;min-width:0;height:100%;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px"><span style="font-size:10px;color:var(--muted);white-space:nowrap">${v.toLocaleString('ru-RU')}</span><div style="width:100%;max-width:34px;height:${h}%;min-height:2px;background:var(--accent);border-radius:5px 5px 0 0"></div></div>`}).join('')}</div><div style="display:flex;gap:7px;margin-top:6px">${labels.map(label=>`<span style="flex:1;min-width:0;text-align:center;font-size:9px;color:var(--muted)">${esc(label)}</span>`).join('')}</div><p class="muted" style="font-size:11px;margin-top:7px">Период: последние 7 дней. ${peak ? `Максимум за день: ${peak.toLocaleString('ru-RU')}${suffix}.` : 'За этот период данных пока нет.'}</p></div>`;
+}
 function adminStatsHTML() {
-  const users=Object.entries(USERS||{}), totalBalance=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.balance)||0),0), totalSpent=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.spentCurrency)||0),0), totalEarned=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.earnedCurrency)||0),0);
+  const isStaffAccount = (id,u) => String(id) === ADMIN_ID || u?.is_admin === true || u?.role === 'admin' || u?.role === 'moderator' || ROLES?.[id] === 'admin' || ROLES?.[id] === 'moderator';
+  const users=Object.entries(USERS||{}).filter(([id,u])=>!isStaffAccount(id,u));
+  const totalBalance=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.balance)||0),0), totalSpent=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.spentCurrency)||0),0), totalEarned=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.earnedCurrency)||0),0);
   const openings=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.caseOpenStats ?? Object.values(u?.openedCases||{}).reduce((x,v)=>x+Math.max(0,Number(v)||0),0))||0),0);
   const validInventory=users.reduce((n,[,u])=>n+Object.values(u?.inventory||{}).filter(e=>{const it=ITEMS[String(e?.itemId||e?.id||'')];return !!it&&!!String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0;}).length,0);
   const allTickets=Object.values(TICKETS||{}), openTickets=allTickets.filter(t=>t?.status==='open').length, activeTickets=allTickets.filter(t=>t?.status==='taken').length, closedTickets=allTickets.filter(t=>t?.status==='closed').length;
+  const validTickets=allTickets.filter(t=>t?.transactionApplied===true && t?.status==='closed' && !isStaffAccount(String(t.owner||''),USERS?.[String(t.owner||'')]));
+  const approvedDeposits=validTickets.filter(t=>t.type==='deposit'), approvedWithdrawals=validTickets.filter(t=>t.type==='withdraw');
+  const depositTotal=approvedDeposits.reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0), withdrawalTotal=approvedWithdrawals.reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
+  const invitedUsers=users.filter(([,u])=>!!u?.referredBy), referralEarnings=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.referralEarned)||0),0);
   const ranking=users.map(([id,u])=>({id,u,spent:Number(u?.spentCurrency)||0,earned:Number(u?.earnedCurrency)||0})).sort((a,b)=>b.spent-a.spent).slice(0,10);
-  return `<div class="card"><h2>📊 Подробная статистика</h2><p class="muted">Исторические продажи, которые раньше не учитывались, задним числом восстановить нельзя.</p><div class="player-info-grid">
-    ${[['Игроков',users.length],['Общий баланс',totalBalance],['Расходы на кейсы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Открытия кейсов',openings],['Валидные предметы в инвентарях',validInventory],['Кейсов в каталоге',Object.keys(CASES||{}).length],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
-    </div><h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sec" onclick="drawAdminBody()">Обновить статистику</button><button class="btn danger" onclick="resetAdminStatistics()">Сбросить статистику</button></div><p class="muted" style="margin-top:8px">Сброс обнуляет расходы, доходы и счётчик открытий в статистике. Балансы, инвентари и лимиты открытий не меняются.</p></div>`;
+  const days=[];
+  const today=new Date(); today.setHours(0,0,0,0);
+  for(let i=6;i>=0;i--){const d=new Date(today.getTime()-i*DAY);days.push({start:d.getTime(),end:d.getTime()+DAY,label:d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})});}
+  const dailySum=(list,tsField,valueFn)=>days.map(day=>list.filter(x=>{const at=Number(x?.[tsField]||0);return at>=day.start&&at<day.end;}).reduce((n,x)=>n+valueFn(x),0));
+  const dailyRegistrations=days.map(day=>users.filter(([,u])=>Number(u?.createdAt||0)>=day.start&&Number(u?.createdAt||0)<day.end).length);
+  const dailyInvites=days.map(day=>invitedUsers.filter(([,u])=>{const at=Number(u?.referralRegisteredAt||u?.createdAt||0);return at>=day.start&&at<day.end;}).length);
+  const labels=days.map(d=>d.label);
+  const charts = statsBarChartHTML('Пополнения · золото',labels,dailySum(approvedDeposits,'closedAt',t=>Math.max(0,Number(t.amount)||0)),' зол.')
+    + statsBarChartHTML('Выводы · золото',labels,dailySum(approvedWithdrawals,'closedAt',t=>Math.max(0,Number(t.amount)||0)),' зол.')
+    + statsBarChartHTML('Зарегистрированные игроки',labels,dailyRegistrations,' игроков')
+    + statsBarChartHTML('Приглашённые игроки',labels,dailyInvites,' игроков');
+  return `<div class="card"><h2>📊 Подробная статистика</h2><p class="muted">В статистику включены только обычные игроки. Администраторы и модераторы исключены из подсчётов и рейтинга. Графики показывают последние 7 дней по дате подтверждения заявки или регистрации.</p><div class="player-info-grid">
+    ${[['Игроков',users.length],['Приглашено игроков',invitedUsers.length],['Начислено реферальных бонусов',referralEarnings],['Пополнения подтверждены',depositTotal],['Выводы подтверждены',withdrawalTotal],['Общий баланс',totalBalance],['Расходы на кейсы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Открытия кейсов',openings],['Валидные предметы в инвентарях',validInventory],['Кейсов в каталоге',Object.keys(CASES||{}).length],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
+    </div><h3 style="margin-top:16px;font-size:14px">📈 Диаграммы</h3>${charts}<h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)}${x.u?.username?` · @${esc(x.u.username)}`:''} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sec" onclick="drawAdminBody()">Обновить статистику</button><button class="btn danger" onclick="resetAdminStatistics()">Сбросить статистику</button></div><p class="muted" style="margin-top:8px">Сброс обнуляет расходы, доходы и счётчик открытий в статистике. Балансы, инвентари и лимиты открытий не меняются.</p></div>`;
 }
 async function resetAdminStatistics() {
   const confirmed=confirm('Сбросить статистику всех игроков? Будут обнулены расходы, доходы от продажи и счётчик открытий в статистике. Балансы, предметы и лимиты кейсов сохранятся. Это действие нельзя отменить.');
