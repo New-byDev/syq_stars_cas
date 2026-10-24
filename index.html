@@ -1021,7 +1021,7 @@ function upgradeChance(basePrice, targetPrice) {
   const b = Number(basePrice), t = Number(targetPrice);
   if (!(b > 0) || !(t > b)) return 0;
   // Шанс снижен в 1,5 раза; формула синхронизирована с сервером.
-  return Math.max(0, Math.min(100, b / t * 100 / 1.5));
+  return Math.max(0, Math.min(100, b / t * 100 / 2));
 }
 function formatChance(value) {
   const n = Number(value) || 0;
