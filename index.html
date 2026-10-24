@@ -66,6 +66,7 @@
   .btn:hover { opacity:.85; }
   .btn:active { transform:scale(.97); }
   .btn:disabled { opacity:.4; cursor:default; transform:none; }
+  .btn.danger { background:var(--red); color:#fff; }
   .btn.sec { background:transparent; color:var(--text); border:1px solid var(--line); font-weight:400; }
   .btn.sec:hover { border-color:#555; opacity:1; }
   .btn.small { width:auto; padding:8px 12px; font-size:13px; }
@@ -869,7 +870,7 @@ function renderHome(c) {
     if (annIndex >= annCount) annIndex = 0;
     annHtml = `${hiddenAdminBadge('homeAnnouncements')}
     <div class="ann-wrap ${list[annIndex]?.[1]?.noFrame ? 'no-frame' : ''}" id="ann-wrap">
-      <div class="ann-track" id="ann-track">
+      <div class="ann-track" id="ann-track" style="transform:translateX(-${annIndex * 100}%)">
         ${list.map(([id, a]) => {
           const body = `${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(a.btnName)}</a>` : ''}`;
           const wholeLink = !a.btnName && a.btnLink && /^https:\/\//i.test(a.btnLink);
@@ -883,6 +884,7 @@ function renderHome(c) {
         <div class="ann-dots">${list.map((_, i) => `<button class="ann-dot ${i === annIndex ? 'on' : ''}" onclick="annGo(${i})"></button>`).join('')}</div>` : ''}
     </div>`;
   } else annCount = 0;
+  if (annCount <= 1 && annTimer) { clearInterval(annTimer); annTimer = null; }
   if (!featureDisplayVisible('homeAnnouncements')) annHtml = featurePlaceholder('homeAnnouncements');
   const top = Object.entries(USERS).map(([id,u]) => ({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0 && x.id!==ADMIN_ID && x.u?.is_admin!==true && ROLES[x.id]!=='admin' && ROLES[x.id]!=='moderator').sort((a,b)=>b.spent-a.spent).slice(0,5);
   const topHtml = featureDisplayVisible('topSpenders') ? `<div class="card"><h2>🏆 Топ трат ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>` : featurePlaceholder('topSpenders');
@@ -903,11 +905,18 @@ function annUpdate() {
 function annSlide(dir) { annIndex = (annIndex + dir + annCount) % annCount; annUpdate(); restartAnnTimer(); }
 function annGo(i) { annIndex = i; annUpdate(); restartAnnTimer(); }
 function startAnnRotator() {
-  clearInterval(annTimer);
-  annUpdate();
-  annTimer = setInterval(() => { if (document.getElementById('ann-track')) annSlide(1); else clearInterval(annTimer); }, 10000);
+  // The track is rendered at its current transform; do not call annUpdate here because
+  // renderHome may run after unrelated Firebase updates and should not animate the carousel again.
+  if (annTimer) return;
+  annTimer = setInterval(() => {
+    if (CURRENT_TAB !== 'home' || !document.getElementById('ann-track')) { clearInterval(annTimer); annTimer = null; return; }
+    if (annCount > 1) annSlide(1);
+  }, 10000);
 }
-function restartAnnTimer() { clearInterval(annTimer); annTimer = setInterval(() => { if (document.getElementById('ann-track')) annSlide(1); else clearInterval(annTimer); }, 10000); }
+function restartAnnTimer() {
+  clearInterval(annTimer); annTimer = null;
+  if (CURRENT_TAB === 'home' && annCount > 1) startAnnRotator();
+}
 /* свайп пальцем */
 document.addEventListener('touchstart', e => {
   const w = e.target.closest?.('#ann-wrap');
@@ -1799,14 +1808,24 @@ async function delAnn(id) {
 
 function adminStatsHTML() {
   const users=Object.entries(USERS||{}), totalBalance=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.balance)||0),0), totalSpent=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.spentCurrency)||0),0), totalEarned=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.earnedCurrency)||0),0);
-  const openings=users.reduce((n,[,u])=>n+Object.values(u?.openedCases||{}).reduce((x,v)=>x+Math.max(0,Number(v)||0),0),0);
+  const openings=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.caseOpenStats ?? Object.values(u?.openedCases||{}).reduce((x,v)=>x+Math.max(0,Number(v)||0),0))||0),0);
   const validInventory=users.reduce((n,[,u])=>n+Object.values(u?.inventory||{}).filter(e=>{const it=ITEMS[String(e?.itemId||e?.id||'')];return !!it&&!!String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0;}).length,0);
   const allTickets=Object.values(TICKETS||{}), openTickets=allTickets.filter(t=>t?.status==='open').length, activeTickets=allTickets.filter(t=>t?.status==='taken').length, closedTickets=allTickets.filter(t=>t?.status==='closed').length;
   const ranking=users.map(([id,u])=>({id,u,spent:Number(u?.spentCurrency)||0,earned:Number(u?.earnedCurrency)||0})).sort((a,b)=>b.spent-a.spent).slice(0,10);
   return `<div class="card"><h2>📊 Подробная статистика</h2><p class="muted">Исторические продажи, которые раньше не учитывались, задним числом восстановить нельзя.</p><div class="player-info-grid">
     ${[['Игроков',users.length],['Общий баланс',totalBalance],['Расходы на кейсы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Открытия кейсов',openings],['Валидные предметы в инвентарях',validInventory],['Кейсов в каталоге',Object.keys(CASES||{}).length],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
-    </div><h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<button class="btn sec" style="margin-top:10px" onclick="drawAdminBody()">Обновить статистику</button></div>`;
+    </div><h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sec" onclick="drawAdminBody()">Обновить статистику</button><button class="btn danger" onclick="resetAdminStatistics()">Сбросить статистику</button></div><p class="muted" style="margin-top:8px">Сброс обнуляет расходы, доходы и счётчик открытий в статистике. Балансы, инвентари и лимиты открытий не меняются.</p></div>`;
 }
+async function resetAdminStatistics() {
+  const confirmed=confirm('Сбросить статистику всех игроков? Будут обнулены расходы, доходы от продажи и счётчик открытий в статистике. Балансы, предметы и лимиты кейсов сохранятся. Это действие нельзя отменить.');
+  if(!confirmed) return;
+  try {
+    const result=await workerRequest('/api/admin/stats/reset',{confirm:'RESET_STATISTICS'});
+    toast(`Статистика сброшена. Обработано профилей: ${Number(result.resetUsers)||0}`);
+    drawAdminBody();
+  } catch(e) { toast(e.message||'Не удалось сбросить статистику'); }
+}
+
 function adminNotificationsHTML() {
   const cfg=window._adminNotificationConfig||{}; const defaults={caseOpen:'📦 {name}, ты открыл кейс «{case}». Потрачено: {amount}. Баланс: {balance}.',itemSold:'💰 {name}, предмет «{item}» продан за {amount}. Баланс: {balance}.',upgrade:'⚡ {name}, апгрейд: {result}. Предмет: {item}.',reward:'🎁 {name}, ты получил награду: {item}.'}; const t={...defaults,...(cfg.templates||{})};
   return `<div class="card"><h2>🔔 Уведомления Telegram-бота</h2><p class="muted">Сообщения получают только пользователи, включившие их в настройках и запустившие бота. Ошибка отправки не отменяет игровую операцию.</p>
