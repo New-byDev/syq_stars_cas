@@ -418,7 +418,7 @@
   </div>
 </div>
 <div id="role-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRoleModal()"><div class="role-box"><h2 style="margin-bottom:8px">Настройка прав игрока</h2><p id="role-player-label" class="muted"></p><label for="role-choice">Роль</label><select id="role-choice"><option value="player">Игрок</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select><div class="row"><button class="btn sec" onclick="closeRoleModal()">Отмена</button><button class="btn" onclick="savePlayerRole()">Сохранить</button></div></div></div>
-<div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
+<div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn danger" id="delete-player-button" style="margin-top:10px;width:100%;background:var(--red);color:#fff" onclick="deletePlayerFromDatabase()">🗑 Удалить игрока из базы данных</button><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
 <div id="case-item-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeCaseItemPicker()"><div class="picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">База предметов</h2><button class="btn sec small" onclick="closeCaseItemPicker()">Закрыть</button></div><input id="case-item-search" placeholder="Название предмета…" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCaseItemSearch()}"><button class="btn sec" style="margin-top:6px" onclick="applyCaseItemSearch()">Найти</button><div id="case-item-picker-list" class="picker-list" style="margin-top:10px"></div></div></div>
 <div id="ann-reward-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAnnouncementRewardPicker()"><div class="reward-picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">Награды объявления</h2><button type="button" class="btn sec small" onclick="closeAnnouncementRewardPicker()">Готово</button></div><p class="muted">Отметь один или несколько предметов. Игрок сможет получить их только один раз.</p><input id="ann-reward-search" placeholder="Название предмета или ID" oninput="renderAnnouncementRewardPicker()"><div id="ann-reward-picker-list" class="picker-list" style="margin-top:10px"></div><button type="button" class="btn" style="margin-top:10px" onclick="closeAnnouncementRewardPicker()">Сохранить выбор (<span id="ann-reward-count">0</span>)</button></div></div>
 <div id="maintenance-screen"><div class="maintenance-box"><div class="maintenance-icon">🛠️</div><h1 style="font-size:23px;margin-bottom:10px">Технический перерыв</h1><p id="maintenance-message" class="muted" style="font-size:14px;line-height:1.6">Ведутся технические работы. Попробуйте зайти позже.</p></div></div>
@@ -535,7 +535,9 @@ async function copyReferralLink() {
 function syncReferralInfoFromLocalData() {
   if (!REFERRAL_INFO || REFERRAL_INFO.forId !== CURRENT_ID) return;
   const invitedCount = Object.entries(USERS || {}).filter(([id,u]) => String(u?.referredBy || '') === String(CURRENT_ID) && id !== ADMIN_ID && u?.is_admin !== true && u?.role !== 'admin' && u?.role !== 'moderator' && ROLES?.[id] !== 'admin' && ROLES?.[id] !== 'moderator').length;
-  REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:Math.max(0,Number(profile?.referralEarned ?? REFERRAL_INFO.earned)||0)};
+  const wholeEarned = Math.max(0, Number(profile?.referralEarned ?? REFERRAL_INFO.earned) || 0);
+  const pendingHundredths = Math.max(0, Number(profile?.referralPendingHundredths ?? REFERRAL_INFO.pendingHundredths) || 0);
+  REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:wholeEarned + pendingHundredths / 100};
 }
 let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
 let CUR_ICON = '', CUR_DRAFT = '';
@@ -546,7 +548,7 @@ let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let TICKET_COOLDOWN_UNTIL = 0, TICKET_COOLDOWN_TIMER = null, TICKET_CREATE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
 let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
-const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, referrals:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true };
+const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, referrals:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true, caseFastSpin:true, profileReferralStats:true };
 let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
 let UI_VISIBILITY_MESSAGES = {};
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
@@ -794,7 +796,8 @@ async function enterApp(id) {
     }
     ANNS = nextAnns; ANN_NOTIF_READY = true;
     if (CURRENT_TAB === 'home') rerender();
-    if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
+    // Админские объявления перерисовываются только вручную, чтобы не сбрасывать поля ввода.
+    if (CURRENT_TAB === 'admin' && adminSub === 'stats') drawAdminBody();
   });
   db.ref('config/maintenance').on('value', s => {
     const nextMaintenance = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'};
@@ -808,7 +811,7 @@ async function enterApp(id) {
     UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(s.val() || {})};
     UI_VISIBILITY_MESSAGES = {...((s.val() || {}).messages || {})};
     applyUIVisibility();
-    if (CURRENT_TAB === 'admin' && adminSub === 'visibility') drawAdminBody();
+    // Не перерисовываем форму видимости на фоне: сохраняем ввод и фокус.
     if (CURRENT_TAB === 'cases' || CURRENT_TAB === 'inventory' || CURRENT_TAB === 'upgrader' || CURRENT_TAB === 'profile') rerender();
   });
   db.ref('config/currency').on('value', s => {
@@ -828,8 +831,12 @@ async function enterApp(id) {
   }
 }
 function rerenderIfDepends() {
-  // Пока редактируется объявление, фоновые обновления БД не должны пересоздавать форму и очищать поля.
-  if (CURRENT_TAB === 'admin' && adminSub === 'anns') { updateAdminAnnList(); return; }
+  // В админ-панели фоновые обновления только обновляют кеш. Интерфейс обновляется вручную,
+  // кроме статистики, которой нужна актуальная информация в реальном времени.
+  if (CURRENT_TAB === 'admin') {
+    if (adminSub === 'stats') drawAdminBody();
+    return;
+  }
   // Не пересоздаём форму чата при обновлении профиля/ролей: на телефонах это сбрасывает фокус и клавиатуру.
   if (OPEN_TICKET_ID && ['tickets','profile'].includes(CURRENT_TAB)) {
     const t = TICKETS[OPEN_TICKET_ID]; if (t) updateTicketChat(OPEN_TICKET_ID, t);
@@ -1082,7 +1089,7 @@ function upgradeChance(basePrice, targetPrice) {
   if (!(b > 0) || !(t > b)) return 0;
   // Дорогие цели получают дополнительный штраф; формула совпадает с серверной.
   const pricePenalty = Math.max(1, Math.log10(t + 1));
-  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 1.5) / 1 / pricePenalty));
+  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 1.5) / 1.5 / pricePenalty));
 }
 function formatChance(value) {
   const n = Number(value) || 0;
@@ -1176,7 +1183,7 @@ function openCase(caseId) {
   document.getElementById('case-modal').classList.add('show');
   workerRequest('/api/case/odds', {caseId}).then(result => { if (CASE_DETAIL_ID === caseId && result.odds) { CASE_DYNAMIC_ODDS = result; renderCaseDetails(CASES[caseId] || k); } }).catch(() => {});
 }
-function toggleCaseFastSpin() { if (CASE_OPEN_BUSY) return; CASE_FAST_SPIN=!CASE_FAST_SPIN; const k=CASES[CASE_DETAIL_ID]; if(k) renderCaseDetails(k); }
+function toggleCaseFastSpin() { if (!featureVisible('caseFastSpin') && !isAdmin()) return toast('Быстрая прокрутка временно отключена'); if (CASE_OPEN_BUSY) return; CASE_FAST_SPIN=!CASE_FAST_SPIN; const k=CASES[CASE_DETAIL_ID]; if(k) renderCaseDetails(k); }
 function setCaseOpenCount(count) {
   if (CASE_OPEN_BUSY) return;
   CASE_OPEN_COUNT = [1,3,5].includes(Number(count)) ? Number(count) : 1;
@@ -1200,7 +1207,7 @@ function renderCaseDetails(k) {
     <div class="case-counts" aria-label="Количество кейсов">
       ${featureDisplayVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY || (!featureVisible('multiCaseOpen') && !isAdmin())?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
     </div>
-    <button class="btn sec" type="button" style="width:100%;margin:0 0 10px" onclick="toggleCaseFastSpin()" ${CASE_OPEN_BUSY?'disabled':''}>${CASE_FAST_SPIN?'⚡ Быстрая прокрутка: ВКЛ':'⚡ Быстрая прокрутка: ВЫКЛ'}</button>
+    ${featureDisplayVisible('caseFastSpin') ? `<button class="btn sec" type="button" style="width:100%;margin:0 0 10px" onclick="toggleCaseFastSpin()" ${CASE_OPEN_BUSY || (!featureVisible('caseFastSpin')&&!isAdmin())?'disabled':''}>${hiddenAdminBadge('caseFastSpin')} ${CASE_FAST_SPIN?'⚡ Быстрая прокрутка: ВКЛ':'⚡ Быстрая прокрутка: ВЫКЛ'}</button>` : featurePlaceholder('caseFastSpin')}
     <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>Итого: ${totalPrice}</span></div>
     ${featureDisplayVisible('caseOddsInfo') ? `<div style="font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 8px">${hiddenAdminBadge('caseOddsInfo')} Динамические шансы: если экономика проекта уходит в минус, дорогие предметы становятся реже, но кейсы продолжают открываться. Текущие вероятности показаны ниже.</div>` : featurePlaceholder('caseOddsInfo')}
     ${featureDisplayVisible('casePrizeList') ? `${hiddenAdminBadge('casePrizeList')}<div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=CASE_DYNAMIC_ODDS?.odds?.[id]!==undefined?Number(CASE_DYNAMIC_ODDS.odds[id]):(totalWeight>0?Number(weight)/totalWeight*100:0);return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%${CASE_DYNAMIC_ODDS?'':' · загрузка…'}</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>` : featurePlaceholder('casePrizeList')}
@@ -1251,7 +1258,7 @@ function showCaseRoulette(k, winnerIds, winnerItems = null) {
   const rows = document.getElementById('case-roulette-rows');
   const pool = Object.keys(k.items || {}).filter(id => ITEMS[id]);
   const ids = pool.length ? pool : Object.keys(ITEMS).length ? Object.keys(ITEMS) : winners;
-  const duration = CASE_FAST_SPIN ? 650 : 5000;
+  const duration = (CASE_FAST_SPIN && (featureVisible('caseFastSpin') || isAdmin())) ? 650 : 5000;
   const animations = winners.map((winnerId, rowIndex) => new Promise(resolve => {
     const row = document.createElement('div');
     row.className = 'rl-window'; row.style.height='104px'; row.innerHTML='<div class="rl-marker"></div><div class="rl-strip"></div>';
@@ -1453,7 +1460,9 @@ function referralCardHTML() {
   if (!featureDisplayVisible('referrals')) return featurePlaceholder('referrals');
   const info = REFERRAL_INFO?.forId === CURRENT_ID ? REFERRAL_INFO : null;
   const link = String(info?.link || '');
-  return `<div class="card"><h2>🔗 Приглашай друзей ${hiddenAdminBadge('referrals')}</h2><p class="muted">Получай 1% от подтверждённых пополнений приглашённых игроков. Дробная часть копится и переводится в целое золото; бонус начисляется после одобрения пополнения, не за регистрацию. Учитываются только новые аккаунты, впервые открывшие Mini App по твоей ссылке.</p><div class="player-info-grid"><div class="player-info-cell"><span>Приглашено игроков</span><b>${Number(info?.invitedCount||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Получено бонусов</span><b>${Number(info?.earned||0).toLocaleString('ru-RU')} золота</b></div></div>${link ? `<label for="my-referral-link">Твоя реферальная ссылка</label><input id="my-referral-link" value="${esc(link)}" readonly><button class="btn" style="margin-top:8px;width:100%" onclick="copyReferralLink()">📋 Скопировать ссылку</button>` : `<p class="muted" style="margin-top:10px">${info && info.botConfigured===false ? 'Реферальная ссылка пока не настроена администратором. В Cloudflare Worker нужно задать TELEGRAM_BOT_USERNAME.' : 'Загружаем реферальную ссылку…'}</p>`}</div>`;
+  const miniStats = `<div class="player-info-grid" style="margin-top:12px"><div class="player-info-cell"><span>Приглашено</span><b>${Number(info?.invitedCount||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Общий доход</span><b>${Number(info?.earned||0).toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:2})} золота</b></div></div>`;
+  const linkBlock = link ? `<label for="my-referral-link">Твоя реферальная ссылка</label><input id="my-referral-link" value="${esc(link)}" readonly><button class="btn" style="margin-top:8px;width:100%" onclick="copyReferralLink()">📋 Скопировать ссылку</button>${featureDisplayVisible('profileReferralStats') ? `${hiddenAdminBadge('profileReferralStats')}${miniStats}` : featurePlaceholder('profileReferralStats')}` : `<p class="muted" style="margin-top:10px">${info && info.botConfigured===false ? 'Реферальная ссылка пока не настроена администратором. В Cloudflare Worker нужно задать TELEGRAM_BOT_USERNAME.' : 'Загружаем реферальную ссылку…'}</p>${featureDisplayVisible('profileReferralStats') ? `${hiddenAdminBadge('profileReferralStats')}${miniStats}` : featurePlaceholder('profileReferralStats')}`;
+  return `<div class="card"><h2>🔗 Приглашай друзей ${hiddenAdminBadge('referrals')}</h2><p class="muted">Получай 1% от подтверждённых пополнений приглашённых игроков. Дробная часть копится и переводится в целое золото; бонус начисляется после одобрения пополнения, не за регистрацию. Учитываются только новые аккаунты, впервые открывшие Mini App по твоей ссылке.</p>${linkBlock}</div>`;
 }
 
 /* --- профиль: мои тикеты --- */
@@ -1606,10 +1615,43 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button>
       </div>
     </div>
+    <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn sec" type="button" onclick="refreshAdminData()">↻ Обновить данные</button><span id="admin-refresh-status" class="muted" style="align-self:center;font-size:12px"></span></div>
     <div id="admin-body"></div>`;
   drawAdminBody();
 }
 function setSub(s) { adminSub = s; drawAdminBody(); }
+async function refreshAdminData() {
+  const status = document.getElementById('admin-refresh-status');
+  if (status) status.textContent = 'Обновление…';
+  try {
+    const reads = {
+      items: [['items', v => ITEMS = v]],
+      cats: [['categories', v => CATS = v]],
+      cases: [['cases', v => CASES = v]],
+      users: [['users', v => USERS = v], ['roles', v => ROLES = v]],
+      anns: [['anns', v => ANNS = v]],
+      cur: [['config/currency', v => CUR_ICON = v?.icon || '']],
+      system: [['config/maintenance', v => MAINTENANCE = v || {enabled:false,message:''}]],
+      stats: [['users', v => USERS = v], ['tickets', v => TICKETS = v], ['roles', v => ROLES = v], ['items', v => ITEMS = v], ['cases', v => CASES = v], ['anns', v => ANNS = v]],
+      notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]]
+    };
+    const targets = reads[adminSub] || [];
+    await Promise.all(targets.map(async ([path, apply]) => {
+      const snap = await db.ref(path).get();
+      apply(snap.val() || (path === 'config/currency' || path === 'config/maintenance' ? null : {}));
+    }));
+    if (adminSub === 'notifications') {
+      const r = await workerRequest('/api/admin/notifications/get', {});
+      window._adminNotificationConfig = r.config || {};
+    }
+    syncReferralInfoFromLocalData();
+    drawAdminBody();
+    if (status) status.textContent = `Обновлено ${new Date().toLocaleTimeString('ru-RU')}`;
+  } catch (error) {
+    if (status) status.textContent = 'Не удалось обновить';
+    toast('Не удалось обновить данные админ-панели');
+  }
+}
 function drawAdminBody() {
   const b = document.getElementById('admin-body');
   if (!b) return;
@@ -1636,7 +1678,8 @@ const UI_VISIBILITY_LABELS = {
   upgrader:'Кнопка меню «Апгрейдер»', upgraderSourceList:'Список предметов для ставки в апгрейдере', upgraderTargetList:'Список целей и фильтры апгрейдера', upgraderSpin:'Запуск апгрейда',
   profile:'Кнопка меню «Профиль»', profileInfo:'Профиль: ID, имя, баланс и роль', profileTickets:'Профиль: список моих тикетов', profileCreateTicket:'Профиль: создание тикетов пополнения/вывода', referrals:'Профиль: реферальная ссылка и бонусы',
   settings:'Кнопка меню «Настройки»', settingsNotifications:'Настройки уведомлений Telegram (временно можно скрыть)', settingsSupport:'Ссылка на поддержку', settingsLogout:'Кнопка выхода из аккаунта',
-  tickets:'Кнопка меню «Тикеты» для стаффа', announcementRewards:'Получение наград из объявлений'
+  tickets:'Кнопка меню «Тикеты» для стаффа', announcementRewards:'Получение наград из объявлений',
+  caseFastSpin:'Кейсы: быстрая прокрутка', profileReferralStats:'Профиль: статистика рефералов (приглашено и общий доход)'
 };
 function adminVisibilityHTML() {
   return `<div class="card"><h2>👁 Видимость функций игры</h2><p class="muted">Снимите галочку, чтобы скрыть функцию. В поле под ней можно указать текст, который будет показан вместо скрытого элемента. Оставьте поле пустым, чтобы ничего не показывать.</p>
@@ -1834,7 +1877,8 @@ function adminUsersHTML() {
   const entries = q ? all.filter(([id,u]) => id.toLowerCase().includes(q) || String(u.name||'').toLowerCase().includes(q) || String(u.username||'').toLowerCase().replace(/^@/,'').includes(q.replace(/^@/,''))) : all;
   return `<div class="card"><h2>👥 Игроки (${all.length})</h2>
     <p class="muted">Ищи по Telegram ID или имени. «Подробно» открывает статистику и управление балансом; «Настроить» меняет роль.</p>
-    <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="numeric" placeholder="ID, имя или @ник" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
+    <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="search" placeholder="ID, имя или @ник" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button><button class="btn sec" type="button" onclick="showAllAdminUsers()">Показать всех</button></form>
+    <p class="muted" style="font-size:12px">Показано: ${entries.length} из ${all.length} игроков</p>
     ${entries.map(([id, u]) => {
       const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
       const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
@@ -1846,6 +1890,7 @@ function adminUsersHTML() {
   </div>`;
 }
 function applyAdminUserSearch() { adminUserSearch = adminUserSearchDraft.trim(); drawAdminBody(); }
+function showAllAdminUsers() { adminUserSearch = ''; adminUserSearchDraft = ''; drawAdminBody(); }
 function openPlayerAdminModal(id) {
   PLAYER_ADMIN_ID = id;
   const u = USERS[id] || {};
@@ -1885,6 +1930,31 @@ async function setPlayerBan(action) {
   } catch (e) { toast(e.message || 'Не удалось изменить блокировку'); }
 }
 
+async function deletePlayerFromDatabase() {
+  const targetId = PLAYER_ADMIN_ID;
+  if (!targetId) return;
+  if (targetId === ADMIN_ID || targetId === CURRENT_ID) return toast('Нельзя удалить главного администратора или самого себя');
+  const target = USERS[targetId] || {};
+  const label = `${target.name || 'Игрок'} (ID ${targetId})`;
+  if (!confirm(`ВНИМАНИЕ! Удалить ${label} из базы данных? Будут удалены профиль, аккаунт для входа, роль, привязки сессий и тикеты игрока. Действие необратимо.`)) return;
+  const typedId = prompt(`Для подтверждения удаления введи Telegram ID игрока: ${targetId}`);
+  if (typedId !== targetId) return toast('Удаление отменено: ID не совпадает');
+  const button = document.getElementById('delete-player-button');
+  if (button) { button.disabled = true; button.textContent = 'Удаление…'; }
+  try {
+    const result = await workerRequest('/api/admin/player/delete', {targetId});
+    delete USERS[targetId];
+    delete ROLES[targetId];
+    for (const [ticketId, ticket] of Object.entries(TICKETS || {})) if (String(ticket?.owner || '') === targetId) delete TICKETS[ticketId];
+    document.getElementById('player-admin-modal').classList.remove('show');
+    PLAYER_ADMIN_ID = null;
+    drawAdminBody();
+    toast(`Игрок удалён. Удалено тикетов: ${Number(result.removedTickets || 0)}`);
+  } catch (e) {
+    if (button) { button.disabled = false; button.textContent = '🗑 Удалить игрока из базы данных'; }
+    toast(e.message || 'Не удалось удалить игрока');
+  }
+}
 function closePlayerAdminModal() { document.getElementById('player-admin-modal').classList.remove('show'); PLAYER_ADMIN_ID = null; }
 async function adjustPlayerBalance(action) {
   const targetId = PLAYER_ADMIN_ID;
