@@ -30,3 +30,1841 @@
   .logo span { color:var(--muted); font-weight:400; font-size:11px; display:block; letter-spacing:0; margin-top:2px; }
   .balance { font-size:17px; font-weight:700; display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line); padding:8px 12px; border-radius:20px; }
   .balance small { color:var(--muted); font-weight:400; }
+  #cur-icon { width:20px; height:20px; border-radius:50%; object-fit:cover; display:none; }
+  .burger { background:var(--card); border:1px solid var(--line); color:var(--text); width:42px; height:40px; border-radius:10px; font-size:17px; cursor:pointer; transition:.2s; }
+  .burger:active { transform:scale(.92); }
+
+  .menu-panel { background:var(--card); border-bottom:1px solid var(--line); max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1); }
+  .menu-panel.open { max-height:420px; }
+  .menu-inner { display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px; }
+  .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
+  .nav-item { background:#111; border:1px solid var(--line); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px; transition:.2s; user-select:none; }
+  .nav-item:hover { border-color:#555; }
+  .nav-item:active { transform:scale(.95); }
+  .nav-item.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+
+  main { padding:16px; overflow-y:auto; flex:1; }
+  .tab-anim { animation:tabIn .3s ease; }
+  @keyframes tabIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .card h2 { font-size:15px; margin-bottom:12px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .badge { display:inline-block; background:var(--accent); color:#000; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; margin-top:8px; }
+  .badge.mod { background:var(--green); color:#fff; }
+  .status { font-size:13px; padding:5px 0; }
+  .ok { color:var(--green); } .err { color:var(--red); }
+  .divider { border:none; border-top:1px solid var(--line); margin:12px 0; }
+
+  input, select, button, textarea { font-size:14px; }
+  input, select, textarea { width:100%; background:#101010; border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:10px; margin:4px 0 10px; transition:border-color .2s; outline:none; font-family:inherit; }
+  input:focus, select:focus, textarea:focus { border-color:#666; }
+  input[type=checkbox] { width:auto; }
+  input[type=file] { padding:6px; color:var(--muted); }
+  label { font-size:12px; color:var(--muted); }
+  .btn { background:var(--accent); color:#000; border:none; padding:12px 14px; border-radius:10px; font-weight:700; cursor:pointer; width:100%; transition:.2s; }
+  .btn:hover { opacity:.85; }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.4; cursor:default; transform:none; }
+  .btn.sec { background:transparent; color:var(--text); border:1px solid var(--line); font-weight:400; }
+  .btn.sec:hover { border-color:#555; opacity:1; }
+  .btn.small { width:auto; padding:8px 12px; font-size:13px; }
+  .row { display:flex; gap:8px; }
+  .row > * { flex:1; }
+  .del { background:transparent; border:1px solid var(--red); color:var(--red); border-radius:8px; padding:4px 10px; cursor:pointer; font-size:12px; transition:.2s; }
+  .del:active { transform:scale(.94); }
+
+  .item-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .item-card { --rarity:#777; --rarity-glow:rgba(119,119,119,.18); background:linear-gradient(145deg,#151515,#0e0e0e); border:1px solid color-mix(in srgb,var(--rarity) 72%,#222); border-radius:12px; padding:12px; text-align:center; transition:transform .28s cubic-bezier(.2,.8,.2,1),border-color .28s,box-shadow .28s,background .28s; box-shadow:inset 0 0 18px var(--rarity-glow),0 0 10px color-mix(in srgb,var(--rarity) 12%,transparent); position:relative; overflow:hidden; }
+  .item-card::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.55; background:linear-gradient(120deg,transparent 15%,color-mix(in srgb,var(--rarity) 10%,transparent) 50%,transparent 85%); }
+  .item-card:hover { border-color:var(--rarity); transform:translateY(-3px); box-shadow:inset 0 0 24px var(--rarity-glow),0 0 20px color-mix(in srgb,var(--rarity) 25%,transparent); }
+  .item-card > * { position:relative; }
+  .price-tier-common { --rarity:#9aa4b2; --rarity-glow:rgba(154,164,178,.12); }
+  .price-tier-uncommon { --rarity:#55d98a; --rarity-glow:rgba(85,217,138,.16); }
+  .price-tier-rare { --rarity:#4e9bff; --rarity-glow:rgba(78,155,255,.18); }
+  .price-tier-epic { --rarity:#bd70ff; --rarity-glow:rgba(189,112,255,.2); }
+  .price-tier-legendary { --rarity:#ffb547; --rarity-glow:rgba(255,181,71,.22); }
+  .price-tier-mythic { --rarity:#ff5e83; --rarity-glow:rgba(255,94,131,.24); }
+  .item-card.wide { grid-column:span 2; text-align:left; }
+  .item-card img { width:56px; height:56px; object-fit:contain; }
+  .item-card .nm { font-size:13px; margin:8px 0 2px; word-break:break-word; }
+  .chips { font-size:11px; color:var(--muted); }
+  .cmini { width:12px; height:12px; border-radius:50%; object-fit:cover; vertical-align:middle; }
+  .price-tag { font-weight:700; font-size:13px; margin-top:2px; }
+  .free { color:var(--green); font-weight:700; }
+  .cat-title { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:18px 0 8px; }
+  .preview { width:64px; height:64px; border-radius:12px; border:1px solid var(--line); object-fit:cover; margin-top:8px; }
+
+  /* ---------- ОБЪЯВЛЕНИЯ ---------- */
+  .ann-wrap { position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--card); margin-bottom:14px; touch-action:pan-y; min-width:0; }
+  .ann-wrap.no-frame { border:0; border-radius:0; overflow:hidden; background:transparent; }
+  .ann-wrap.no-frame .ann-slide { padding:0; }
+  .ann-wrap.no-frame .ann-slide .atext, .ann-wrap.no-frame .ann-btn { margin-left:2px; margin-right:2px; }
+  .ann-wrap.no-frame .ann-slide img { border-radius:16px; }
+  .ann-wrap .ann-slide img { display:block; width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:12px; background:transparent; }
+  .ann-track { display:flex; transition:transform .55s cubic-bezier(.4,0,.2,1); }
+  .ann-slide { min-width:100%; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .ann-slide.ann-reward-clickable { cursor:pointer; }
+  .ann-slide.ann-reward-clickable:active { background:#ffffff08; }
+  .ann-slide.ann-reward-clickable .atext { cursor:pointer; }
+  .ann-slide.ann-reward-clickable .ann-btn, .ann-slide.ann-reward-clickable a { position:relative; z-index:2; }
+  .ann-slide img { width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:10px; background:transparent; }
+  .ann-slide .atext { font-size:14px; line-height:1.45; word-break:break-word; }
+  .ann-btn { display:inline-block; background:var(--accent); color:#000; font-weight:700; font-size:13px; padding:9px 16px; border-radius:10px; text-decoration:none; text-align:center; transition:.2s; }
+  .ann-btn:active { transform:scale(.96); }
+  .ann-nav { position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; border:1px solid var(--line); font-size:15px; cursor:pointer; z-index:5; transition:.2s; }
+  .ann-nav:active { transform:translateY(-50%) scale(.88); }
+  .ann-nav.l { left:8px; } .ann-nav.r { right:8px; }
+  .ann-dots { display:flex; gap:6px; justify-content:center; padding:10px 0 12px; }
+  .ann-dot { width:8px; height:8px; border-radius:50%; background:#333; border:none; cursor:pointer; transition:.3s; padding:0; }
+  .ann-dot.on { background:var(--accent); width:20px; border-radius:6px; }
+
+  /* ---------- ПРОКРУТКА КЕЙСА ---------- */
+  #case-modal { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:400; display:none; align-items:center; justify-content:center; flex-direction:column; padding:14px; backdrop-filter:blur(9px); }
+  #case-modal.show { display:flex; }
+  .cm-box { display:flex; flex-direction:column; align-items:stretch; text-align:center; width:100%; max-width:560px; max-height:92vh; background:linear-gradient(160deg,#1a1a1d,#0d0d0f); border:1px solid #333; border-radius:20px; padding:16px; box-shadow:0 25px 90px #000b; overflow:hidden; animation:rise .3s ease; }
+  .case-detail-top { flex:0 0 auto; display:flex; align-items:center; gap:12px; text-align:left; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .case-detail-img { width:64px; height:64px; flex:0 0 64px; display:flex; align-items:center; justify-content:center; border-radius:14px; background:#111; border:1px solid #353535; overflow:hidden; font-size:30px; }
+  .case-detail-img img { width:100%; height:100%; object-fit:contain; }
+  .case-detail-title { flex:1; min-width:0; }
+  .case-detail-title h2 { font-size:18px; margin:0 0 5px; }
+  .case-open-btn { flex:0 0 auto; border:0; border-radius:12px; padding:11px 14px; font-weight:800; background:linear-gradient(135deg,#fff,#bfc4cc); color:#111; cursor:pointer; transition:transform .2s,opacity .2s; }
+  .case-open-btn:active { transform:scale(.96); }
+  .case-open-btn:disabled { opacity:.45; cursor:wait; }
+  .case-counts { display:flex; gap:7px; margin:12px 0; }
+  .case-counts button { flex:1; background:#111; border:1px solid #383838; border-radius:10px; color:var(--text); padding:9px 5px; font-weight:700; cursor:pointer; transition:.2s; }
+  .case-counts button.on { background:#f0f0f0; color:#111; border-color:#fff; box-shadow:0 0 15px #ffffff22; }
+  .case-prize-list { overflow-y:auto; min-height:100px; max-height:42vh; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:2px 3px 8px 0; text-align:left; overscroll-behavior:contain; }
+  .case-prize-row { display:flex; align-items:center; gap:9px; min-width:0; background:#101012; border:1px solid color-mix(in srgb,var(--rarity,#777) 60%,#222); border-radius:12px; padding:8px; box-shadow:inset 0 0 14px var(--rarity-glow,#7772); }
+  .case-prize-row img,.case-prize-placeholder { width:42px; height:42px; flex:0 0 42px; object-fit:contain; display:flex; align-items:center; justify-content:center; font-size:23px; }
+  .case-prize-info { min-width:0; flex:1; }
+  .case-prize-info b { display:block; font-size:11px; overflow-wrap:anywhere; }
+  .case-prize-info span { display:block; color:var(--muted); font-size:10px; margin-top:4px; }
+  .case-result-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; margin:14px 0; overflow:auto; }
+  .case-result-card { background:#101012; border:1px solid #555; border-radius:12px; padding:10px 6px; animation:prizeIn .45s ease both; }
+  .case-result-card img { width:58px; height:58px; object-fit:contain; }
+  .case-result-card b { display:block; font-size:11px; overflow-wrap:anywhere; margin-top:5px; }
+  @media(max-width:420px) { .case-detail-top { gap:8px; } .case-detail-img { width:48px;height:48px;flex-basis:48px; } .case-detail-title h2 {font-size:15px;} .case-open-btn {padding:10px 9px;font-size:11px;} .case-prize-list {grid-template-columns:1fr;} .case-prize-row {padding:7px;} }
+  .rl-window { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#0f0f0f; position:relative; height:130px; width:100%; }
+  .rl-window::before, .rl-window::after { content:''; position:absolute; top:0; bottom:0; width:18%; z-index:5; pointer-events:none; }
+  .rl-window::before { left:0; background:linear-gradient(90deg, #0f0f0f, transparent); }
+  .rl-window::after { right:0; background:linear-gradient(-90deg, #0f0f0f, transparent); }
+  .rl-marker { position:absolute; left:50%; top:0; bottom:0; width:2px; margin-left:-1px; background:#fff; z-index:6; box-shadow:0 0 12px rgba(255,255,255,.8); }
+  .rl-strip { display:flex; gap:10px; padding:15px 0; align-items:center; will-change:transform; }
+  .rl-item { width:100px; flex:0 0 100px; height:100px; background:#1a1a1a; border:1px solid var(--line); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; will-change:transform; }
+  .rl-item img { width:44px; height:44px; object-fit:contain; pointer-events:none; }
+  .rl-item span { font-size:9px; color:var(--muted); text-align:center; padding:0 4px; word-break:break-word; pointer-events:none; }
+  .cm-prize { opacity:0; transform:scale(.3); margin-top:16px; }
+  .cm-prize.show { animation:prizeIn .55s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes prizeIn { to { opacity:1; transform:scale(1); } }
+  .cm-prize .frame { width:150px; height:150px; margin:0 auto; border-radius:50%; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, #2a2a2a, #101010); border:2px solid #fff; box-shadow:0 0 40px rgba(255,255,255,.55), 0 0 80px rgba(255,255,255,.25); animation:glowPulse 1.8s ease-in-out infinite; }
+  @keyframes glowPulse { 0%,100% { box-shadow:0 0 30px rgba(255,255,255,.4), 0 0 70px rgba(255,255,255,.15); } 50% { box-shadow:0 0 50px rgba(255,255,255,.75), 0 0 100px rgba(255,255,255,.3); } }
+  .cm-prize .frame img { width:88px; height:88px; object-fit:contain; }
+  .cm-prize .pn { font-size:17px; font-weight:700; margin-top:12px; }
+  .cm-prize .pp { color:var(--muted); font-size:13px; margin-top:2px; }
+
+  /* ---------- ТИКЕТЫ И ЧАТ ---------- */
+  .ticket-row { background:#111; border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:8px; }
+  .ticket-row .tnum { font-weight:700; font-size:14px; }
+  .ts-open { color:var(--green); } .ts-taken { color:#ffb74d; } .ts-closed { color:var(--muted); }
+  .chat { display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; padding:4px 0; overscroll-behavior:contain; }
+  .ticket-chat-form { position:sticky; bottom:0; padding:8px 0 max(8px, env(safe-area-inset-bottom)); background:var(--card); }
+  .ticket-chat-form input { min-width:0; }
+  .ann-whole-link { display:flex; flex-direction:column; gap:10px; color:inherit; text-decoration:none; height:100%; }
+  .ann-whole-link:active { opacity:.88; }
+  .admin-search-row { display:flex; gap:8px; align-items:stretch; margin:10px 0; }
+  .admin-search-row { width:100%; gap:10px; }
+  .admin-search-row input { min-width:0; flex:1; height:48px; font-size:16px; padding:13px 14px; }
+  .admin-search-row .btn { width:auto; min-width:88px; flex:0 0 auto; }
+  .currency-fallback { display:inline-block; vertical-align:middle; font-size:13px; line-height:1; }
+  .ann-claim-btn { background:linear-gradient(135deg,#e9fff2,#75e6a0); color:#08140d; border:0; border-radius:10px; padding:10px 14px; font-weight:800; width:100%; cursor:pointer; }
+  .ann-claim-btn:disabled { opacity:.55; cursor:default; }
+  .ann-reward-chip { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border:1px solid var(--line); border-radius:9px; margin:3px 3px 0 0; font-size:11px; color:var(--muted); }
+  #ann-reward-picker { position:fixed; inset:0; z-index:730; display:none; align-items:center; justify-content:center; padding:14px; background:#000d; backdrop-filter:blur(7px); }
+  #ann-reward-picker.show { display:flex; }
+  .reward-picker-box { width:100%; max-width:650px; max-height:90vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; }
+  .reward-picker-box .picker-list { min-height:0; flex:1; }
+  .player-info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
+  .player-info-cell { padding:10px; border:1px solid var(--line); border-radius:10px; background:#101010; min-width:0; }
+  .player-info-cell span { display:block; color:var(--muted); font-size:11px; margin-bottom:4px; }
+  .player-info-cell b { overflow-wrap:anywhere; }
+  #case-item-picker { position:fixed; inset:0; z-index:720; display:none; align-items:center; justify-content:center; padding:14px; background:#000d; backdrop-filter:blur(7px); }
+  #case-item-picker.show { display:flex; }
+  .picker-box { width:100%; max-width:620px; max-height:88vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; }
+  .picker-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(125px,1fr)); gap:8px; overflow:auto; padding:4px; min-height:120px; overscroll-behavior:contain; }
+  .picker-item { background:#101010; border:1px solid var(--line); border-radius:12px; padding:10px; color:var(--text); text-align:center; cursor:pointer; min-width:0; }
+  .picker-item img { width:58px; height:58px; object-fit:contain; display:block; margin:0 auto 6px; }
+  .picker-item b { display:block; font-size:12px; overflow-wrap:anywhere; }
+  .picker-item span { display:block; color:var(--muted); font-size:11px; margin-top:4px; }
+  .msg { max-width:80%; padding:8px 12px; border-radius:12px; font-size:13px; word-break:break-word; animation:msgIn .25s ease; }
+  @keyframes msgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .msg.own { align-self:flex-end; background:var(--accent); color:#000; border-bottom-right-radius:4px; }
+  .msg.them { align-self:flex-start; background:#222; border-bottom-left-radius:4px; }
+  .msg .who { font-size:10px; opacity:.65; margin-bottom:2px; }
+  .tx-box { background:#101010; border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+  .tx-box label { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer; }
+  #ticket-close-modal { position:fixed; inset:0; z-index:450; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.82); backdrop-filter:blur(5px); }
+  #ticket-close-modal.show { display:flex; }
+  .ticket-confirm-box { width:100%; max-width:420px; max-height:90vh; overflow:auto; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:0 18px 60px rgba(0,0,0,.5); }
+  .ticket-confirm-box h2 { margin-bottom:8px; font-size:17px; }
+  .ticket-confirm-box .confirm-check { display:flex; align-items:flex-start; gap:10px; padding:12px; background:#101010; border:1px solid var(--line); border-radius:10px; margin:12px 0; color:var(--text); font-size:13px; line-height:1.4; }
+  .ticket-confirm-box .confirm-check input { margin:2px 0 0; flex:0 0 auto; width:18px; height:18px; }
+  .ticket-confirm-actions { display:flex; gap:8px; margin-top:10px; }
+  .ticket-confirm-actions .btn { flex:1; }
+
+  #toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(80px); background:#f5f5f5; color:#000; padding:11px 18px; border-radius:12px; font-size:14px; font-weight:600; z-index:600; opacity:0; transition:.35s; max-width:86%; text-align:center; }
+  #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  .admin-tabs { display:flex; gap:8px; overflow-x:auto; overflow-y:hidden; padding:4px 2px 10px; max-width:100%; min-width:0; scrollbar-width:thin; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+  .admin-tabs .btn.sec { flex:0 0 auto; width:auto; min-height:44px; padding:12px 16px; font-size:14px; line-height:1.2; white-space:nowrap; border-radius:12px; touch-action:pan-x; }
+  .admin-tabs .btn.sec.on { box-shadow:0 0 0 1px var(--accent); }
+  .visibility-list { display:grid; gap:8px; }
+  .visibility-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px; min-height:48px; background:#101010; border:1px solid var(--line); border-radius:12px; }
+  .visibility-row span { font-size:14px; line-height:1.35; }
+  .visibility-row input { width:22px; height:22px; flex:0 0 22px; accent-color:#fff; }
+  .visibility-item { border:1px solid var(--line); border-radius:12px; padding:10px; background:#101010; margin-bottom:8px; }
+  .visibility-item .visibility-row { border:0; padding:4px 2px 10px; background:transparent; }
+  .visibility-message-input { width:100%; min-height:62px; resize:vertical; margin-top:5px; font-size:13px; }
+  .feature-disabled-message { color:var(--muted); border:1px dashed var(--line); border-radius:10px; padding:12px; margin:8px 0; font-size:13px; line-height:1.45; overflow-wrap:anywhere; }
+  #admin-body .btn, #admin-body .btn.sec, #admin-body .del { min-height:42px; }
+  #admin-body .btn.small { min-height:38px; padding:9px 12px; }
+  .admin-tabs .btn.sec.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+  .subtabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .subtabs button { background:#111; border:1px solid var(--line); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
+  .subtabs button.on { background:var(--accent); color:#000; font-weight:700; }
+  /* ---------- СТАРТОВАЯ ЗАГРУЗКА ---------- */
+  #app-loader { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; background:radial-gradient(ellipse at 50% 35%,#242424 0%,#111 42%,#070707 100%); opacity:1; visibility:visible; transition:opacity .55s ease,visibility .55s ease; }
+  #app-loader.is-hidden { opacity:0; visibility:hidden; pointer-events:none; }
+  #startup-error { position:fixed; inset:0; z-index:1200; display:none; align-items:center; justify-content:center; padding:24px; background:#090909; color:#f5f5f5; }
+  #startup-error.show { display:flex; }
+  .startup-error-box { width:100%; max-width:440px; padding:24px; border:1px solid #383838; border-radius:16px; background:#151515; }
+  .startup-error-box h2 { margin-bottom:10px; font-size:20px; }
+  .startup-error-box p { color:#aaa; font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+  .startup-error-box button { margin-top:16px; width:100%; }
+  .loader-emblem { width:82px; height:82px; border-radius:25px; display:grid; place-items:center; font-size:34px; font-weight:900; color:#fff; background:linear-gradient(145deg,#292929,#0c0c0c); border:1px solid #555; box-shadow:0 0 35px #ffffff12,inset 0 0 22px #ffffff08; animation:loaderFloat 2s ease-in-out infinite; position:relative; }
+  .loader-emblem::before { content:''; position:absolute; inset:-6px; border-radius:29px; border:1px solid #ffffff20; animation:loaderRing 2.2s ease-out infinite; }
+  .loader-title { font-size:22px; font-weight:900; letter-spacing:4px; }
+  .loader-subtitle { font-size:12px; color:#8d8d8d; letter-spacing:1.2px; }
+  .loader-track { width:min(230px,70vw); height:3px; background:#292929; border-radius:9px; overflow:hidden; margin-top:4px; }
+  .loader-progress { height:100%; width:35%; border-radius:9px; background:linear-gradient(90deg,#777,#fff); box-shadow:0 0 12px #fff8; animation:loaderProgress 1.35s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes loaderFloat { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-6px) scale(1.035); } }
+  @keyframes loaderRing { 0% { transform:scale(.9); opacity:.6; } 100% { transform:scale(1.22); opacity:0; } }
+  @keyframes loaderProgress { 0% { transform:translateX(-120%); } 100% { transform:translateX(340%); } }
+  @media(prefers-reduced-motion:reduce) { #app-loader *,#app-loader *::before { animation-duration:.01ms !important; animation-iteration-count:1 !important; } .item-card { transition:none; } }
+  #maintenance-screen { display:none; position:fixed; inset:0; z-index:700; background:radial-gradient(circle at 50% 20%,#222,#080808 70%); align-items:center; justify-content:center; padding:24px; text-align:center; }
+  #maintenance-screen.show { display:flex; }
+  .maintenance-box { width:100%; max-width:460px; padding:30px 22px; background:#151515; border:1px solid #333; border-radius:22px; box-shadow:0 20px 70px #0009; animation:rise .45s ease; }
+  .maintenance-icon { font-size:44px; margin-bottom:16px; }
+  .role-modal { position:fixed; inset:0; z-index:650; display:none; align-items:center; justify-content:center; padding:18px; background:#000c; backdrop-filter:blur(5px); }
+  .role-modal.show { display:flex; }
+  .role-box { width:100%; max-width:380px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; }
+  .upg-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:start; }
+  .upg-panel { min-width:0; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .upg-scroll { height:min(48vh,440px); min-height:230px; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:8px; padding-right:2px; }
+  .upg-entry { display:flex; align-items:center; gap:9px; padding:9px; background:#101010; border:1px solid color-mix(in srgb,var(--rarity) 60%,#222); box-shadow:inset 0 0 16px var(--rarity-glow); border-radius:11px; text-align:left; cursor:pointer; transition:transform .22s,border-color .22s,background .22s,box-shadow .22s; color:var(--text); width:100%; }
+  .upg-entry:hover { border-color:var(--rarity); box-shadow:inset 0 0 20px var(--rarity-glow),0 0 12px var(--rarity-glow); transform:translateY(-1px); }
+  .upg-entry.selected { border-color:#fff; background:#242424; box-shadow:inset 0 0 18px var(--rarity-glow),0 0 0 1px #ffffff18,0 0 14px var(--rarity-glow); }
+  .upg-entry img { width:44px; height:44px; object-fit:contain; flex:0 0 44px; }
+  .upg-entry .upg-name { font-size:12px; font-weight:700; overflow-wrap:anywhere; }
+  .upg-entry .upg-meta { font-size:11px; color:var(--muted); margin-top:3px; }
+  .upg-filter { display:flex; flex-wrap:wrap; gap:5px; margin:8px 0; }
+  .upg-filter button { background:#101010; color:var(--text); border:1px solid var(--line); border-radius:9px; padding:7px 9px; font-size:11px; cursor:pointer; }
+  .upg-filter button.on { background:#fff; color:#000; }
+  .upg-stage { margin-top:12px; text-align:center; background:linear-gradient(150deg,#1b1b1b,#0c0c0c); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .upg-meter-wrap { width:min(100%,520px); margin:12px auto 14px; padding:12px 0 4px; }
+  .upg-meter-labels { display:flex; justify-content:space-between; gap:10px; font-size:10px; font-weight:800; letter-spacing:.04em; margin-bottom:8px; }
+  .upg-meter-labels span:first-child { color:#f5f5f5; }
+  .upg-meter-labels span:last-child { color:#999; }
+  .upg-meter { position:relative; height:30px; border:1px solid #555; border-radius:7px; overflow:visible; background:linear-gradient(90deg,#202020,#101010); box-shadow:inset 0 0 12px #0008; }
+  .upg-meter-success { position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg,#fff,#d8d8d8); border-radius:6px 0 0 6px; }
+  .upg-meter-marker { position:absolute; top:-7px; width:3px; height:42px; margin-left:-1.5px; background:#7ee787; box-shadow:0 0 0 1px #000,0 0 10px #7ee787; z-index:2; left:0%; }
+  .upg-meter-marker:after { content:''; position:absolute; top:-1px; left:-5px; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #7ee787; }
+  .upg-meter-scale { display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:10px; color:var(--muted); }
+  #upg-percent { font-size:14px; font-weight:800; color:#fff; }
+  .upg-result { min-height:20px; font-size:13px; color:var(--muted); margin:8px 0; }
+  .feature-hidden-admin { display:inline-block; margin-left:5px; font-size:9px; font-weight:500; color:#e8b86d; opacity:.9; letter-spacing:0; white-space:nowrap; }
+  @media(max-width:560px) { .upg-layout { grid-template-columns:1fr; } .upg-scroll { height:230px; min-height:180px; } .upg-panel h3 { font-size:13px; } .upg-meter { height:26px; } .upg-meter-marker { height:38px; } }
+
+  /* ---------- МОБИЛЬНАЯ АДАПТАЦИЯ ---------- */
+  *, *::before, *::after { min-width:0; }
+  html { overflow-x:clip; }
+  body { overflow-x:hidden; }
+  .app { width:100%; max-width:100vw; min-width:0; height:100dvh; }
+  header { width:100%; min-width:0; gap:8px; }
+  header .logo { min-width:0; flex:1 1 auto; overflow-wrap:anywhere; }
+  .balance { flex:0 1 auto; min-width:0; max-width:58%; padding:7px 9px; gap:5px; }
+  #balance { overflow-wrap:anywhere; }
+  main { width:100%; min-width:0; padding:clamp(10px,3.5vw,16px); overflow-x:hidden; }
+  .card, .ann-wrap, .menu-panel, .menu-inner { min-width:0; max-width:100%; }
+  .row { min-width:0; }
+  .row > * { min-width:0; }
+  img, video, canvas, iframe { max-width:100%; }
+  .item-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #case-modal, #ticket-close-modal, .role-modal { padding:10px; }
+  .cm-box, .reward-picker-box, .picker-box, .ticket-confirm-box, .role-box { width:100%; max-width:100%; min-width:0; }
+  .case-prize-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .case-result-list { width:100%; min-width:0; }
+  .case-result-card { min-width:0; overflow-wrap:anywhere; }
+  .admin-tabs { max-width:100%; min-width:0; }
+  .upg-layout { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  @media (max-width:560px) {
+    header { padding:10px 12px; }
+    .logo { font-size:14px; letter-spacing:1px; }
+    .logo span { font-size:10px; }
+    .balance { font-size:14px; max-width:54%; padding:6px 8px; }
+    .burger { flex:0 0 38px; width:38px; height:38px; }
+    .menu-inner { padding:10px 12px; gap:6px; }
+    .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
+  .nav-item { padding:9px 10px; font-size:12px; }
+    .card { padding:12px; }
+    .item-grid { gap:8px; }
+    .item-card { padding:9px; }
+    .item-card.wide { grid-column:span 2; }
+    .row { flex-wrap:wrap; }
+    .row > .btn { min-width:0; }
+    .case-prize-list { grid-template-columns:minmax(0,1fr); }
+    .cm-box { padding:12px; border-radius:15px; }
+    .cm-prize .frame { width:min(150px,42vw); height:min(150px,42vw); }
+    .ticket-confirm-actions { flex-wrap:wrap; }
+    .ticket-confirm-actions .btn { min-width:calc(50% - 4px); }
+    .upg-layout { grid-template-columns:minmax(0,1fr); }
+  }
+  @media (max-width:360px) {
+    header { gap:6px; padding:8px; }
+    .logo { font-size:12px; }
+    .balance { font-size:12px; gap:3px; padding:5px 6px; }
+    #cur-icon { width:16px; height:16px; }
+    main { padding:8px; }
+    .card { padding:10px; }
+    .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
+  .nav-item { padding:8px; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="ambient-canvas" aria-hidden="true"></canvas>
+
+<div id="app-loader" role="status" aria-live="polite">
+  <div class="loader-emblem">Z</div>
+  <div class="loader-title">ZOMBIXUP</div>
+  <div class="loader-subtitle">ЗАГРУЗКА ПРИЛОЖЕНИЯ</div>
+  <div class="loader-track"><div class="loader-progress"></div></div>
+</div>
+
+<div id="auth-screen">
+  <h1>ZombixUP</h1>
+  <p class="sub">Вход через Telegram</p>
+  <div class="card">
+    <p class="muted" id="a-msg" style="margin:6px 0 12px; min-height:18px">Открой приложение через Telegram — вход и создание профиля выполняются автоматически.</p>
+    <button class="btn" id="manual-auth-btn" onclick="doAuth()" style="display:none">Войти вручную</button>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none">
+  <header>
+    <div class="logo">ZombixUP<span id="page-title">Главная</span></div>
+    <div class="balance">
+      <small>Баланс</small>
+      <img id="cur-icon" alt="">
+      <span id="balance">…</span>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </header>
+
+  <nav class="menu-panel" id="menu-panel">
+    <div class="menu-inner">
+      <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
+      <a class="nav-item" data-tab="cases"     onclick="go('cases')">📦 Кейсы</a>
+      <a class="nav-item" data-tab="inventory" onclick="go('inventory')">🎒 Инвентарь</a>
+      <a class="nav-item" data-tab="upgrader" onclick="go('upgrader')">⚡ Апгрейдер</a>
+      <a class="nav-item" data-tab="profile"   onclick="go('profile')">👤 Профиль</a>
+      <a class="nav-item" data-tab="settings"  onclick="go('settings')">⚙️ Настройки</a>
+      <a class="nav-item" id="staff-btn" style="display:none" onclick="go('tickets')">🎫 Тикеты</a>
+      <a class="nav-item" id="admin-btn" style="display:none" onclick="go('admin')">🛠 Админ-панель</a>
+    </div>
+  </nav>
+
+  <main id="content">
+    <div class="card">
+      <h2>Статус</h2>
+      <div class="status" id="s-auth">Авторизация…</div>
+      <div class="status" id="s-db">База данных…</div>
+    </div>
+  </main>
+</div>
+
+<div id="case-modal"><div class="cm-box" id="cm-box"></div></div>
+<div id="ticket-close-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-close-title" onclick="if(event.target===this)cancelTicketClose()">
+  <div class="ticket-confirm-box">
+    <h2 id="ticket-close-title">Закрытие тикета</h2>
+    <p class="muted" id="ticket-close-summary">Проверь действие перед подтверждением.</p>
+    <label class="confirm-check"><input type="checkbox" id="tx-apply"><span id="tx-apply-label">Применить операцию к балансу</span></label>
+    <p class="muted" id="ticket-close-explainer">Если галочка снята, тикет будет закрыт без изменения баланса.</p>
+    <label for="ticket-close-reason">Причина закрытия</label>
+    <textarea id="ticket-close-reason" rows="3" maxlength="300" placeholder="Укажи причину закрытия тикета…"></textarea>
+    <div class="ticket-confirm-actions">
+      <button class="btn sec" type="button" onclick="cancelTicketClose()">Отмена</button>
+      <button class="btn" id="ticket-close-confirm-btn" type="button" style="background:var(--red);color:#fff" onclick="confirmTicketClose()">Подтвердить</button>
+    </div>
+  </div>
+</div>
+<div id="role-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRoleModal()"><div class="role-box"><h2 style="margin-bottom:8px">Настройка прав игрока</h2><p id="role-player-label" class="muted"></p><label for="role-choice">Роль</label><select id="role-choice"><option value="player">Игрок</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select><div class="row"><button class="btn sec" onclick="closeRoleModal()">Отмена</button><button class="btn" onclick="savePlayerRole()">Сохранить</button></div></div></div>
+<div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
+<div id="case-item-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeCaseItemPicker()"><div class="picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">База предметов</h2><button class="btn sec small" onclick="closeCaseItemPicker()">Закрыть</button></div><input id="case-item-search" placeholder="Название предмета…" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCaseItemSearch()}"><button class="btn sec" style="margin-top:6px" onclick="applyCaseItemSearch()">Найти</button><div id="case-item-picker-list" class="picker-list" style="margin-top:10px"></div></div></div>
+<div id="ann-reward-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAnnouncementRewardPicker()"><div class="reward-picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">Награды объявления</h2><button type="button" class="btn sec small" onclick="closeAnnouncementRewardPicker()">Готово</button></div><p class="muted">Отметь один или несколько предметов. Игрок сможет получить их только один раз.</p><input id="ann-reward-search" placeholder="Название предмета или ID" oninput="renderAnnouncementRewardPicker()"><div id="ann-reward-picker-list" class="picker-list" style="margin-top:10px"></div><button type="button" class="btn" style="margin-top:10px" onclick="closeAnnouncementRewardPicker()">Сохранить выбор (<span id="ann-reward-count">0</span>)</button></div></div>
+<div id="maintenance-screen"><div class="maintenance-box"><div class="maintenance-icon">🛠️</div><h1 style="font-size:23px;margin-bottom:10px">Технический перерыв</h1><p id="maintenance-message" class="muted" style="font-size:14px;line-height:1.6">Ведутся технические работы. Попробуйте зайти позже.</p></div></div>
+<div id="startup-error" role="alert" aria-live="assertive"><div class="startup-error-box"><h2>Не удалось запустить ZombixUP</h2><p id="startup-error-message">Произошла ошибка при загрузке приложения.</p><button class="btn" type="button" onclick="location.reload()">Перезагрузить</button></div></div>
+<div id="toast"></div>
+
+<script>
+let APP_BOOTSTRAPPING = true;
+function hideAppLoader() {
+  const loader = document.getElementById('app-loader');
+  if (loader) loader.classList.add('is-hidden');
+}
+function showStartupError(error, phase='инициализация') {
+  const message = error?.message || String(error || 'Неизвестная ошибка');
+  console.error('[ZombixUP startup]', phase, error);
+  const panel = document.getElementById('startup-error');
+  const messageEl = document.getElementById('startup-error-message');
+  if (messageEl) messageEl.textContent = `${phase}: ${message}`;
+  if (panel) panel.classList.add('show');
+  const app = document.getElementById('app'); if (app) app.style.display = 'none';
+  const authScreen = document.getElementById('auth-screen'); if (authScreen) authScreen.classList.remove('show');
+  hideAppLoader();
+}
+window.addEventListener('error', event => {
+  if (APP_BOOTSTRAPPING && event?.message) showStartupError(new Error(event.message), 'Ошибка JavaScript');
+});
+window.addEventListener('unhandledrejection', event => {
+  if (APP_BOOTSTRAPPING) showStartupError(event?.reason || new Error('Необработанная ошибка загрузки'), 'Ошибка запуска');
+});
+// Не оставляем экран загрузки навсегда при сетевой ошибке или недоступности базы.
+window.setTimeout(() => {
+  if (APP_BOOTSTRAPPING && !document.getElementById('startup-error')?.classList.contains('show')) {
+    showStartupError(new Error('Приложение не завершило запуск за 15 секунд. Проверьте соединение и доступ Firebase.'), 'Тайм-аут загрузки');
+  } else hideAppLoader();
+}, 15000);
+function priceTier(value) {
+  const price = Math.max(0, Number(value) || 0);
+  if (price >= 10000) return 'mythic';
+  if (price >= 5000) return 'legendary';
+  if (price >= 1000) return 'epic';
+  if (price >= 500) return 'rare';
+  if (price >= 100) return 'uncommon';
+  return 'common';
+}
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
+  authDomain: "syq-site.firebaseapp.com",
+  databaseURL: "https://syq-site-default-rtdb.firebaseio.com",
+  projectId: "syq-site",
+  storageBucket: "syq-site.firebasestorage.app",
+  messagingSenderId: "309704145783",
+  appId: "1:309704145783:web:3d525163e0fbb1f7723f72",
+  measurementId: "G-QV7MG6M9V4"
+};
+
+const ADMIN_ID = '8158896250';
+
+if (!window.firebase || typeof firebase.initializeApp !== 'function' || typeof firebase.auth !== 'function' || typeof firebase.database !== 'function') {
+  showStartupError(new Error('Не загрузились библиотеки Firebase. Проверьте интернет, блокировщики и доступ к gstatic.com.'), 'Загрузка зависимостей');
+  throw new Error('Firebase SDK is unavailable');
+}
+if (!window.Telegram || !window.Telegram.WebApp) {
+  showStartupError(new Error('Не загрузилась библиотека Telegram WebApp. Откройте приложение внутри Telegram или проверьте доступ к telegram.org.'), 'Загрузка зависимостей');
+  throw new Error('Telegram WebApp SDK is unavailable');
+}
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+const tg = window.Telegram.WebApp;
+tg.ready(); tg.expand();
+const TG_USER = tg.initDataUnsafe?.user || null;
+const TG_ID = TG_USER ? String(TG_USER.id) : null;
+const TG_INIT_DATA = tg.initData || '';
+let autoTelegramStarted = false;
+
+let CURRENT_ID = null, CURRENT_PASS = null, profileRef = null, profile = null;
+const WORKER_URL = 'https://strike-arena-kv.mirikpirik2009.workers.dev';
+function formatApiError(data, status, fallback) {
+  const code = String(data?.code || `HTTP_${status || 0}`);
+  const message = String(data?.error || fallback || 'Неизвестная ошибка');
+  return `${message} [код: ${code}]`;
+}
+async function workerRequest(path, payload = {}) {
+  if (!CURRENT_ID || (!CURRENT_PASS && !TG_INIT_DATA)) throw new Error('Сессия не подтверждена. Откройте приложение через Telegram.');
+  if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Укажи URL Cloudflare Worker в WORKER_URL в index.html');
+  const response = await fetch(WORKER_URL + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:CURRENT_ID, password:CURRENT_PASS, initData:TG_INIT_DATA, ...payload }) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(formatApiError(data, response.status, 'Ошибка серверной операции'));
+  return data;
+}
+let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
+let CUR_ICON = '', CUR_DRAFT = '';
+let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
+let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
+let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = ''; 
+let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
+let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
+let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
+const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true };
+let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
+let UI_VISIBILITY_MESSAGES = {};
+let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
+let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
+let annIndex = 0, annTimer = null, annCount = 0;
+let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0, CASE_DYNAMIC_ODDS = null, CASE_FAST_SPIN = false;
+const IMG_SIZE = 128;
+const DAY = 24 * 3600 * 1000;
+
+/* ---------- фоновые точки со световыми следами ---------- */
+(function startAmbientParticles(){
+  const canvas=document.getElementById('ambient-canvas'); if(!canvas) return;
+  const ctx=canvas.getContext('2d'); if(!ctx) return;
+  const reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let w=0,h=0,raf=0,particles=[];
+  function resize(){
+    const dpr=Math.min(window.devicePixelRatio||1,1.6); w=window.innerWidth; h=window.innerHeight;
+    canvas.width=Math.floor(w*dpr); canvas.height=Math.floor(h*dpr); canvas.style.width=w+'px'; canvas.style.height=h+'px'; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const count=Math.max(18,Math.min(58,Math.round(w*h/24000)));
+    particles=Array.from({length:count},()=>({x:Math.random()*w,y:Math.random()*h,r:.7+Math.random()*1.7,vy:.25+Math.random()*.75,vx:-.25+Math.random()*.5,tail:8+Math.random()*20,a:.12+Math.random()*.36,phase:Math.random()*Math.PI*2}));
+  }
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      p.y+=p.vy; p.x+=p.vx+Math.sin(p.phase+p.y*.006)*.18;
+      if(p.y>h+24){p.y=-24;p.x=Math.random()*w;}
+      if(p.x<-24)p.x=w+24; if(p.x>w+24)p.x=-24;
+      const grad=ctx.createLinearGradient(p.x,p.y-p.tail,p.x,p.y+2);
+      grad.addColorStop(0,'rgba(160,190,255,0)'); grad.addColorStop(1,`rgba(190,215,255,${p.a})`);
+      ctx.strokeStyle=grad; ctx.lineWidth=p.r; ctx.beginPath(); ctx.moveTo(p.x,p.y-p.tail); ctx.lineTo(p.x,p.y); ctx.stroke();
+      ctx.fillStyle=`rgba(225,238,255,${Math.min(.7,p.a+.15)})`; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    }
+    if(!reduce) raf=requestAnimationFrame(frame);
+  }
+  resize(); frame(); window.addEventListener('resize',()=>{cancelAnimationFrame(raf);resize();if(!reduce)frame();},{passive:true});
+})();
+
+/* ---------- утилиты ---------- */
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+const esc = s => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const pcur = n => `${CUR_ICON ? `<img class="cmini" src="${CUR_ICON}">` : ''} ${n}`;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function toggleMenu() { document.getElementById('menu-panel').classList.toggle('open'); }
+function isAdmin() { return (profile && profile.is_admin === true) || CURRENT_ID === ADMIN_ID || ROLES[CURRENT_ID] === 'admin'; }
+function isStaff() { return isAdmin() || ROLES[CURRENT_ID] === 'moderator'; }
+function fmtTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit' }) + ' ' +
+         d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+}
+const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', upgrader:'Апгрейдер', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+let inventoryCleanupCheckedFor = null;
+const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, caseOpen:true, itemSold:true, upgrade:true, reward:true, announcements:true, maintenanceStart:true, maintenanceEnd:true };
+
+function fileToDataUrl(file, cb) {
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = IMG_SIZE;
+      c.getContext('2d').drawImage(img, 0, 0, IMG_SIZE, IMG_SIZE);
+      cb(c.toDataURL('image/png'));
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+/* фото объявления — сжимаем до 800px по ширине (объявления шире иконок) */
+function fileToPhoto(file, cb) {
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const w = Math.min(800, img.width);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = Math.round(img.height * w / img.width);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+/* ---------- ВХОД ---------- */
+function aMsg(t, cls) {
+  const m = document.getElementById('a-msg');
+  m.textContent = t; m.style.color = cls === 'err' ? '#ef5350' : '#8d8d8d';
+}
+async function telegramAutoLogin(firebaseUser) {
+  if (!TG_USER || !TG_INIT_DATA) throw new Error('Telegram не передал данные авторизации. Откройте Mini App кнопкой бота.');
+  if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Не настроен URL Cloudflare Worker.');
+  aMsg('Выполняется вход через Telegram…');
+  const idToken = await firebaseUser.getIdToken();
+  const response = await fetch(WORKER_URL + '/api/telegram-session', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ initData:TG_INIT_DATA, uid:firebaseUser.uid, idToken })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(formatApiError(data, response.status, 'Не удалось выполнить вход через Telegram'));
+  CURRENT_ID = String(data.id || TG_USER.id);
+  CURRENT_PASS = '';
+  await enterApp(CURRENT_ID);
+}
+
+async function doAuth() {
+  const id = document.getElementById('a-id').value.trim();
+  const pass = document.getElementById('a-pass').value;
+  if (!/^\d{4,}$/.test(id)) return aMsg('ID должен быть числом', 'err');
+  if (pass.length < 6) return aMsg('Пароль минимум 6 символов', 'err');
+  if (WORKER_URL.includes('YOUR-WORKER')) return aMsg('Сначала настрой URL Cloudflare Worker в index.html', 'err');
+  try {
+    const cred = await auth.signInAnonymously();
+    const idToken = await cred.user.getIdToken();
+    CURRENT_PASS = pass;
+    const callSession = async (register = false, bootstrapSecret = '') => {
+      const response = await fetch(WORKER_URL + '/api/session', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ id, password:pass, uid:cred.user.uid, idToken, register, bootstrapSecret })
+      });
+      return { response, data: await response.json().catch(() => ({})) };
+    };
+    let result = await callSession(false);
+    if (!result.response.ok && result.data.code === 'ACCOUNT_MISSING') {
+      if (!confirm('Такого ID ещё нет. Зарегистрировать новый аккаунт?')) return;
+      let bootstrapSecret = '';
+      if (id === ADMIN_ID) bootstrapSecret = prompt('Для первичной регистрации администратора введи ADMIN_BOOTSTRAP_SECRET из настроек Worker:') || '';
+      result = await callSession(true, bootstrapSecret);
+    }
+    if (!result.response.ok || !result.data.ok) return aMsg(formatApiError(result.data, result.response.status, 'Не удалось войти'), 'err');
+    CURRENT_ID = id;
+    await enterApp(id);
+  } catch (e) { aMsg('Ошибка входа: ' + (e?.message || 'Неизвестная ошибка') + (e instanceof TypeError ? ' [код: NETWORK_OR_CORS_ERROR]' : ''), 'err'); }
+}
+/* ---------- СТАРТ ---------- */
+async function enterApp(id) {
+  try {
+  CURRENT_ID = id;
+  document.getElementById('auth-screen').classList.remove('show');
+  document.getElementById('app').style.display = 'flex';
+
+  profileRef = db.ref('users/' + id);
+  const snap = await profileRef.get();
+  if (!snap.exists()) {
+    await profileRef.child('tgId').set(id);
+    await profileRef.child('name').set((TG_USER && String(TG_USER.id) === id) ? TG_USER.first_name : id);
+    await profileRef.child('createdAt').set(Date.now());
+  } else if (id === ADMIN_ID && snap.val().is_admin !== true) {
+    // is_admin выставляется только вручную в базе или сервером.
+  }
+
+  profileRef.on('value', s => {
+    profile = s.val() || {};
+    document.getElementById('balance').textContent = profile.balance ?? 0;
+    document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
+    updateStaffBtn();
+    const sDb = document.getElementById('s-db');
+    if (sDb && !sDb.textContent.includes('ок')) { sDb.textContent = 'База данных: ок'; sDb.className = 'status ok'; }
+  });
+
+  db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('cases').on('value', s => { CASES = s.val() || {}; rerenderIfDepends(); });
+  db.ref('users').on('value', s => { USERS = s.val() || {}; rerenderIfDepends(); });
+  db.ref('tickets').on('value', s => {
+    const previous = TICKETS;
+    const nextTickets = s.val() || {};
+    if (TICKET_NOTIF_READY && CURRENT_ID) {
+      for (const [ticketId, ticket] of Object.entries(nextTickets)) {
+        const oldTicket = previous[ticketId];
+        if (ticket?.owner === CURRENT_ID && oldTicket && oldTicket.status !== 'closed' && ticket.status === 'closed') {
+          toast(`Тикет #${ticket.num || ticketId} закрыт${ticket.reason ? ': ' + String(ticket.reason).slice(0,110) : ''}`);
+        }
+      }
+    }
+    TICKETS = nextTickets; TICKET_NOTIF_READY = true; sweepExpired();
+    const activeTicket = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
+    const previousTicket = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
+    if (activeTicket && previousTicket && activeTicket.status === previousTicket.status && activeTicket.takenBy === previousTicket.takenBy && ['tickets','profile'].includes(CURRENT_TAB)) {
+      updateTicketChat(OPEN_TICKET_ID, activeTicket);
+    } else rerenderIfDepends();
+  });
+  db.ref('roles').on('value', s => { ROLES = s.val() || {}; updateStaffBtn(); rerenderIfDepends(); });
+  db.ref('anns').on('value', s => {
+    const nextAnns = s.val() || {};
+    if (ANN_NOTIF_READY) {
+      const added = Object.keys(nextAnns).filter(id => !ANNS[id]);
+      if (added.length) toast(added.length === 1 ? 'Появилось новое объявление' : `Новых объявлений: ${added.length}`);
+    }
+    ANNS = nextAnns; ANN_NOTIF_READY = true;
+    if (CURRENT_TAB === 'home') rerender();
+    if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
+  });
+  db.ref('config/maintenance').on('value', s => {
+    const nextMaintenance = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'};
+    if (MAINTENANCE_NOTIF_READY && nextMaintenance.enabled !== !!MAINTENANCE?.enabled) {
+      if (nextMaintenance.enabled) toast(`Технический перерыв: ${nextMaintenance.message || 'Ведутся технические работы.'}`);
+      else toast('Технический перерыв окончен. Приложение снова доступно.');
+    }
+    MAINTENANCE = nextMaintenance; MAINTENANCE_NOTIF_READY = true; updateMaintenanceScreen();
+  });
+  db.ref('config/uiVisibility').on('value', s => {
+    UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(s.val() || {})};
+    UI_VISIBILITY_MESSAGES = {...((s.val() || {}).messages || {})};
+    applyUIVisibility();
+    if (CURRENT_TAB === 'admin' && adminSub === 'visibility') drawAdminBody();
+    if (CURRENT_TAB === 'cases' || CURRENT_TAB === 'inventory' || CURRENT_TAB === 'upgrader' || CURRENT_TAB === 'profile') rerender();
+  });
+  db.ref('config/currency').on('value', s => {
+    CUR_ICON = s.val()?.icon || '';
+    const el = document.getElementById('cur-icon');
+    if (CUR_ICON) { el.src = CUR_ICON; el.style.display = 'block'; } else el.style.display = 'none';
+    if (CURRENT_TAB === 'home') rerender();
+  });
+
+  go('home');
+  APP_BOOTSTRAPPING = false;
+  // Даём первичным подпискам Firebase отдать данные, затем плавно открываем интерфейс.
+  window.setTimeout(hideAppLoader, 650);
+  } catch (error) {
+    showStartupError(error, 'Инициализация профиля и Firebase');
+  }
+}
+function rerenderIfDepends() {
+  // Пока редактируется объявление, фоновые обновления БД не должны пересоздавать форму и очищать поля.
+  if (CURRENT_TAB === 'admin' && adminSub === 'anns') { updateAdminAnnList(); return; }
+  // Не пересоздаём форму чата при обновлении профиля/ролей: на телефонах это сбрасывает фокус и клавиатуру.
+  if (OPEN_TICKET_ID && ['tickets','profile'].includes(CURRENT_TAB)) {
+    const t = TICKETS[OPEN_TICKET_ID]; if (t) updateTicketChat(OPEN_TICKET_ID, t);
+    return;
+  }
+  if (['admin', 'tickets', 'profile', 'home', 'cases', 'inventory'].includes(CURRENT_TAB) || (CURRENT_TAB === 'upgrader' && !UPG_BUSY)) rerender();
+}
+function updateStaffBtn() {
+  const staffBtn=document.getElementById('staff-btn');
+  if(staffBtn) { const msg=String(UI_VISIBILITY_MESSAGES?.tickets||'').trim(); if(isStaff() && featureVisible('tickets')) { staffBtn.style.display='block'; staffBtn.style.pointerEvents=''; staffBtn.textContent='🎫 Тикеты'; } else if(isStaff() && msg) { staffBtn.style.display='block'; staffBtn.style.pointerEvents='none'; staffBtn.textContent=msg; } else staffBtn.style.display='none'; }
+  document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
+  updateMaintenanceScreen();
+}
+function featureVisible(key) { return UI_VISIBILITY[key] !== false; }
+function featureDisplayVisible(key) { return featureVisible(key) || isAdmin(); }
+function hiddenAdminBadge(key) { return isAdmin() && !featureVisible(key) ? '<small class="feature-hidden-admin">(скрыто)</small>' : ''; }
+function featurePlaceholder(key, extraClass='') { const message=String(UI_VISIBILITY_MESSAGES?.[key]||'').trim(); if (isAdmin()) return `<div class="feature-disabled-message ${extraClass}"><small class="feature-hidden-admin">(скрыто)</small>${message ? `<div>${esc(message)}</div>` : ''}</div>`; return message ? `<div class="feature-disabled-message ${extraClass}">${esc(message)}</div>` : ''; }
+function applyUIVisibility() {
+  const map = {cases:'cases', inventory:'inventory', upgrader:'upgrader', profile:'profile', settings:'settings'};
+  document.querySelectorAll('.nav-item[data-tab]').forEach(el => {
+    const key = map[el.dataset.tab];
+    if (!key) return;
+    const message = String(UI_VISIBILITY_MESSAGES?.[key]||'').trim();
+    if (!el.dataset.originalLabel) el.dataset.originalLabel = el.innerHTML;
+    if (featureVisible(key) || isAdmin()) {
+      el.style.display = ''; el.style.pointerEvents = ''; el.removeAttribute('aria-disabled');
+      if (el.dataset.originalLabel) el.innerHTML = el.dataset.originalLabel;
+      el.classList.remove('nav-item-disabled');
+      if (isAdmin() && !featureVisible(key)) el.innerHTML += ' <small class="feature-hidden-admin">(скрыто)</small>';
+    } else if (message) {
+      if (!el.dataset.originalLabel) el.dataset.originalLabel = el.innerHTML;
+      el.style.display = ''; el.style.pointerEvents = 'none'; el.setAttribute('aria-disabled','true');
+      el.textContent = message;
+      el.classList.add('nav-item-disabled');
+    } else { el.style.display = 'none'; }
+  });
+  const staffBtn = document.getElementById('staff-btn');
+  if (staffBtn) { const msg=String(UI_VISIBILITY_MESSAGES?.tickets||'').trim(); if(isAdmin() && !featureVisible('tickets')) { staffBtn.style.display='block'; staffBtn.style.pointerEvents=''; staffBtn.textContent='🎫 Тикеты (скрыто)'; } else if(isStaff() && featureVisible('tickets')) { staffBtn.style.display='block'; staffBtn.style.pointerEvents=''; staffBtn.textContent='🎫 Тикеты'; } else if(isStaff() && msg) { staffBtn.style.display='block'; staffBtn.style.pointerEvents='none'; staffBtn.textContent=msg; } else staffBtn.style.display='none'; }
+  if (!isAdmin() && map[CURRENT_TAB] && !featureVisible(map[CURRENT_TAB])) go('home');
+}
+function updateMaintenanceScreen() {
+  const screen = document.getElementById('maintenance-screen');
+  if (!screen) return;
+  const blocked = !!MAINTENANCE?.enabled && !isAdmin();
+  screen.classList.toggle('show', blocked);
+  const msg = document.getElementById('maintenance-message');
+  if (msg) msg.textContent = MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.';
+}
+
+auth.onAuthStateChanged(u => {
+  if (TG_USER && TG_INIT_DATA) {
+    if (autoTelegramStarted) return;
+    if (!u) { auth.signInAnonymously().catch(e => { showAuth(); aMsg('Ошибка Firebase: ' + e.message, 'err'); }); return; }
+    autoTelegramStarted = true;
+    telegramAutoLogin(u).catch(e => { showAuth(); aMsg('Не удалось войти автоматически: ' + (e?.message || 'Неизвестная ошибка') + (e instanceof TypeError ? ' [код: NETWORK_OR_CORS_ERROR]' : ''), 'err'); });
+    return;
+  }
+  showAuth();
+  const manualButton = document.getElementById('manual-auth-btn');
+  if (manualButton) manualButton.style.display = 'block';
+  aMsg('Откройте сайт внутри Telegram, чтобы входить автоматически.');
+});
+function showAuth() {
+  APP_BOOTSTRAPPING = false;
+  hideAppLoader();
+  document.getElementById('auth-screen').classList.add('show');
+  document.getElementById('app').style.display = 'none';
+}
+
+/* ---------- НАВИГАЦИЯ ---------- */
+function go(tab) {
+  if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
+  const visibilityKey = ({cases:'cases',inventory:'inventory',upgrader:'upgrader',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
+  if (visibilityKey && !featureVisible(visibilityKey) && !isAdmin()) { toast('Этот раздел временно скрыт'); tab='home'; }
+  CURRENT_TAB = tab;
+  OPEN_TICKET_ID = null;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  document.getElementById('menu-panel').classList.remove('open');
+  document.getElementById('page-title').textContent = TITLES[tab] || tab;
+  const c = document.getElementById('content');
+  c.classList.remove('tab-anim'); void c.offsetWidth; c.classList.add('tab-anim');
+  rerender();
+}
+function rerender() {
+  const c = document.getElementById('content');
+  if (CURRENT_TAB === 'home') renderHome(c);
+  if (CURRENT_TAB === 'settings') renderSettings(c);
+  if (CURRENT_TAB === 'inventory') renderInventory(c);
+  if (CURRENT_TAB === 'upgrader') renderUpgrader(c);
+  if (CURRENT_TAB === 'cases') renderCasesShop(c);
+  if (CURRENT_TAB === 'profile') renderProfile(c);
+  if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
+  if (CURRENT_TAB === 'admin') { if(isAdmin()) { renderAdmin(c); loadAdminNotificationConfig(); } else c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>'; }
+}
+function logout() { auth.signOut().then(() => location.reload()); }
+
+function renderSettings(c) {
+  const prefs = {...DEFAULT_NOTIFICATION_SETTINGS, ...(profile?.notificationSettings || {})};
+  c.innerHTML = `<div class="card"><h2>⚙️ Настройки ${hiddenAdminBadge('settings')}</h2>
+    ${featureDisplayVisible('settingsNotifications') ? `<p class="muted">${hiddenAdminBadge('settingsNotifications')} Управляй уведомлениями. Сообщения в Telegram придут, если ты уже запускал бота и он может отправлять тебе сообщения.</p>
+    <label style="display:flex;align-items:center;gap:10px;margin:12px 0"><input id="notif-telegram" type="checkbox" ${prefs.telegram?'checked':''} style="width:auto"> Отправлять уведомления в Telegram-бот</label>
+    <div style="border-top:1px solid var(--line);padding-top:10px"><p style="font-weight:700;margin-bottom:6px">События</p>
+      ${[['caseOpen','Открытие кейса'],['itemSold','Продажа предмета'],['upgrade','Результат апгрейда'],['reward','Получение награды'],['announcements','Новые объявления'],['maintenanceStart','Начало технического перерыва'],['maintenanceEnd','Окончание технического перерыва']].map(([key,label])=>`<label style="display:flex;align-items:center;gap:10px;margin:10px 0"><input id="notif-${key}" type="checkbox" ${prefs[key]?'checked':''} style="width:auto"> ${label}</label>`).join('')}
+    </div>
+    <button class="btn" style="margin-top:8px" onclick="saveNotificationSettings()">Сохранить уведомления</button>` : featurePlaceholder('settingsNotifications')}
+    ${featureDisplayVisible('settingsSupport') ? `<a class="btn sec" href="https://t.me/Siqyal" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:10px">💬 Поддержка @Siqyal ${hiddenAdminBadge('settingsSupport')}</a>` : featurePlaceholder('settingsSupport')}
+    ${featureDisplayVisible('settingsLogout') ? `<button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта ${hiddenAdminBadge('settingsLogout')}</button>` : featurePlaceholder('settingsLogout')}</div>`;
+}
+async function saveNotificationSettings() {
+  const settings={telegram:document.getElementById('notif-telegram').checked,caseOpen:document.getElementById('notif-caseOpen').checked,itemSold:document.getElementById('notif-itemSold').checked,upgrade:document.getElementById('notif-upgrade').checked,reward:document.getElementById('notif-reward').checked,announcements:document.getElementById('notif-announcements').checked,maintenanceStart:document.getElementById('notif-maintenanceStart').checked,maintenanceEnd:document.getElementById('notif-maintenanceEnd').checked};
+  try { await workerRequest('/api/settings/notifications',{settings}); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast('Настройки уведомлений сохранены'); rerender(); }
+  catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
+}
+
+/* ---------- ГЛАВНАЯ: ОБЪЯВЛЕНИЯ ---------- */
+function renderHome(c) {
+  const list = Object.entries(ANNS).filter(([id,a]) => !(a.oneTime && profile?.claimedAnnouncements?.[id])).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+  let annHtml = '';
+  if (list.length && featureDisplayVisible('homeAnnouncements')) {
+    annCount = list.length;
+    if (annIndex >= annCount) annIndex = 0;
+    annHtml = `${hiddenAdminBadge('homeAnnouncements')}
+    <div class="ann-wrap ${list[annIndex]?.[1]?.noFrame ? 'no-frame' : ''}" id="ann-wrap">
+      <div class="ann-track" id="ann-track">
+        ${list.map(([id, a]) => {
+          const body = `${a.img ? `<img src="${esc(a.img)}" alt="" loading="lazy">` : ''}<div class="atext">${esc(a.text)}</div>${a.btnName && a.btnLink ? `<a class="ann-btn" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(a.btnName)}</a>` : ''}`;
+          const wholeLink = !a.btnName && a.btnLink && /^https:\/\//i.test(a.btnLink);
+          const slideClick = a.oneTime && featureVisible('announcementRewards') ? ` class="ann-slide ann-reward-clickable" role="button" tabindex="0" onclick="claimAnnouncement('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();claimAnnouncement('${id}')}"` : ` class="ann-slide"`;
+          const announcementBody = wholeLink ? `<a class="ann-whole-link" href="${esc(a.btnLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${body}</a>` : body;
+          return `<div${slideClick}>${announcementBody}</div>`;
+        }).join('')}
+      </div>
+      ${annCount > 1 ? `<button class="ann-nav l" onclick="annSlide(-1)">‹</button>
+        <button class="ann-nav r" onclick="annSlide(1)">›</button>
+        <div class="ann-dots">${list.map((_, i) => `<button class="ann-dot ${i === annIndex ? 'on' : ''}" onclick="annGo(${i})"></button>`).join('')}</div>` : ''}
+    </div>`;
+  } else annCount = 0;
+  if (!featureDisplayVisible('homeAnnouncements')) annHtml = featurePlaceholder('homeAnnouncements');
+  const top = Object.entries(USERS).map(([id,u]) => ({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0 && x.id!==ADMIN_ID && x.u?.is_admin!==true && ROLES[x.id]!=='admin' && ROLES[x.id]!=='moderator').sort((a,b)=>b.spent-a.spent).slice(0,5);
+  const topHtml = featureDisplayVisible('topSpenders') ? `<div class="card"><h2>🏆 Топ трат ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length ? top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join('') : '<p class="muted">Пока нет данных о тратах.</p>'}</div>` : featurePlaceholder('topSpenders');
+  const welcomeHtml = featureDisplayVisible('homeWelcome') ? `<div class="card"><h2>${hiddenAdminBadge('homeWelcome')} Добро пожаловать${TG_USER ? ', ' + esc(TG_USER.first_name) : ''}!</h2>
+    <p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>` : featurePlaceholder('homeWelcome');
+  c.innerHTML = annHtml + welcomeHtml + topHtml;
+  if (annCount > 1) startAnnRotator();
+}
+function annUpdate() {
+  const track = document.getElementById('ann-track');
+  if (!track) return;
+  track.style.transform = `translateX(-${annIndex * 100}%)`;
+  const wrap = document.getElementById('ann-wrap');
+  const visible = Object.entries(ANNS).filter(([id,a]) => !(a.oneTime && profile?.claimedAnnouncements?.[id])).sort((a,b)=>(a[1].createdAt||0)-(b[1].createdAt||0));
+  wrap?.classList.toggle('no-frame', !!visible[annIndex]?.[1]?.noFrame);
+  document.querySelectorAll('.ann-dot').forEach((d, i) => d.classList.toggle('on', i === annIndex));
+}
+function annSlide(dir) { annIndex = (annIndex + dir + annCount) % annCount; annUpdate(); restartAnnTimer(); }
+function annGo(i) { annIndex = i; annUpdate(); restartAnnTimer(); }
+function startAnnRotator() {
+  clearInterval(annTimer);
+  annUpdate();
+  annTimer = setInterval(() => { if (document.getElementById('ann-track')) annSlide(1); else clearInterval(annTimer); }, 10000);
+}
+function restartAnnTimer() { clearInterval(annTimer); annTimer = setInterval(() => { if (document.getElementById('ann-track')) annSlide(1); else clearInterval(annTimer); }, 10000); }
+/* свайп пальцем */
+document.addEventListener('touchstart', e => {
+  const w = e.target.closest?.('#ann-wrap');
+  if (w) { window._annX = e.touches[0].clientX; }
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (window._annX == null) return;
+  const dx = e.changedTouches[0].clientX - window._annX;
+  window._annX = null;
+  if (Math.abs(dx) > 40) annSlide(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+/* ---------- ИНВЕНТАРЬ ---------- */
+function getInventoryItemMeta(entry) {
+  const itemId = typeof entry?.itemId === 'string' ? entry.itemId : String(entry?.itemId?.id || entry?.id || '');
+  const catalog = ITEMS[itemId] || (entry?.item && typeof entry.item === 'object' ? entry.item : {});
+  const source = {...(entry && typeof entry === 'object' ? entry : {}), ...catalog};
+  return { id:itemId, name:String(source.name || source.title || source.label || entry?.name || entry?.itemName || ''), price:Number(source.price ?? source.cost ?? entry?.price ?? entry?.itemPrice ?? 0) || 0, img:String(source.img || source.image || source.icon || entry?.img || entry?.itemImg || ''), sellable:source.sellable ?? entry?.sellable ?? 0, valid:!!itemId && !!String(source.name || source.title || source.label || entry?.name || entry?.itemName || '').trim() && Number(source.price ?? source.cost ?? entry?.price ?? entry?.itemPrice ?? 0)>0 };
+}
+function renderInventory(c) {
+  const inv = profile?.inventory || {};
+  if (inventoryCleanupCheckedFor !== CURRENT_ID && CURRENT_ID) { inventoryCleanupCheckedFor = CURRENT_ID; workerRequest('/api/inventory/cleanup', {}).then(async result => { if (result.removed > 0) { const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Удалено фантомных предметов: ${result.removed}`); if(CURRENT_TAB==='inventory') rerender(); } }).catch(()=>{}); }
+  const keys = Object.keys(inv).filter(k => getInventoryItemMeta(inv[k]).valid).sort((a, b) => (inv[b].at || 0) - (inv[a].at || 0));
+  c.innerHTML = `<div class="card"><h2>🎒 Инвентарь (${keys.length}) ${hiddenAdminBadge('inventory')}</h2>` +
+    (keys.length === 0 ? '<p class="muted">Пусто. Открой кейс!</p>' :
+      '<div class="item-grid">' + keys.map(k => {
+        const it = getInventoryItemMeta(inv[k]);
+        const canSell = it.sellable === true || Number(it.sellable) === 1;
+        const saleAmount = Math.floor(it.price);
+        return `<div class="item-card price-tier-${priceTier(it.price)}">
+          ${it.img ? `<img src="${esc(it.img)}" alt="">` : '<div style="font-size:32px">📦</div>'}
+          <div class="nm">${esc(it.name)}</div>
+          <div class="price-tag">${pcur(it.price)}</div>
+          ${featureDisplayVisible('inventorySell') && canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')" ${!featureVisible('inventorySell')?'disabled':''}>Продать за ${saleAmount} ${hiddenAdminBadge('inventorySell')}</button>` : (!featureDisplayVisible('inventorySell') ? featurePlaceholder('inventorySell') : '')}
+        </div>`;
+      }).join('') + '</div>') + '</div>';
+}
+async function sellItem(entryKey) {
+  if (!featureVisible('inventorySell') && !isAdmin()) return toast('Продажа предметов временно отключена');
+  try { const result = await workerRequest('/api/item/sell', { entryKey }); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Продано: ${result.itemName || 'предмет'} · +${result.amount}`); rerender(); }
+  catch (e) { toast(e.message || 'Не удалось продать предмет'); }
+}
+
+/* ---------- АПГРЕЙДЕР ---------- */
+function upgradeChance(basePrice, targetPrice) {
+  const b = Number(basePrice), t = Number(targetPrice);
+  if (!(b > 0) || !(t > b)) return 0;
+  return Math.max(0, Math.min(100, b / t * 100));
+}
+function formatChance(value) {
+  const n = Number(value) || 0;
+  return n < 0.1 ? n.toFixed(3) : n < 1 ? n.toFixed(2) : n.toFixed(1);
+}
+function chanceColor(value) {
+  const t = Math.max(0, Math.min(1, (Number(value) - 0.001) / 99.999));
+  const from = [255, 59, 48], to = [46, 204, 113];
+  const rgb = from.map((v,i)=>Math.round(v+(to[i]-v)*t));
+  return `rgb(${rgb.join(',')})`;
+}
+function renderUpgrader(c) {
+  const inv = profile?.inventory || {};
+  const invEntries = Object.entries(inv).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
+  const baseEntry = UPG_BASE_KEY && inv[UPG_BASE_KEY] ? inv[UPG_BASE_KEY] : null;
+  if (!baseEntry) UPG_BASE_KEY = null;
+  const baseItem = baseEntry ? getInventoryItemMeta(baseEntry) : null;
+  const targets = Object.entries(ITEMS).filter(([id,it]) => Number(it.price||0) > Number(baseItem?.price||0) && Number(it.price||0)>0)
+    .map(([id,it]) => ({id,it,chance:upgradeChance(baseItem?.price,it.price)}));
+  const filtered = UPG_FILTER === 'all' ? targets : targets.filter(x => x.chance <= Number(UPG_FILTER) + 0.0001);
+  filtered.sort((a,b) => UPG_FILTER === 'all' ? Number(a.it.price)-Number(b.it.price) : Math.abs(a.chance-Number(UPG_FILTER))-Math.abs(b.chance-Number(UPG_FILTER)));
+  if (UPG_TARGET_ID && !filtered.some(x=>x.id===UPG_TARGET_ID)) UPG_TARGET_ID = null;
+  if (!UPG_TARGET_ID && filtered.length) UPG_TARGET_ID = filtered[0].id;
+  const target = filtered.find(x=>x.id===UPG_TARGET_ID);
+  c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер ${hiddenAdminBadge('upgrader')}</h2><p class="muted">Выбери предмет из инвентаря. Шанс рассчитывается по формуле: цена предмета игрока ÷ цена цели × 100%. При неудаче исходный предмет расходуется.</p></div>
+  <div class="upg-layout">${!featureDisplayVisible('upgraderSourceList')?featurePlaceholder('upgraderSourceList'):''}${!featureDisplayVisible('upgraderTargetList')?featurePlaceholder('upgraderTargetList'):''}<section class="upg-panel" style="${featureDisplayVisible('upgraderSourceList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎒 Твой предмет ${hiddenAdminBadge('upgraderSourceList')}</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=getInventoryItemMeta(entry)||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
+  <section class="upg-panel" style="${featureDisplayVisible('upgraderTargetList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда ${hiddenAdminBadge('upgraderTargetList')}</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
+  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-meter-wrap"><div class="upg-meter-labels"><span>УДАЧА · ${target?formatChance(target.chance):'0'}%</span><span>НЕУДАЧА · ${target?formatChance(100-target.chance):'100'}%</span></div><div class="upg-meter"><div class="upg-meter-success" style="width:${target?Math.max(0,Math.min(100,target.chance)):0}%"></div><div id="upg-pointer" class="upg-meter-marker" style="left:0%"></div></div><div class="upg-meter-scale"><span>0%</span><span id="upg-percent">${target?formatChance(target.chance)+'%':'—'}</span><span>100%</span></div></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Прокрутка выполняется…':(target?'Светлая зона — удача, тёмная — неудача':'Выбери подходящий предмет')}</div>${featureDisplayVisible('upgraderSpin') ? `${hiddenAdminBadge('upgraderSpin')}<button class="btn" onclick="runUpgrade()" ${!featureVisible('upgraderSpin')||!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button>` : featurePlaceholder('upgraderSpin')}</div>`;
+}
+function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
+function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
+function setUpgradeFilter(value) { if (UPG_BUSY) return; UPG_FILTER=value; UPG_TARGET_ID=null; rerender(); }
+async function runUpgrade() {
+  if (!featureVisible('upgraderSpin') && !isAdmin()) return toast('Апгрейд временно отключён');
+  if (UPG_BUSY) return;
+  if (!UPG_BASE_KEY || !UPG_TARGET_ID) return toast('Выбери исходный предмет и цель');
+  UPG_BUSY=true; rerender();
+  try {
+    const result = await workerRequest('/api/upgrade', { entryKey:UPG_BASE_KEY, targetItemId:UPG_TARGET_ID });
+    const pointer = document.getElementById('upg-pointer');
+    const pct = document.getElementById('upg-percent');
+    const label = document.getElementById('upg-result');
+    const roll = Math.max(0, Math.min(100, Number(result.rollPercent ?? (result.success ? Number(result.chance)/2 : Number(result.chance)+(100-Number(result.chance))/2))));
+    if (pct) { pct.textContent = `${formatChance(result.chance)}% шанс`; pct.style.color = '#f5f5f5'; pct.style.textShadow = 'none'; }
+    if (pointer) { pointer.style.transition = 'left 1.15s cubic-bezier(.12,.72,.12,1)'; requestAnimationFrame(()=>{ pointer.style.left = `${roll}%`; }); }
+    if (label) label.textContent = 'Определяем результат…';
+    await new Promise(resolve=>setTimeout(resolve,1200));
+    if (label) label.textContent = result.success ? 'УДАЧА — светлая зона' : 'НЕУДАЧА — тёмная зона';
+    toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : (result.consolationItemName ? `Неудача. Получен утешительный предмет: ${result.consolationItemName}` : 'Неудача. Исходный предмет уничтожен.'));
+    UPG_BASE_KEY=null; UPG_TARGET_ID=null;
+    rerender();
+  } catch(e) { UPG_BUSY=false; rerender(); toast(e.message || 'Не удалось выполнить апгрейд'); return; }
+  UPG_BUSY=false; rerender();
+}
+
+/* ---------- МАГАЗИН КЕЙСОВ ---------- */
+function renderCasesShop(c) {
+  const ids = Object.keys(CASES);
+  if (ids.length === 0) return c.innerHTML = `<div class="card"><h2>📦 Кейсы ${hiddenAdminBadge('cases')}</h2><p class="muted">Кейсов пока нет.</p></div>`;
+  const groups = {};
+  ids.forEach(id => {
+    const g = CATS[CASES[id].category]?.name || 'Общая';
+    (groups[g] = groups[g] || []).push(id);
+  });
+  c.innerHTML = `${hiddenAdminBadge('cases')}` + Object.entries(groups).map(([g, list]) =>
+    `<div class="cat-title">📂 ${esc(g)}</div><div class="item-grid">` +
+    list.map(id => {
+      const k = CASES[id];
+      const openedByMe = profile?.openedCases?.[id] || 0;
+      const expired = k.expiresAt && Date.now() > k.expiresAt;
+      const totalLeft = k.totalLimit ? k.totalLimit - (k.opened || 0) : Infinity;
+      const userLeft = k.perUserLimit ? k.perUserLimit - openedByMe : Infinity;
+      let state = null;
+      if (expired) state = 'Истёк';
+      else if (totalLeft <= 0) state = 'Закончился';
+      else if (userLeft <= 0) state = 'Лимит исчерпан';
+      return `<div class="item-card price-tier-${priceTier(k.price)}">
+        ${k.img ? `<img src="${esc(k.img)}">` : '<div style="font-size:44px; line-height:56px">📦</div>'}
+        <div class="nm">${esc(k.name)}</div>
+        <div class="chips">Предметов: ${Object.keys(k.items || {}).length}
+          ${k.totalLimit ? ` · ${k.opened || 0}/${k.totalLimit}` : ''}${k.perUserLimit ? ` · твоё: ${openedByMe}/${k.perUserLimit}` : ''}</div>
+        <button class="btn" style="margin-top:10px" ${state ? 'disabled' : ''} onclick="openCase('${id}')">
+          ${state ? state : (k.price > 0 ? `Открыть за ${k.price}` : 'Открыть бесплатно')}</button>
+      </div>`;
+    }).join('') + '</div>').join('');
+}
+function openCase(caseId) {
+  const k = CASES[caseId]; if (!k) return;
+  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false; CASE_DYNAMIC_ODDS = null;
+  renderCaseDetails(k);
+  document.getElementById('case-modal').classList.add('show');
+  workerRequest('/api/case/odds', {caseId}).then(result => { if (CASE_DETAIL_ID === caseId && result.odds) { CASE_DYNAMIC_ODDS = result; renderCaseDetails(CASES[caseId] || k); } }).catch(() => {});
+}
+function toggleCaseFastSpin() { if (CASE_OPEN_BUSY) return; CASE_FAST_SPIN=!CASE_FAST_SPIN; const k=CASES[CASE_DETAIL_ID]; if(k) renderCaseDetails(k); }
+function setCaseOpenCount(count) {
+  if (CASE_OPEN_BUSY) return;
+  CASE_OPEN_COUNT = [1,3,5].includes(Number(count)) ? Number(count) : 1;
+  const k = CASES[CASE_DETAIL_ID]; if (k) renderCaseDetails(k);
+}
+function renderCaseDetails(k) {
+  const box = document.getElementById('cm-box');
+  const entries = Object.entries(k.items || {}).filter(([id,ch]) => ITEMS[id] && Number(ch)>0);
+  const totalWeight = entries.reduce((sum,[,ch])=>sum+Number(ch),0);
+  const count = CASE_OPEN_COUNT;
+  const totalPrice = Math.max(0, Number(k.price)||0) * count;
+  const remainingTotal = k.totalLimit ? Math.max(0,Number(k.totalLimit)-Number(k.opened||0)) : Infinity;
+  const remainingUser = k.perUserLimit ? Math.max(0,Number(k.perUserLimit)-Number(profile?.openedCases?.[CASE_DETAIL_ID]||0)) : Infinity;
+  const canOpen = featureVisible('caseOpen') && !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (Number(profile?.balance||0)>=totalPrice);
+  box.innerHTML = `
+    <div class="case-detail-top">
+      <div class="case-detail-img">${k.img?`<img src="${esc(k.img)}" alt="">`:'📦'}</div>
+      <div class="case-detail-title"><h2>${esc(k.name||'Кейс')} ${hiddenAdminBadge('cases')}</h2><div class="muted" style="font-size:11px">${entries.length} предметов · ${k.price>0?`Цена за кейс: ${Number(k.price)}`:'Бесплатный кейс'}</div></div>
+      ${featureDisplayVisible('caseOpen') ? `${hiddenAdminBadge('caseOpen')}<button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':`Открыть · ${totalPrice}`}</button>` : featurePlaceholder('caseOpen')}
+    </div>
+    <div class="case-counts" aria-label="Количество кейсов">
+      ${featureDisplayVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY || (!featureVisible('multiCaseOpen') && isAdmin())?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
+    </div>
+    <button class="btn sec" type="button" style="width:100%;margin:0 0 10px" onclick="toggleCaseFastSpin()" ${CASE_OPEN_BUSY?'disabled':''}>${CASE_FAST_SPIN?'⚡ Быстрая прокрутка: ВКЛ':'⚡ Быстрая прокрутка: ВЫКЛ'}</button>
+    <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>Итого: ${totalPrice}</span></div>
+    ${featureDisplayVisible('caseOddsInfo') ? `<div style="font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 8px">${hiddenAdminBadge('caseOddsInfo')} Динамические шансы: если экономика проекта уходит в минус, дорогие предметы становятся реже, но кейсы продолжают открываться. Текущие вероятности показаны ниже.</div>` : featurePlaceholder('caseOddsInfo')}
+    ${featureDisplayVisible('casePrizeList') ? `${hiddenAdminBadge('casePrizeList')}<div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=CASE_DYNAMIC_ODDS?.odds?.[id]!==undefined?Number(CASE_DYNAMIC_ODDS.odds[id]):(totalWeight>0?Number(weight)/totalWeight*100:0);return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%${CASE_DYNAMIC_ODDS?'':' · загрузка…'}</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>` : featurePlaceholder('casePrizeList')}
+    <button class="btn sec" style="margin-top:8px;flex:0 0 auto" onclick="closeCaseModal()">Закрыть</button>`;
+  const btn = document.getElementById('case-open-action');
+  if (!canOpen && btn) {
+    if (count>remainingTotal || count>remainingUser) btn.title='Недостаточно доступных открытий';
+    else if (Number(profile?.balance||0)<totalPrice) btn.title='Недостаточно средств';
+  }
+}
+async function performCaseOpen() {
+  if (!featureVisible('caseOpen')) return toast('Открытие кейсов временно отключено');
+  const caseId = CASE_DETAIL_ID, k = CASES[caseId];
+  if (!k || CASE_OPEN_BUSY) return;
+  if (Date.now()-CASE_LAST_OPEN_AT < 1000) return toast('Подожди секунду между открытиями кейсов');
+  CASE_OPEN_BUSY = true; CASE_LAST_OPEN_AT = Date.now(); renderCaseDetails(k);
+  try {
+    const result = await workerRequest('/api/case/open', { caseId, count:CASE_OPEN_COUNT });
+    const winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
+    const detailsById = Object.fromEntries((result.winnerItems || []).map(it=>[it.id,it]));
+    // Worker response contains the committed winner IDs and inventory keys; avoid a second full profile read before the roulette starts.
+    profile = profile || {};
+    profile.balance = Math.max(0, Number(profile.balance || 0) - Number(result.totalPrice || 0));
+    profile.spentCurrency = Math.max(0, Number(profile.spentCurrency || 0)) + Number(result.totalPrice || 0);
+    profile.openedCases = {...(profile.openedCases || {}), [caseId]: Number(profile.openedCases?.[caseId] || 0) + winners.length};
+    profile.inventory = {...(profile.inventory || {})};
+    const keys = Array.isArray(result.inventoryKeys) ? result.inventoryKeys : [];
+    winners.forEach((id, i) => {
+      const meta = {...(ITEMS[id] || {}), ...(detailsById[id] || {})};
+      if (keys[i]) profile.inventory[keys[i]] = {itemId:id,name:meta.name||meta.title||'Предмет',price:Number(meta.price||meta.cost||0),img:meta.img||meta.image||meta.icon||'',at:Date.now(),source:'case',caseId};
+    });
+    const winnerDetails = winners.map(id=>({id,...(ITEMS[id]||{}),...(detailsById[id]||{}),img:ITEMS[id]?.img||ITEMS[id]?.image||ITEMS[id]?.icon||''}));
+    showCaseRoulette(k, winners.filter(Boolean), winnerDetails);
+  } catch (e) {
+    CASE_OPEN_BUSY = false; renderCaseDetails(k); toast(e.message || 'Не удалось открыть кейс');
+  }
+}
+/* ---------- ПРОКРУТКА ---------- */
+const STEP = 110, ITEM_W = 100;
+function showCaseRoulette(k, winnerIds, winnerItems = null) {
+  const modal = document.getElementById('case-modal');
+  const box = document.getElementById('cm-box');
+  const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
+  const winnerDetails = Array.isArray(winnerItems) ? winnerItems : winners.map(id=>({id,...(ITEMS[id]||{})}));
+  const resultItems = Object.fromEntries(winnerDetails.map(x=>[x.id,x]));
+  box.innerHTML = `<div style="font-weight:800;font-size:18px;margin-bottom:14px">${esc(k.name)} · открытие ${winners.length} ${winners.length===1?'кейса':'кейсов'}</div><div id="case-roulette-rows" style="display:grid;gap:10px;width:100%;overflow:auto;max-height:68vh"></div><p class="muted" style="margin-top:12px">Рулетка останавливается на выигранном предмете</p>`;
+  modal.classList.add('show');
+  const rows = document.getElementById('case-roulette-rows');
+  const pool = Object.keys(k.items || {}).filter(id => ITEMS[id]);
+  const ids = pool.length ? pool : Object.keys(ITEMS).length ? Object.keys(ITEMS) : winners;
+  const duration = CASE_FAST_SPIN ? 650 : 5000;
+  const animations = winners.map((winnerId, rowIndex) => new Promise(resolve => {
+    const row = document.createElement('div');
+    row.className = 'rl-window'; row.style.height='104px'; row.innerHTML='<div class="rl-marker"></div><div class="rl-strip"></div>';
+    rows.appendChild(row);
+    const strip = row.querySelector('.rl-strip');
+    const seq=[]; for(let i=0;i<24;i++) seq.push(ids[Math.floor(Math.random()*ids.length)]);
+    seq[19]=winnerId;
+    strip.innerHTML=seq.map(id=>{const it=resultItems[id]||ITEMS[id]||{};return `<div class="rl-item price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}">`:'<span>🎁</span>'}<span>${esc(it.name||id)}</span></div>`;}).join('');
+    const winW=row.clientWidth, step=110, itemW=100;
+    const targetX=19*step-winW/2+itemW/2;
+    let start=null;
+    function frame(now){if(!start)start=now;const t=Math.min(1,(now-start)/duration);const ease=1-Math.pow(1-t,5);const x=-targetX*ease;strip.style.transform=`translateX(${x}px)`;if(t<1)requestAnimationFrame(frame);else setTimeout(resolve,40+rowIndex*35);}
+    requestAnimationFrame(frame);
+  }));
+  Promise.all(animations).then(()=>showPrize(k,winners,resultItems));
+}
+function showPrize(k, winnerIds, winnerItems = {}) {
+  const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
+  const box = document.getElementById('cm-box');
+  box.innerHTML = `<p style="font-size:18px;font-weight:800;margin-bottom:4px">${winners.length===1?'Вам выпало':'Результаты открытия'}</p><p class="muted" style="font-size:11px">${esc(k.name)}</p><div class="case-result-list">${winners.map((id,i)=>{const win=winnerItems[id]||ITEMS[id]||{};return `<div class="case-result-card price-tier-${priceTier(win.price)}" style="animation-delay:${i*70}ms">${win.img?`<img src="${esc(win.img)}">`:'<div style="font-size:40px">🎁</div>'}<b>${esc(win.name||'Предмет')}</b><div class="muted" style="font-size:10px;margin-top:4px">Цена: ${Number(win.price||0)}</div></div>`;}).join('')}</div><button class="btn" style="max-width:260px;margin:8px auto 0" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
+  CASE_OPEN_BUSY = false;
+}
+function closeCaseModal() {
+  document.getElementById('case-modal').classList.remove('show');
+  CASE_OPEN_BUSY = false; CASE_DETAIL_ID = null;
+  rerender();
+}
+
+/* ---------- ТИКЕТЫ ---------- */
+function sweepExpired() {
+  // Статус просроченного тикета меняется только на сервере.
+}
+
+const TYPE_NAME = { deposit: 'Пополнение', withdraw: 'Вывод' };
+const tStatusHTML = s => s === 'open' ? '<span class="ts-open">Открыт</span>' : s === 'taken' ? '<span class="ts-taken">Взят</span>' : '<span class="ts-closed">Закрыт</span>';
+
+async function createTicket(type, amount) {
+  const ref = db.ref('tickets').push();
+  const numSnap = await db.ref('counters/ticketNum').transaction(v => (v || 0) + 1);
+  await ref.set({
+    num: numSnap.snapshot.val(), owner: CURRENT_ID,
+    ownerName: profile?.name || CURRENT_ID,
+    type, amount: +amount || 0, status: 'open',
+    createdAt: Date.now(), messages: {}
+  });
+  OPEN_TICKET_ID = ref.key;
+  toast(`Тикет #${numSnap.snapshot.val()} создан`);
+}
+function sendMsg(id, inputId) {
+  const inp = document.getElementById(inputId);
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  db.ref('tickets/' + id + '/messages').push().set({
+    from: CURRENT_ID, name: profile?.name || CURRENT_ID,
+    role: isAdmin() ? 'admin' : (ROLES[CURRENT_ID] === 'moderator' ? 'moderator' : 'player'),
+    text, at: Date.now()
+  });
+}
+async function takeTicket(id) {
+  if (TICKETS[id] && String(TICKETS[id].owner) === String(CURRENT_ID)) return toast('Нельзя брать собственный тикет');
+  try { const result = await workerRequest('/api/ticket/take', { ticketId:id }); OPEN_TICKET_ID = id; toast(result.message || 'Тикет взят'); }
+  catch (e) { toast(e.message || 'Не удалось взять тикет'); }
+}
+
+function closeTicket(id) {
+  const t = TICKETS[id];
+  if (!t || !isStaff()) return toast('Нет доступа к тикету');
+  if (t.status === 'closed') return toast('Тикет уже закрыт');
+  if (t.status !== 'taken' || t.takenBy !== CURRENT_ID) return toast('Сначала возьми этот тикет в работу');
+
+  PENDING_CLOSE_TICKET_ID = id;
+  TICKET_CLOSE_BUSY = false;
+  const modal = document.getElementById('ticket-close-modal');
+  const checkbox = document.getElementById('tx-apply');
+  const reason = document.getElementById('ticket-close-reason');
+  const confirmBtn = document.getElementById('ticket-close-confirm-btn');
+  const label = document.getElementById('tx-apply-label');
+  const summary = document.getElementById('ticket-close-summary');
+  const explainer = document.getElementById('ticket-close-explainer');
+
+  checkbox.checked = false;
+  reason.value = '';
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = 'Подтвердить закрытие';
+  const amount = Number(t.amount) || 0;
+  summary.textContent = `Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · сумма ${amount}.`;
+  label.textContent = t.type === 'deposit'
+    ? `Подтвердить пополнение: начислить игроку ${amount}`
+    : t.type === 'withdraw'
+      ? `Подтвердить вывод: списать у игрока ${amount}`
+      : 'Применить операцию к балансу';
+  explainer.textContent = 'Если галочка снята, тикет закроется без изменения баланса. Причина обязательна в обоих случаях.';
+  modal.classList.add('show');
+  setTimeout(() => reason.focus(), 30);
+}
+
+function cancelTicketClose() {
+  if (TICKET_CLOSE_BUSY) return;
+  document.getElementById('ticket-close-modal')?.classList.remove('show');
+  PENDING_CLOSE_TICKET_ID = null;
+}
+
+async function confirmTicketClose() {
+  if (TICKET_CLOSE_BUSY) return;
+  const id = PENDING_CLOSE_TICKET_ID;
+  const t = TICKETS[id];
+  if (!id || !t || !isStaff()) return toast('Тикет не найден или нет доступа');
+  const approve = document.getElementById('tx-apply').checked === true;
+  const reason = document.getElementById('ticket-close-reason').value.trim();
+  if (!reason) {
+    toast('Укажи причину закрытия');
+    document.getElementById('ticket-close-reason').focus();
+    return;
+  }
+  if (reason.length > 300) return toast('Причина должна быть не длиннее 300 символов');
+  if (approve && !['deposit', 'withdraw'].includes(t.type)) return toast('Неизвестный тип заявки');
+
+  TICKET_CLOSE_BUSY = true;
+  const confirmBtn = document.getElementById('ticket-close-confirm-btn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Обработка…';
+  try {
+    await workerRequest('/api/ticket/close', { ticketId:id, approve, reason });
+    document.getElementById('ticket-close-modal').classList.remove('show');
+    PENDING_CLOSE_TICKET_ID = null;
+    toast(approve ? (t.type === 'deposit' ? 'Пополнение подтверждено сервером' : 'Вывод подтверждён сервером') : 'Тикет закрыт без изменения баланса');
+    OPEN_TICKET_ID = null;
+    rerender();
+  } catch (e) {
+    toast(e.message || 'Не удалось обработать тикет');
+  } finally {
+    TICKET_CLOSE_BUSY = false;
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Подтвердить закрытие';
+  }
+}
+
+/* --- карточка тикета со списком --- */
+function ticketRowHTML(id, t, btn) {
+  return `<div class="ticket-row">
+    <div class="row" style="align-items:center">
+      <div style="flex:1">
+        <div class="tnum">#${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</div>
+        <div class="chips">${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · ${tStatusHTML(t.status)}
+          ${t.reason ? ` · причина: ${esc(t.reason)}` : ''}</div>
+      </div>
+      ${btn ? `<button class="btn small" style="flex:0 0 auto" onclick="${btn.action}('${id}')">${btn.label}</button>` : (t.status==='open' && isStaff() && String(t.owner)===String(CURRENT_ID) ? '<span class="muted" style="font-size:11px">Свой тикет</span>' : '')}
+    </div></div>`;
+}
+function ticketMessagesHTML(msgs) {
+  return msgs.map(m => `<div class="msg ${m.from === CURRENT_ID ? 'own' : 'them'}"><div class="who">${esc(m.name || m.from)}${m.role === 'admin' ? ' · админ' : m.role === 'moderator' ? ' · модератор' : ''}</div>${esc(m.text)}<div class="when" style="color:${m.from === CURRENT_ID ? 'rgba(0,0,0,.5)' : 'var(--muted)'}">${fmtTime(m.at)}</div></div>`).join('') || '<p class="muted">Сообщений пока нет.</p>';
+}
+function updateTicketChat(id, ticket) {
+  const host = document.getElementById('chat-messages');
+  const box = document.getElementById('chat-box');
+  if (!host || !box || id !== OPEN_TICKET_ID) return;
+  const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+  const msgs = Object.entries(ticket.messages || {}).map(([mid,m])=>({mid,...m})).sort((a,b)=>(a.at||0)-(b.at||0));
+  host.innerHTML = ticketMessagesHTML(msgs);
+  if (nearBottom) box.scrollTop = box.scrollHeight;
+}
+
+/* --- просмотр тикета с чатом --- */
+function ticketViewHTML(id, t, backFn) {
+  const msgs = Object.entries(t.messages || {})
+    .map(([mid, m]) => ({ mid, ...m }))
+    .sort((a, b) => a.at - b.at);
+  const canWrite = t.status !== 'closed';
+  const isHandler = isStaff() && t.owner !== CURRENT_ID;
+  const canClose = isHandler && t.status !== 'closed';
+  const canTake = isHandler && t.status === 'open' && String(t.owner)!==String(CURRENT_ID);
+  const txLabel = t.type === 'deposit'
+    ? `Выдать игроку ${t.amount} ${CUR_ICON ? '' : '(пополнение)'}`
+    : `Забрать у игрока ${t.amount} ${CUR_ICON ? '' : '(вывод)'}`;
+  return `<div class="card">
+    <button class="btn sec small" onclick="${backFn}()">← Назад</button>
+    <h2 style="margin-top:10px">Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</h2>
+    <div class="chips">От: ${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · статус: ${tStatusHTML(t.status)}
+      ${t.takenByName ? ` · взял: ${esc(t.takenByName)}` : ''}</div>
+    ${t.reason ? `<p class="muted" style="margin-top:6px">Причина закрытия: <b>${esc(t.reason)}</b></p>` : ''}
+    <hr class="divider">
+    <div class="chat" id="chat-box"><div id="chat-messages">${ticketMessagesHTML(msgs)}</div></div>
+    ${canTake ? `<button class="btn" style="margin-top:10px" onclick="uiTake('${id}')">Взять тикет</button>` : ''}
+    ${canClose ? `<button class="btn" style="margin-top:10px; background:var(--red); color:#fff" onclick="closeTicket('${id}')">Закрыть тикет</button>` : ''}
+    ${canWrite ? `<form class="row ticket-chat-form" style="margin-top:10px" onsubmit="event.preventDefault();sendMsg('${id}','msg-input')">
+      <input id="msg-input" autocomplete="off" enterkeyhint="send" placeholder="Сообщение…">
+      <button class="btn small" type="submit" style="flex:0 0 auto; padding:10px 16px">➤</button></form>` : ''}
+  </div>`;
+}
+
+/* --- профиль: мои тикеты --- */
+function renderProfile(c) {
+  const my = Object.entries(TICKETS).filter(([, t]) => t.owner === CURRENT_ID)
+    .sort((a, b) => b[1].num - a[1].num);
+  if (OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID])
+    return c.innerHTML = ticketViewHTML(OPEN_TICKET_ID, TICKETS[OPEN_TICKET_ID], 'backToProfile');
+
+  const open = my.filter(([, t]) => t.status !== 'closed');
+  const closed = my.filter(([, t]) => t.status === 'closed');
+  const list = profileTicketTab === 'open' ? open : closed;
+
+  c.innerHTML = `${featureDisplayVisible('profileInfo') ? `<div class="card"><h2>👤 Профиль ${hiddenAdminBadge('profileInfo')}</h2>
+      <p class="muted">Telegram ID: <b>${esc(CURRENT_ID)}</b></p>
+      <p class="muted">Имя: <b>${esc(profile?.name || '—')}</b></p>
+      <p class="muted">Баланс: <b>${profile?.balance ?? 0}</b></p>
+      ${isAdmin() ? '<span class="badge">АДМИНИСТРАТОР</span>' : ROLES[CURRENT_ID] === 'moderator' ? '<span class="badge mod">МОДЕРАТОР</span>' : ''}</div>` : featurePlaceholder('profileInfo')}
+    ${featureDisplayVisible('profileTickets') ? `<div class="card"><h2>🎫 Мои тикеты ${hiddenAdminBadge('profileTickets')}</h2>
+      <div class="subtabs">
+        <button class="${profileTicketTab === 'open' ? 'on' : ''}" onclick="setPTab('open')">Открытые (${open.length})</button>
+        <button class="${profileTicketTab === 'closed' ? 'on' : ''}" onclick="setPTab('closed')">Закрытые (${closed.length})</button>
+      </div>
+      ${list.map(([id, t]) => ticketRowHTML(id, t, { action: 'openMyTicket', label: 'Открыть' })).join('') || '<p class="muted">Пока пусто.</p>'}
+      ${featureDisplayVisible('profileCreateTicket') ? `<hr class="divider">
+      <h2>➕ Создать тикет ${hiddenAdminBadge('profileCreateTicket')}</h2>
+      <label>Тип</label><select id="tk-type">
+        <option value="deposit">Пополнение</option>
+        <option value="withdraw">Вывод</option></select>
+      <label>Сумма</label><input id="tk-amount" type="number" min="1">
+      <p class="muted" id="tk-hint"></p>
+      <button class="btn" onclick="uiCreateTicket()" ${!featureVisible('profileCreateTicket')?'disabled':''}>Создать тикет</button>` : featurePlaceholder('profileCreateTicket')}
+    </div>` : featurePlaceholder('profileTickets')}`;
+  updateTkHint();
+}
+function updateTkHint() {
+  const typeEl = document.getElementById('tk-type');
+  const hint = document.getElementById('tk-hint');
+  if (typeEl && hint) hint.textContent = typeEl.value === 'withdraw'
+    ? `Максимум для вывода: ${profile?.balance ?? 0}` : 'Сумма пополнения — договоритесь в чате тикета';
+  if (typeEl) typeEl.onchange = updateTkHint;
+}
+function setPTab(v) { profileTicketTab = v; OPEN_TICKET_ID = null; rerender(); }
+function backToProfile() { OPEN_TICKET_ID = null; rerender(); }
+function openMyTicket(id) { OPEN_TICKET_ID = id; rerender(); }
+function uiCreateTicket() {
+  if (!featureVisible('profileCreateTicket') && !isAdmin()) return toast('Создание тикетов временно отключено');
+  const type = document.getElementById('tk-type').value;
+  const amount = +document.getElementById('tk-amount').value || 0;
+  if (amount <= 0) return toast('Укажи сумму больше 0');
+  if (type === 'withdraw' && amount > (profile?.balance || 0))
+    return toast('Сумма вывода не может превышать твой баланс');
+  createTicket(type, amount).then(rerender);
+}
+
+/* --- вкладка тикетов для стаффа --- */
+function renderStaffTickets(c) {
+  if (OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID])
+    return c.innerHTML = ticketViewHTML(OPEN_TICKET_ID, TICKETS[OPEN_TICKET_ID], 'backToStaff');
+
+  const all = Object.entries(TICKETS).sort((a, b) => b[1].num - a[1].num);
+  const q = ticketSearch.trim();
+  const match = ([, t]) => !q || String(t.num).includes(q);
+  const open = all.filter(([, t]) => t.status === 'open' && match([, t]));
+  const mine = all.filter(([, t]) => t.status === 'taken' && t.takenBy === CURRENT_ID);
+  const closed = all.filter(([, t]) => t.status === 'closed' && match([, t]));
+
+  c.innerHTML = `<div class="card"><h2>🎫 Тикеты</h2>
+      <p class="muted">Можно вести несколько тикетов одновременно. Свои тикеты брать в работу нельзя.</p>
+      <form class="admin-search-row" onsubmit="event.preventDefault();applyTicketSearch()"><input id="ticket-search-input" placeholder="Номер тикета…" value="${esc(ticketSearchDraft || ticketSearch)}" oninput="ticketSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
+      <div class="subtabs">
+        <button class="${ticketSubTab === 'open' ? 'on' : ''}" onclick="setSub2('open')">Не выполненные (${open.length})</button>
+        <button class="${ticketSubTab === 'mine' ? 'on' : ''}" onclick="setSub2('mine')">Текущие (${mine.length})</button>
+        <button class="${ticketSubTab === 'closed' ? 'on' : ''}" onclick="setSub2('closed')">Закрытые (${closed.length})</button>
+      </div>
+      ${ticketSubTab === 'open' ? (open.map(([id, t]) =>
+        ticketRowHTML(id, t, String(t.owner)===String(CURRENT_ID) ? null : { action: 'uiTake', label: 'Взять' })).join('') || '<p class="muted">Свободных тикетов нет.</p>') : ''}
+      ${ticketSubTab === 'mine' ? (mine.map(([id, t]) =>
+        ticketRowHTML(id, t, { action: 'openStaffTicket', label: 'Открыть' })).join('') || '<p class="muted">Нет активных тикетов.</p>') : ''}
+      ${ticketSubTab === 'closed' ? (closed.map(([id, t]) =>
+        ticketRowHTML(id, t, { action: 'openStaffTicket', label: 'Открыть' })).join('') || '<p class="muted">Пока нет закрытых.</p>') : ''}
+    </div>`;
+}
+function applyTicketSearch() { ticketSearch = ticketSearchDraft.trim(); rerender(); }
+function setSub2(v) { ticketSubTab = v; OPEN_TICKET_ID = null; rerender(); }
+function backToStaff() { OPEN_TICKET_ID = null; rerender(); }
+function openStaffTicket(id) { OPEN_TICKET_ID = id; rerender(); }
+function uiTake(id) { takeTicket(id).then(rerender); }
+
+/* ---------- АДМИН-ПАНЕЛЬ ---------- */
+function renderAdmin(c) {
+  c.innerHTML = `
+    <div class="card">
+      <div class="admin-tabs">
+        <button class="btn sec ${adminSub==='items'?'on':''}" onclick="setSub('items')">📚 Предметы</button>
+        <button class="btn sec ${adminSub==='cats'?'on':''}" onclick="setSub('cats')">🗂 Категории</button>
+        <button class="btn sec ${adminSub==='cases'?'on':''}" onclick="setSub('cases')">📦 Кейсы</button>
+        <button class="btn sec ${adminSub==='users'?'on':''}" onclick="setSub('users')">👥 Игроки</button>
+        <button class="btn sec ${adminSub==='anns'?'on':''}" onclick="setSub('anns')">📢 Объявления</button>
+        <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
+        <button class="btn sec ${adminSub==='system'?'on':''}" onclick="setSub('system')">🛠 Система</button>
+        <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
+        <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
+        <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button>
+      </div>
+    </div>
+    <div id="admin-body"></div>`;
+  drawAdminBody();
+}
+function setSub(s) { adminSub = s; drawAdminBody(); }
+function drawAdminBody() {
+  const b = document.getElementById('admin-body');
+  if (!b) return;
+  if (adminSub === 'items') b.innerHTML = adminItemsHTML();
+  if (adminSub === 'cats')  b.innerHTML = adminCatsHTML();
+  if (adminSub === 'cases') b.innerHTML = adminCasesHTML();
+  if (adminSub === 'users') b.innerHTML = adminUsersHTML();
+  if (adminSub === 'anns')  b.innerHTML = adminAnnsHTML();
+  if (adminSub === 'cur')   b.innerHTML = adminCurHTML();
+  if (adminSub === 'system') b.innerHTML = adminSystemHTML();
+  if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
+  if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
+  if (adminSub === 'visibility') b.innerHTML = adminVisibilityHTML();
+}
+
+const UI_VISIBILITY_LABELS = {
+  homeAnnouncements:'Главная: блок объявлений', homeWelcome:'Главная: приветствие и описание', topSpenders:'Главная: рейтинг топа трат',
+  cases:'Кнопка меню «Кейсы»', caseOpen:'Открытие кейсов', multiCaseOpen:'Выбор открытия 3 и 5 кейсов', casePrizeList:'Список предметов внутри кейса', caseOddsInfo:'Информация о шансах и динамической экономике',
+  inventory:'Кнопка меню «Инвентарь»', inventorySell:'Продажа предметов из инвентаря',
+  upgrader:'Кнопка меню «Апгрейдер»', upgraderSourceList:'Список предметов для ставки в апгрейдере', upgraderTargetList:'Список целей и фильтры апгрейдера', upgraderSpin:'Запуск апгрейда',
+  profile:'Кнопка меню «Профиль»', profileInfo:'Профиль: ID, имя, баланс и роль', profileTickets:'Профиль: список моих тикетов', profileCreateTicket:'Профиль: создание тикетов пополнения/вывода',
+  settings:'Кнопка меню «Настройки»', settingsNotifications:'Настройки уведомлений Telegram (временно можно скрыть)', settingsSupport:'Ссылка на поддержку', settingsLogout:'Кнопка выхода из аккаунта',
+  tickets:'Кнопка меню «Тикеты» для стаффа', announcementRewards:'Получение наград из объявлений'
+};
+function adminVisibilityHTML() {
+  return `<div class="card"><h2>👁 Видимость функций игры</h2><p class="muted">Снимите галочку, чтобы скрыть функцию. В поле под ней можно указать текст, который будет показан вместо скрытого элемента. Оставьте поле пустым, чтобы ничего не показывать.</p>
+    <div class="row" style="margin:10px 0"><button class="btn sec" type="button" onclick="setAllUIVisibility(true)">Показать всё</button><button class="btn sec" type="button" onclick="setAllUIVisibility(false)">Скрыть всё</button></div>
+    <div class="visibility-list">${Object.entries(UI_VISIBILITY_LABELS).map(([key,label])=>`<div class="visibility-item"><label class="visibility-row"><span>${esc(label)}</span><input type="checkbox" id="vis-${key}" ${UI_VISIBILITY[key] !== false?'checked':''}></label><label class="muted" for="vismsg-${key}" style="display:block;font-size:12px">Текст вместо функции (необязательно)</label><textarea class="visibility-message-input" id="vismsg-${key}" maxlength="300" placeholder="Оставьте пустым, чтобы ничего не показывать">${esc(UI_VISIBILITY_MESSAGES[key]||'')}</textarea></div>`).join('')}</div>
+    <button class="btn" style="margin-top:14px" onclick="saveUIVisibility()">Сохранить настройки видимости</button></div>`;
+}
+function setAllUIVisibility(visible) { for (const key of Object.keys(UI_VISIBILITY_LABELS)) { const el=document.getElementById('vis-'+key); if(el) el.checked=!!visible; } }
+async function saveUIVisibility() {
+  const settings={}, messages={};
+  for (const key of Object.keys(UI_VISIBILITY_LABELS)) { settings[key]=!!document.getElementById('vis-'+key)?.checked; messages[key]=String(document.getElementById('vismsg-'+key)?.value||'').trim().slice(0,300); }
+  try {
+    const result=await workerRequest('/api/admin/ui-visibility',{settings,messages});
+    UI_VISIBILITY={...UI_VISIBILITY_DEFAULTS,...(result.settings||settings)};
+    UI_VISIBILITY_MESSAGES={...(result.messages||messages)};
+    applyUIVisibility(); rerender(); toast('Настройки видимости сохранены');
+  } catch(e) { toast(e.message||'Не удалось сохранить настройки видимости'); }
+}
+
+/* --- Предметы --- */
+function adminItemsHTML() {
+  return `<div class="card"><h2>➕ Новый предмет</h2>
+    <label>Название</label><input id="it-name">
+    <label>Иконка (загрузи файл или вставь ссылку)</label>
+    <input type="file" accept="image/*" onchange="onItemFile(event)">
+    <p class="muted" style="text-align:center; margin:4px 0">или</p>
+    <input id="it-img" placeholder="https://...">
+    <img id="it-prev" class="preview" style="display:none">
+    <label>Цена</label><input id="it-price" type="number" value="0">
+    <label><input type="checkbox" id="it-sell" checked> Можно продавать</label>
+    <button class="btn" onclick="addItem()">Создать предмет</button></div>
+  <div class="card"><h2>📚 Предметы (${Object.keys(ITEMS).length})</h2>
+    <div class="item-grid">${Object.entries(ITEMS).map(([id, it]) =>
+      `<div class="item-card price-tier-${priceTier(it.price)}">${it.img ? `<img src="${esc(it.img)}">` : ''}
+        <div class="nm">${esc(it.name)}</div>
+        <div class="chips">${it.price} · ${it.sellable ? 'продаётся' : 'не продаётся'}</div>
+        <button class="del" style="margin-top:8px" onclick="delItem('${id}')">Удалить</button></div>`).join('')}
+    </div></div>`;
+}
+function onItemFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToDataUrl(f, url => {
+    document.getElementById('it-img').value = url;
+    const p = document.getElementById('it-prev');
+    p.src = url; p.style.display = 'block';
+    toast('Картинка загружена');
+  });
+}
+async function addItem() {
+  const name = document.getElementById('it-name').value.trim();
+  const price = Number(document.getElementById('it-price').value);
+  if (!name) return toast('Введи название');
+  if (!Number.isSafeInteger(price) || price <= 0) return toast('Цена предмета должна быть целым числом больше нуля');
+  await db.ref('items').push().set({
+    name, img: document.getElementById('it-img').value.trim(),
+    price,
+    sellable: document.getElementById('it-sell').checked ? 1 : 0
+  });
+  toast('Предмет создан');
+  drawAdminBody();
+}
+async function delItem(id) { if (confirm('Удалить предмет?')) { await db.ref('items/' + id).remove(); drawAdminBody(); } }
+
+/* --- Категории --- */
+function adminCatsHTML() {
+  return `<div class="card"><h2>➕ Новая категория</h2>
+    <label>Название</label><input id="cat-name">
+    <button class="btn" onclick="addCat()">Создать категорию</button></div>
+  <div class="card"><h2>🗂 Категории (${Object.keys(CATS).length})</h2>
+    ${Object.entries(CATS).map(([id, c]) =>
+      `<div class="row" style="align-items:center; margin-bottom:6px">
+        <p style="flex:1">${esc(c.name)}</p><button class="del" onclick="delCat('${id}')">Удалить</button></div>`).join('') || '<p class="muted">Пока нет.</p>'}
+    <hr class="divider"><p class="muted">Кейсы без категории автоматически попадают в раздел «Общая» в магазине.</p>
+  </div>`;
+}
+async function addCat() {
+  const name = document.getElementById('cat-name').value.trim();
+  if (!name) return toast('Введи название');
+  await db.ref('categories').push().set({ name });
+  toast('Категория создана');
+  drawAdminBody();
+}
+async function delCat(id) { if (confirm('Удалить категорию?')) { await db.ref('categories/' + id).remove(); drawAdminBody(); } }
+
+/* --- Кейсы --- */
+function adminCasesHTML() {
+  if (!draft) draft = { name:'', img:'', price:0, category:'', totalLimit:0, perUserLimit:0, hours:0, items:[] };
+  return `<div class="card"><h2>➕ Новый кейс</h2>
+    <label>Название</label><input id="cs-name" value="${esc(draft.name)}">
+    <label>Иконка кейса (файл или ссылка)</label>
+    <input type="file" accept="image/*" onchange="onCaseFile(event)">
+    <p class="muted" style="text-align:center; margin:4px 0">или</p>
+    <input id="cs-img" value="${esc(draft.img)}" placeholder="https://...">
+    <img id="cs-prev" class="preview" style="${draft.img ? '' : 'display:none'}" src="${esc(draft.img)}">
+    <label>Стоимость (0 = бесплатный кейс)</label><input id="cs-price" type="number" value="${draft.price}">
+    <label>Категория (необязательно — иначе «Общая»)</label><select id="cs-cat">
+      <option value="">— Общая —</option>
+      ${Object.entries(CATS).map(([id, c]) => `<option value="${id}" ${draft.category === id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
+    </select>
+    <div class="row">
+      <div><label>Всего открытий (0 = ∞)</label><input id="cs-total" type="number" value="${draft.totalLimit}"></div>
+      <div><label>Лимит на игрока (0 = ∞)</label><input id="cs-per" type="number" value="${draft.perUserLimit}"></div>
+    </div>
+    <label>Исчезнет через (часов, 0 = никогда)</label><input id="cs-hours" type="number" value="${draft.hours}">
+    <hr class="divider">
+    <label>Предметы и шансы</label>
+    <div class="row" style="align-items:center">
+      <button class="btn sec" type="button" style="flex:1;min-width:0" onclick="openCaseItemPicker()">${CASE_ITEM_SELECTED_ID && ITEMS[CASE_ITEM_SELECTED_ID] ? `📦 ${esc(ITEMS[CASE_ITEM_SELECTED_ID].name)} · ${Number(ITEMS[CASE_ITEM_SELECTED_ID].price||0)}` : '📚 Выбрать предмет из базы'}</button>
+      <input id="cs-chance" type="number" placeholder="Шанс, %" value="10" style="flex:0 0 90px">
+      <button class="btn sec" style="flex:0 0 auto; padding:10px" onclick="draftAddItem()">+</button>
+    </div>
+    ${draft.items.map((d, i) => `<div class="row" style="align-items:center">
+      <p style="flex:1">${ITEMS[d.id]?.img ? `<img class="cmini" src="${esc(ITEMS[d.id].img)}" style="border-radius:4px">` : ''} ${esc(ITEMS[d.id]?.name || d.id)} — <b>${d.chance}%</b></p>
+      <button class="del" onclick="draftRemove(${i})">✕</button></div>`).join('') || '<p class="muted">Добавь хотя бы один предмет.</p>'}
+    <button class="btn" style="margin-top:10px" onclick="saveCase()">Создать кейс</button></div>
+  <div class="card"><h2>📦 Кейсы (${Object.keys(CASES).length})</h2>
+    ${Object.entries(CASES).map(([id, k]) =>
+      `<div class="row" style="align-items:center; margin-bottom:6px">
+        <p style="flex:1">${k.img ? `<img class="cmini" src="${esc(k.img)}" style="border-radius:4px">` : ''} ${esc(k.name)} · ${k.price > 0 ? k.price : 'бесплатно'} · открыто: ${k.opened || 0}</p>
+        <button class="del" onclick="delCase('${id}')">Удалить</button></div>`).join('') || '<p class="muted">Пока нет.</p>'}
+  </div>`;
+}
+function readDraft() {
+  draft.name = document.getElementById('cs-name').value;
+  draft.img = document.getElementById('cs-img').value.trim();
+  draft.price = +document.getElementById('cs-price').value || 0;
+  draft.category = document.getElementById('cs-cat').value;
+  draft.totalLimit = +document.getElementById('cs-total').value || 0;
+  draft.perUserLimit = +document.getElementById('cs-per').value || 0;
+  draft.hours = +document.getElementById('cs-hours').value || 0;
+}
+function onCaseFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  readDraft();
+  fileToDataUrl(f, url => {
+    draft.img = url;
+    drawAdminBody();
+    toast('Картинка загружена');
+  });
+}
+function openCaseItemPicker() {
+  readDraft();
+  caseItemSearchDraft = '';
+  const input = document.getElementById('case-item-search'); if (input) input.value = '';
+  document.getElementById('case-item-picker').classList.add('show');
+  renderCaseItemPicker();
+}
+function closeCaseItemPicker() { document.getElementById('case-item-picker').classList.remove('show'); }
+function applyCaseItemSearch() { caseItemSearchDraft = (document.getElementById('case-item-search')?.value || '').trim().toLowerCase(); renderCaseItemPicker(); }
+function renderCaseItemPicker() {
+  const host = document.getElementById('case-item-picker-list'); if (!host) return;
+  const entries = Object.entries(ITEMS).filter(([id,it]) => String(it.name||it.title||'').trim() && Number(it.price??it.cost)>0 && (!caseItemSearchDraft || String(it.name||'').toLowerCase().includes(caseItemSearchDraft) || id.toLowerCase().includes(caseItemSearchDraft))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
+  host.innerHTML = entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" onclick="chooseCaseItem('${id}')">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('') || '<p class="muted" style="grid-column:1/-1;text-align:center">Предметы не найдены.</p>';
+}
+function chooseCaseItem(id) {
+  CASE_ITEM_SELECTED_ID = id; closeCaseItemPicker();
+  const btn = document.querySelector('#admin-body button[onclick="openCaseItemPicker()"]');
+  const it = ITEMS[id]; if (btn) btn.textContent = it ? `📦 ${it.name} · ${Number(it.price||0)}` : '📚 Выбрать предмет из базы';
+}
+
+function draftAddItem() {
+  const id = CASE_ITEM_SELECTED_ID;
+  const chance = +document.getElementById('cs-chance').value || 0;
+  if (!id || chance <= 0) return toast('Выбери предмет и шанс больше 0');
+  readDraft();
+  draft.items.push({ id, chance });
+  drawAdminBody();
+}
+function draftRemove(i) { readDraft(); draft.items.splice(i, 1); drawAdminBody(); }
+async function saveCase() {
+  readDraft();
+  if (!draft.name.trim()) return toast('Введи название');
+  if (draft.items.length === 0) return toast('Добавь предметы в кейс');
+  await db.ref('cases').push().set({
+    name: draft.name.trim(), img: draft.img,
+    category: draft.category,
+    price: draft.price, totalLimit: draft.totalLimit, perUserLimit: draft.perUserLimit,
+    expiresAt: draft.hours ? Date.now() + draft.hours * 3600000 : 0,
+    opened: 0,
+    items: Object.fromEntries(draft.items.map(d => [d.id, d.chance])),
+    createdAt: Date.now()
+  });
+  draft = null; CASE_ITEM_SELECTED_ID = '';
+  toast('Кейс создан!');
+  drawAdminBody();
+}
+async function delCase(id) { if (confirm('Удалить кейс?')) { await db.ref('cases/' + id).remove(); drawAdminBody(); } }
+
+/* --- Игроки и роли --- */
+function adminUsersHTML() {
+  const all = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+  const q = adminUserSearch.trim().toLowerCase();
+  const entries = q ? all.filter(([id,u]) => id.toLowerCase().includes(q) || String(u.name||'').toLowerCase().includes(q)) : all;
+  return `<div class="card"><h2>👥 Игроки (${all.length})</h2>
+    <p class="muted">Ищи по Telegram ID или имени. «Подробно» открывает статистику и управление балансом; «Настроить» меняет роль.</p>
+    <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="numeric" placeholder="Telegram ID или имя" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button></form>
+    ${entries.map(([id, u]) => {
+      const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
+      const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
+      return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
+        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span></div><div class="chips">ID: ${esc(id)} · баланс: ${u.balance ?? 0}</div></div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
+      </div>`;
+    }).join('') || '<p class="muted">Игроки не найдены.</p>'}
+  </div>`;
+}
+function applyAdminUserSearch() { adminUserSearch = adminUserSearchDraft.trim(); drawAdminBody(); }
+function openPlayerAdminModal(id) {
+  PLAYER_ADMIN_ID = id;
+  const u = USERS[id] || {};
+  document.getElementById('player-admin-name').textContent = `${u.name || 'Игрок'} · Telegram ID ${id}`;
+  const role = id === ADMIN_ID || u.is_admin ? 'Администратор' : ROLES[id] === 'moderator' ? 'Модератор' : 'Игрок';
+  const inv = Object.keys(u.inventory || {}).length;
+  const opened = Object.values(u.openedCases || {}).reduce((a,b)=>a+(Number(b)||0),0);
+  const ticketCount = Object.values(TICKETS).filter(t=>t && String(t.owner)===id).length;
+  const created = u.createdAt ? new Date(u.createdAt).toLocaleString('ru-RU') : 'не указана';
+  const history = (Array.isArray(u.balanceHistory) ? [...u.balanceHistory] : []).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
+  const historyHtml = history.length ? `<div style="margin-top:10px"><h3 style="font-size:13px;margin-bottom:7px">Последние изменения баланса</h3>${history.map(h=>`<div class="ticket-row" style="margin-bottom:6px"><div class="row"><b style="color:${Number(h.delta)>=0?'var(--green)':'var(--red)'}">${Number(h.delta)>=0?'+':''}${Number(h.delta||0).toLocaleString('ru-RU')}</b><span style="flex:1;min-width:0;overflow-wrap:anywhere">${esc(h.reason||'Без причины')}</span></div><div class="chips">${h.at?fmtTime(h.at):'—'} · админ ID ${esc(h.by||'—')}</div></div>`).join('')}</div>` : '<p class="muted" style="margin-top:10px">История ручных корректировок пока пуста.</p>';
+  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${historyHtml}`;
+  document.getElementById('player-balance-amount').value = '';
+  document.getElementById('player-balance-reason').value = '';
+  document.getElementById('player-admin-modal').classList.add('show');
+}
+function closePlayerAdminModal() { document.getElementById('player-admin-modal').classList.remove('show'); PLAYER_ADMIN_ID = null; }
+async function adjustPlayerBalance(action) {
+  const targetId = PLAYER_ADMIN_ID;
+  const amount = Number(document.getElementById('player-balance-amount').value);
+  const reason = document.getElementById('player-balance-reason').value.trim();
+  if (!targetId) return;
+  if (!Number.isSafeInteger(amount) || amount <= 0) return toast('Введи целую сумму больше нуля');
+  if (!reason) return toast('Укажи причину изменения баланса');
+  try {
+    const result = await workerRequest('/api/admin/balance-adjust', {targetId, amount, action, reason});
+    toast(`Баланс обновлён: ${result.balance}`);
+    await db.ref('users/'+targetId).get().then(s=>{ if(s.exists()) USERS[targetId]=s.val(); });
+    openPlayerAdminModal(targetId);
+    drawAdminBody();
+  } catch(e) { toast(e.message || 'Не удалось изменить баланс'); }
+}
+
+function openRoleModal(id) {
+  if (id === ADMIN_ID) return toast('Главного администратора нельзя понизить');
+  ROLE_EDIT_ID = id;
+  const u = USERS[id] || {};
+  document.getElementById('role-player-label').textContent = `${u.name || id} · ID ${id}`;
+  document.getElementById('role-choice').value = u.is_admin ? 'admin' : (ROLES[id] || 'player');
+  document.getElementById('role-modal').classList.add('show');
+}
+function closeRoleModal() { document.getElementById('role-modal').classList.remove('show'); ROLE_EDIT_ID = null; }
+async function savePlayerRole() {
+  const id = ROLE_EDIT_ID, role = document.getElementById('role-choice').value;
+  if (!id) return;
+  try { await workerRequest('/api/admin/role', { targetId:id, role }); closeRoleModal(); toast('Роль игрока обновлена'); drawAdminBody(); }
+  catch (e) { toast(e.message || 'Не удалось изменить роль'); }
+}
+
+async function claimAnnouncement(id) {
+  if (!id) return;
+  if (profile?.claimedAnnouncements?.[id]) return toast('Ты уже получил награду за это объявление');
+  try {
+    const result=await workerRequest('/api/announcement/claim',{announcementId:id});
+    const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val();
+    const names=Array.isArray(result.rewardNames)?result.rewardNames:[];
+    toast(names.length ? `Награда получена: ${names.join(', ')}` : 'Награда получена');
+    if(CURRENT_TAB==='home') rerender(); else rerenderIfDepends();
+  } catch(e) { toast(e.message || 'Не удалось получить награду'); }
+}
+
+/* --- Объявления --- */
+function adminAnnsHTML() {
+  const editing = ANN_EDIT && ANNS[ANN_EDIT];
+  const cur = editing ? ANNS[ANN_EDIT] : (ANN_DRAFT || { text:'', img:'', btnName:'', btnLink:'' });
+  return `<div class="card"><h2>➕ ${editing ? '✏️ Изменить объявление' : 'Новое объявление'}</h2>
+    <label>Текст</label><textarea id="an-text" rows="3">${esc(cur.text)}</textarea>
+    <label>Фото (необязательно; целиком, без обрезки)</label>
+    <input type="file" accept="image/*" onchange="onAnFile(event)">
+    <label style="display:flex;align-items:center;gap:10px;margin:8px 0 12px;color:var(--text);font-size:14px"><input id="an-no-frame" type="checkbox" ${cur.noFrame?'checked':''} style="width:18px;height:18px;margin:0;flex:0 0 auto"> Без рамки — только закруглённое фото</label>
+    <img id="an-prev" class="preview" style="width:100%; height:auto; max-height:240px; object-fit:contain; border-radius:14px; ${cur.img ? '' : 'display:none'}" src="${esc(cur.img)}">
+    <label>Кнопка: название (необязательно)</label><input id="an-btn-name" value="${esc(cur.btnName)}" placeholder="Например: Наш канал">
+    <label>Ссылка (необязательно; если название кнопки пустое, кликабельно всё объявление)</label><input id="an-btn-link" value="${esc(cur.btnLink)}" placeholder="https://...">
+    <hr class="divider"><label style="display:flex;align-items:center;gap:9px;color:var(--text);font-size:13px"><input id="an-one-time" type="checkbox" ${cur.oneTime?'checked':''} onchange="toggleAnnouncementOneTime()"> Одноразовое объявление с наградой</label>
+    <div id="an-reward-controls" style="${cur.oneTime?'':'display:none'};margin-top:8px"><p class="muted">Награду можно забрать только один раз на аккаунт. Выбери несколько предметов из базы.</p><button type="button" class="btn sec" onclick="openAnnouncementRewardPicker()">🎁 Выбрать предметы награды</button><div id="an-reward-summary" style="margin-top:6px">${announcementRewardSummary()}</div></div>
+    <button class="btn" style="margin-top:10px" onclick="saveAnn()">${editing ? 'Сохранить изменения' : 'Создать объявление'}</button>
+    ${editing ? '<button class="btn sec" style="margin-top:6px" onclick="cancelAnnEdit()">Отмена редактирования</button>' : ''}
+    <hr class="divider"><p class="muted">Объявления показываются на главной каруселью: автолистование каждые 10 секунд, игрок может листать свайпом и стрелками.</p></div>
+  <div class="card" id="admin-ann-list"><h2>📢 Объявления (${Object.keys(ANNS).length})</h2>${adminAnnListItemsHTML()}</div>`;
+}
+function adminAnnListItemsHTML() {
+  return Object.entries(ANNS).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0)).map(([id, a]) =>
+    `<div class="ticket-row"><div class="row" style="align-items:center"><div style="flex:1"><div style="font-size:13px">${esc(a.text.slice(0,60))}${a.text.length>60?'…':''}</div><div class="chips">${a.img?'📷 фото · ':''}${a.noFrame?'без рамки · ':''}${a.oneTime?`🎁 одноразовая награда: ${(a.rewardIds||[]).length} предметов · `:''}${a.btnName?`кнопка: ${esc(a.btnName)}`:a.btnLink?'всё объявление — ссылка':'без ссылки'}</div></div><button class="btn small" style="flex:0 0 auto" onclick="editAnn('${id}')">✏️</button><button class="del" onclick="delAnn('${id}')">Удалить</button></div></div>`).join('') || '<p class="muted">Пока нет объявлений.</p>';
+}
+function updateAdminAnnList() {
+  const host = document.getElementById('admin-ann-list');
+  if (host) host.innerHTML = `<h2>📢 Объявления (${Object.keys(ANNS).length})</h2>${adminAnnListItemsHTML()}`;
+}
+
+function readAnnForm() {
+  return {
+    text: document.getElementById('an-text').value.trim(),
+    img: document.getElementById('an-prev')?.src && document.getElementById('an-prev').style.display !== 'none' ? document.getElementById('an-prev').src : '',
+    btnName: document.getElementById('an-btn-name').value.trim(),
+    btnLink: document.getElementById('an-btn-link').value.trim(),
+    oneTime: !!document.getElementById('an-one-time')?.checked,
+    noFrame: !!document.getElementById('an-no-frame')?.checked,
+    rewardIds: ANN_REWARD_IDS.slice()
+  };
+}
+function onAnFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToPhoto(f, url => {
+    ANN_DRAFT = readAnnForm(); ANN_DRAFT.img = url;
+    const p = document.getElementById('an-prev');
+    p.src = url; p.style.display = 'block';
+    toast('Фото загружено');
+  });
+}
+async function saveAnn() {
+  const data = readAnnForm();
+  if (!data.text) return toast('Введи текст объявления');
+  if (data.btnName && !data.btnLink) return toast('Укажи ссылку для кнопки');
+  if (data.oneTime && !data.rewardIds.length) return toast('Выбери хотя бы один предмет награды');
+  if (data.btnLink && !/^https:\/\//i.test(data.btnLink)) return toast('Ссылка должна начинаться с https://');
+  const payload = { ...data, id: ANN_EDIT || '' };
+  try {
+    const result = await workerRequest('/api/admin/announcement/save', payload);
+    const savedId = result.id;
+    ANNS[savedId] = {...(ANNS[savedId] || {}), ...data, createdAt:ANNS[savedId]?.createdAt || Date.now(), updatedAt:Date.now()};
+    ANN_EDIT = null; ANN_DRAFT = null; ANN_REWARD_IDS = [];
+    ANNS[savedId].rewardIds = data.oneTime ? data.rewardIds.slice() : [];
+    toast('Объявление сохранено');
+    drawAdminBody();
+  } catch (e) { toast(e.message || 'Не удалось сохранить объявление'); }
+}
+function editAnn(id) { ANN_EDIT = id; ANN_REWARD_IDS = Array.isArray(ANNS[id]?.rewardIds) ? [...ANNS[id].rewardIds] : []; drawAdminBody(); }
+function cancelAnnEdit() { ANN_EDIT = null; ANN_REWARD_IDS = []; ANN_DRAFT = null; drawAdminBody(); }
+function toggleAnnouncementOneTime() { const el=document.getElementById('an-one-time'), box=document.getElementById('an-reward-controls'), name=document.getElementById('an-btn-name'), link=document.getElementById('an-btn-link'); const on=!!el?.checked; if(box) box.style.display=on?'block':'none'; if(name){name.disabled=on;if(on)name.value='';} if(link){link.disabled=on;if(on)link.value='';} }
+function announcementRewardSummary() { const chosen=ANN_REWARD_IDS.map(id=>({id,it:ITEMS[id]})).filter(x=>x.it); return chosen.length ? chosen.map(x=>`<span class="ann-reward-chip">${x.it.img?`<img src="${esc(x.it.img)}" style="width:20px;height:20px;object-fit:contain">`:''}${esc(x.it.name||x.id)} · ${Number(x.it.price||0)}</span>`).join('') : '<p class="muted">Награды не выбраны.</p>'; }
+function openAnnouncementRewardPicker() { const input=document.getElementById('ann-reward-search'); if(input) input.value=''; document.getElementById('ann-reward-picker').classList.add('show'); renderAnnouncementRewardPicker(); }
+function closeAnnouncementRewardPicker() { document.getElementById('ann-reward-picker').classList.remove('show'); const summary=document.getElementById('an-reward-summary'); if(summary) summary.innerHTML=announcementRewardSummary(); const count=document.getElementById('ann-reward-count'); if(count) count.textContent=ANN_REWARD_IDS.length; }
+function toggleAnnouncementReward(id) { const i=ANN_REWARD_IDS.indexOf(id); if(i>=0) ANN_REWARD_IDS.splice(i,1); else if(ANN_REWARD_IDS.length<20) ANN_REWARD_IDS.push(id); else return toast('Можно выбрать максимум 20 предметов'); renderAnnouncementRewardPicker(); }
+function renderAnnouncementRewardPicker() { const host=document.getElementById('ann-reward-picker-list'); if(!host) return; const q=String(document.getElementById('ann-reward-search')?.value||'').trim().toLowerCase(); const entries=Object.entries(ITEMS).filter(([id,it])=>String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0&&(!q||String(it.name||'').toLowerCase().includes(q)||id.toLowerCase().includes(q))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0)); host.innerHTML=entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" style="border-color:${ANN_REWARD_IDS.includes(id)?'var(--green)':'var(--line)'};box-shadow:${ANN_REWARD_IDS.includes(id)?'0 0 0 1px var(--green)':''}" onclick="toggleAnnouncementReward('${id}')">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${ANN_REWARD_IDS.includes(id)?'✓ ':''}${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('')||'<p class="muted">В базе пока нет предметов.</p>'; const count=document.getElementById('ann-reward-count'); if(count) count.textContent=ANN_REWARD_IDS.length; }
+async function delAnn(id) {
+  if (!confirm('Удалить объявление?')) return;
+  try { await workerRequest('/api/admin/announcement/delete', { id }); if (ANN_EDIT === id) ANN_EDIT = null; toast('Объявление удалено'); drawAdminBody(); }
+  catch (e) { toast(e.message || 'Не удалось удалить объявление'); }
+}
+
+function adminStatsHTML() {
+  const users=Object.entries(USERS||{}), totalBalance=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.balance)||0),0), totalSpent=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.spentCurrency)||0),0), totalEarned=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.earnedCurrency)||0),0);
+  const openings=users.reduce((n,[,u])=>n+Object.values(u?.openedCases||{}).reduce((x,v)=>x+Math.max(0,Number(v)||0),0),0);
+  const validInventory=users.reduce((n,[,u])=>n+Object.values(u?.inventory||{}).filter(e=>{const it=ITEMS[String(e?.itemId||e?.id||'')];return !!it&&!!String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0;}).length,0);
+  const allTickets=Object.values(TICKETS||{}), openTickets=allTickets.filter(t=>t?.status==='open').length, activeTickets=allTickets.filter(t=>t?.status==='taken').length, closedTickets=allTickets.filter(t=>t?.status==='closed').length;
+  const ranking=users.map(([id,u])=>({id,u,spent:Number(u?.spentCurrency)||0,earned:Number(u?.earnedCurrency)||0})).sort((a,b)=>b.spent-a.spent).slice(0,10);
+  return `<div class="card"><h2>📊 Подробная статистика</h2><p class="muted">Исторические продажи, которые раньше не учитывались, задним числом восстановить нельзя.</p><div class="player-info-grid">
+    ${[['Игроков',users.length],['Общий баланс',totalBalance],['Расходы на кейсы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Открытия кейсов',openings],['Валидные предметы в инвентарях',validInventory],['Кейсов в каталоге',Object.keys(CASES||{}).length],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
+    </div><h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<button class="btn sec" style="margin-top:10px" onclick="drawAdminBody()">Обновить статистику</button></div>`;
+}
+function adminNotificationsHTML() {
+  const cfg=window._adminNotificationConfig||{}; const defaults={caseOpen:'📦 {name}, ты открыл кейс «{case}». Потрачено: {amount}. Баланс: {balance}.',itemSold:'💰 {name}, предмет «{item}» продан за {amount}. Баланс: {balance}.',upgrade:'⚡ {name}, апгрейд: {result}. Предмет: {item}.',reward:'🎁 {name}, ты получил награду: {item}.'}; const t={...defaults,...(cfg.templates||{})};
+  return `<div class="card"><h2>🔔 Уведомления Telegram-бота</h2><p class="muted">Сообщения получают только пользователи, включившие их в настройках и запустившие бота. Ошибка отправки не отменяет игровую операцию.</p>
+    <label style="display:flex;align-items:center;gap:10px;margin:8px 0"><input id="bot-notif-enabled" type="checkbox" ${cfg.enabled?'checked':''} style="width:auto"> Глобально включить отправку</label>
+    <label>HTTPS-ссылка на Mini App</label><input id="bot-notif-app-url" value="${esc(cfg.appUrl||location.href.split('#')[0])}" placeholder="https://...github.io/...">
+    <p class="muted">Ссылка для кнопки «Открыть приложение» в сообщении бота.</p>
+    <label>Шаблон: открытие кейса</label><textarea id="bot-tpl-caseOpen" rows="2">${esc(t.caseOpen)}</textarea><label>Шаблон: продажа</label><textarea id="bot-tpl-itemSold" rows="2">${esc(t.itemSold)}</textarea><label>Шаблон: апгрейд</label><textarea id="bot-tpl-upgrade" rows="2">${esc(t.upgrade)}</textarea><label>Шаблон: награда</label><textarea id="bot-tpl-reward" rows="2">${esc(t.reward)}</textarea>
+    <p class="muted">Переменные: {name}, {amount}, {balance}, {case}, {item}, {result}.</p><button class="btn" onclick="saveAdminNotificationConfig()">Сохранить настройки и тексты</button></div>`;
+}
+async function saveAdminNotificationConfig() {
+  const appUrl=document.getElementById('bot-notif-app-url').value.trim(), templates={caseOpen:document.getElementById('bot-tpl-caseOpen').value,itemSold:document.getElementById('bot-tpl-itemSold').value,upgrade:document.getElementById('bot-tpl-upgrade').value,reward:document.getElementById('bot-tpl-reward').value};
+  try { const r=await workerRequest('/api/admin/notifications',{enabled:document.getElementById('bot-notif-enabled').checked,appUrl,templates}); window._adminNotificationConfig=r.config||{enabled:document.getElementById('bot-notif-enabled').checked,appUrl,templates}; toast('Настройки уведомлений сохранены'); drawAdminBody(); } catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
+}
+async function loadAdminNotificationConfig() { try { const r=await workerRequest('/api/admin/notifications/get',{}); window._adminNotificationConfig=r.config||{}; if(CURRENT_TAB==='admin'&&adminSub==='notifications') drawAdminBody(); } catch(e) {} }
+
+/* --- Технический перерыв --- */
+function adminSystemHTML() {
+  const enabled = !!MAINTENANCE?.enabled;
+  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением.</p>
+    <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
+    <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
+    <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p></div>`;
+}
+async function saveMaintenance(enabled) {
+  const message = document.getElementById('maintenance-text')?.value.trim() || 'Ведутся технические работы. Попробуйте зайти позже.';
+  try { await workerRequest('/api/admin/maintenance', { enabled, message }); MAINTENANCE = { enabled, message }; updateMaintenanceScreen(); toast(enabled ? 'Технический перерыв включён' : 'Технический перерыв выключен'); drawAdminBody(); }
+  catch (e) { toast(e.message || 'Не удалось изменить режим'); }
+}
+
+/* --- Валюта --- */
+function adminCurHTML() {
+  return `<div class="card"><h2>🪙 Иконка валюты</h2>
+    <p class="muted">Появится рядом с балансом и во всех ценах. Файл сжимается до 96×96 и хранится в базе.</p>
+    <label>Файл (PNG / JPG)</label>
+    <input type="file" accept="image/*" onchange="onCurFile(event)">
+    <img id="cur-prev" class="preview" style="border-radius:50%; ${CUR_ICON ? '' : 'display:none'}" src="${CUR_ICON}">
+    <button class="btn" style="margin-top:10px" id="cur-save" onclick="saveCur()" ${CUR_DRAFT ? '' : 'disabled'}>Сохранить иконку</button>
+    ${CUR_ICON ? '<button class="btn sec" style="margin-top:6px" onclick="delCur()">Убрать иконку</button>' : ''}</div>`;
+}
+function onCurFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  fileToDataUrl(f, url => {
+    CUR_DRAFT = url;
+    const p = document.getElementById('cur-prev');
+    p.src = url; p.style.display = 'block';
+    document.getElementById('cur-save').disabled = false;
+    toast('Картинка загружена');
+  });
+}
+async function saveCur() {
+  if (!CUR_DRAFT) return;
+  await db.ref('config/currency').set({ icon: CUR_DRAFT, updatedAt: Date.now() });
+  CUR_DRAFT = '';
+  toast('Иконка сохранена');
+  drawAdminBody();
+}
+async function delCur() { if (confirm('Убрать иконку валюты?')) { await db.ref('config/currency').remove(); CUR_DRAFT = ''; drawAdminBody(); } }
+</script>
+</body>
+</html>
