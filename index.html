@@ -236,6 +236,12 @@
   /* ---------- СТАРТОВАЯ ЗАГРУЗКА ---------- */
   #app-loader { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; background:radial-gradient(ellipse at 50% 35%,#242424 0%,#111 42%,#070707 100%); opacity:1; visibility:visible; transition:opacity .55s ease,visibility .55s ease; }
   #app-loader.is-hidden { opacity:0; visibility:hidden; pointer-events:none; }
+  #blocked-screen { position:fixed; inset:0; z-index:1300; display:none; align-items:center; justify-content:center; padding:24px; background:#090909; color:#f5f5f5; }
+  #blocked-screen.show { display:flex; }
+  .blocked-box { width:100%; max-width:440px; padding:24px; border:1px solid #5a2929; border-radius:16px; background:#151515; }
+  .blocked-box h2 { margin-bottom:10px; font-size:22px; color:#ff7070; }
+  .blocked-box p { color:#bbb; font-size:14px; line-height:1.6; overflow-wrap:anywhere; white-space:pre-wrap; }
+  .blocked-box .btn { display:block; margin-top:12px; text-align:center; text-decoration:none; }
   #startup-error { position:fixed; inset:0; z-index:1200; display:none; align-items:center; justify-content:center; padding:24px; background:#090909; color:#f5f5f5; }
   #startup-error.show { display:flex; }
   .startup-error-box { width:100%; max-width:440px; padding:24px; border:1px solid #383838; border-radius:16px; background:#151515; }
@@ -360,6 +366,8 @@
     <button class="btn" id="manual-auth-btn" onclick="doAuth()" style="display:none">Войти вручную</button>
   </div>
 </div>
+
+<div id="blocked-screen" role="alert" aria-live="assertive"><div class="blocked-box"><h2>Аккаунт заблокирован</h2><p id="blocked-reason">Доступ к игре ограничен администратором.</p><p id="blocked-remaining" style="margin-top:8px;font-weight:600;color:#ffb2b2">Срок блокировки: бессрочно</p><p style="margin-top:12px">Если блокировка выдана по ошибке, обратитесь в техническую поддержку.</p><a class="btn" href="https://t.me/Siqyal" target="_blank" rel="noopener">💬 Обратиться в техподдержку</a><button class="btn sec" type="button" onclick="location.reload()">Проверить снова</button></div></div>
 
 <div class="app" id="app" style="display:none">
   <header>
@@ -510,6 +518,7 @@ let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
 let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = ''; 
 let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
+let TICKET_COOLDOWN_UNTIL = 0, TICKET_COOLDOWN_TIMER = null, TICKET_CREATE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
 let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
 const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true };
@@ -570,6 +579,35 @@ function fmtTime(ts) {
   return d.toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit' }) + ' ' +
          d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
 }
+function isPlayerBanActive(ban, now = Date.now()) {
+  if (ban?.active !== true) return false;
+  const expiresAt = Number(ban.expiresAt);
+  return !Number.isFinite(expiresAt) || expiresAt <= 0 || expiresAt > now;
+}
+function formatRemainingTime(ms) {
+  let seconds = Math.max(0, Math.ceil(ms / 1000));
+  const days = Math.floor(seconds / 86400); seconds %= 86400;
+  const hours = Math.floor(seconds / 3600); seconds %= 3600;
+  const minutes = Math.floor(seconds / 60); seconds %= 60;
+  const parts = [];
+  if (days) parts.push(`${days} д.`);
+  if (hours || days) parts.push(`${hours} ч.`);
+  if (minutes || hours || days) parts.push(`${minutes} мин.`);
+  if (!days && !hours) parts.push(`${seconds} сек.`);
+  return parts.join(' ');
+}
+function refreshBanCountdowns() {
+  document.querySelectorAll('[data-ban-countdown]').forEach(el => {
+    const expiresAt = Number(el.dataset.expiresAt || 0);
+    el.textContent = expiresAt > 0 ? (expiresAt > Date.now() ? `Осталось: ${formatRemainingTime(expiresAt-Date.now())}` : 'Срок блокировки истёк') : 'Срок блокировки: бессрочно';
+  });
+  const blocked = document.getElementById('blocked-remaining');
+  if (blocked && document.getElementById('blocked-screen')?.classList.contains('show')) {
+    const expiresAt = Number(blocked.dataset.expiresAt || 0);
+    blocked.textContent = expiresAt > 0 ? (expiresAt > Date.now() ? `Осталось до разблокировки: ${formatRemainingTime(expiresAt-Date.now())}` : 'Срок блокировки истёк. Обновите приложение для повторного входа.') : 'Срок блокировки: бессрочно';
+  }
+}
+setInterval(refreshBanCountdowns, 1000);
 const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', upgrader:'Апгрейдер', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
 let inventoryCleanupCheckedFor = null;
 const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, caseOpen:true, itemSold:true, upgrade:true, reward:true, announcements:true, maintenanceStart:true, maintenanceEnd:true };
@@ -610,6 +648,24 @@ function aMsg(t, cls) {
   const m = document.getElementById('a-msg');
   m.textContent = t; m.style.color = cls === 'err' ? '#ef5350' : '#8d8d8d';
 }
+function showBlockedScreen(message, expiresAt = null) {
+  APP_BOOTSTRAPPING = false;
+  hideAppLoader();
+  document.getElementById('auth-screen')?.classList.remove('show');
+  const app = document.getElementById('app'); if (app) app.style.display = 'none';
+  const reason = document.getElementById('blocked-reason');
+  if (reason) reason.textContent = String(message || 'Доступ к игре ограничен администратором.').replace(/^Аккаунт заблокирован\.?\s*/i, '').replace(/^Причина:\s*/i, 'Причина: ');
+  const remaining = document.getElementById('blocked-remaining');
+  if (remaining) remaining.dataset.expiresAt = Number(expiresAt) > 0 ? String(Number(expiresAt)) : '0';
+  document.getElementById('blocked-screen')?.classList.add('show');
+  refreshBanCountdowns();
+}
+function handleBlockedLogin(data) {
+  if (data?.code !== 'PLAYER_BANNED') return false;
+  showBlockedScreen(data.error || 'Аккаунт заблокирован администратором.', data.banExpiresAt);
+  return true;
+}
+
 async function telegramAutoLogin(firebaseUser) {
   if (!TG_USER || !TG_INIT_DATA) throw new Error('Telegram не передал данные авторизации. Откройте Mini App кнопкой бота.');
   if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Не настроен URL Cloudflare Worker.');
@@ -620,7 +676,7 @@ async function telegramAutoLogin(firebaseUser) {
     body:JSON.stringify({ initData:TG_INIT_DATA, uid:firebaseUser.uid, idToken })
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.ok) throw new Error(formatApiError(data, response.status, 'Не удалось выполнить вход через Telegram'));
+  if (!response.ok || !data.ok) { if (handleBlockedLogin(data)) return; throw new Error(formatApiError(data, response.status, 'Не удалось выполнить вход через Telegram')); }
   CURRENT_ID = String(data.id || TG_USER.id);
   CURRENT_PASS = '';
   await enterApp(CURRENT_ID);
@@ -650,7 +706,7 @@ async function doAuth() {
       if (id === ADMIN_ID) bootstrapSecret = prompt('Для первичной регистрации администратора введи ADMIN_BOOTSTRAP_SECRET из настроек Worker:') || '';
       result = await callSession(true, bootstrapSecret);
     }
-    if (!result.response.ok || !result.data.ok) return aMsg(formatApiError(result.data, result.response.status, 'Не удалось войти'), 'err');
+    if (!result.response.ok || !result.data.ok) { if (handleBlockedLogin(result.data)) return; return aMsg(formatApiError(result.data, result.response.status, 'Не удалось войти'), 'err'); }
     CURRENT_ID = id;
     await enterApp(id);
   } catch (e) { aMsg('Ошибка входа: ' + (e?.message || 'Неизвестная ошибка') + (e instanceof TypeError ? ' [код: NETWORK_OR_CORS_ERROR]' : ''), 'err'); }
@@ -1182,6 +1238,8 @@ async function createTicket(type, amount, location) {
   if (type === 'deposit' && (!Number.isSafeInteger(Number(amount)) || Number(amount) < 50)) throw new Error('Минимальное пополнение — 50 золота');
   const result = await workerRequest('/api/ticket/create', { type, amount:Number(amount), location });
   OPEN_TICKET_ID = result.ticketId;
+  TICKET_COOLDOWN_UNTIL = Number(result.cooldownUntil || (Date.now() + 300000));
+  startTicketCooldownTimer();
   toast(`Тикет #${result.num} создан`);
 }
 function sendMsg(id, inputId) {
@@ -1365,9 +1423,11 @@ function renderProfile(c) {
         <option value="hot_spot">Горячая точка</option>
       </select>
       <p class="muted" id="tk-hint"></p>
-      <button class="btn" onclick="uiCreateTicket()" ${!featureVisible('profileCreateTicket')?'disabled':''}>Создать тикет</button>` : featurePlaceholder('profileCreateTicket')}
+      <button class="btn" id="tk-create-btn" onclick="uiCreateTicket()" ${!featureVisible('profileCreateTicket')?'disabled':''}>Создать тикет</button>
+      <p class="muted" id="tk-cooldown-label" style="font-size:12px;margin-top:6px"></p>` : featurePlaceholder('profileCreateTicket')}
     </div>` : featurePlaceholder('profileTickets')}`;
   updateTkHint();
+  refreshTicketCooldown();
 }
 function updateTkHint() {
   const typeEl = document.getElementById('tk-type');
@@ -1381,8 +1441,35 @@ function updateTkHint() {
 function setPTab(v) { profileTicketTab = v; OPEN_TICKET_ID = null; rerender(); }
 function backToProfile() { OPEN_TICKET_ID = null; rerender(); }
 function openMyTicket(id) { OPEN_TICKET_ID = id; rerender(); }
-function uiCreateTicket() {
+function ticketCooldownText(ms) {
+  const seconds=Math.max(0,Math.ceil(ms/1000));
+  return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;
+}
+function renderTicketCooldown() {
+  const btn=document.getElementById('tk-create-btn');
+  const label=document.getElementById('tk-cooldown-label');
+  const remaining=Math.max(0,TICKET_COOLDOWN_UNTIL-Date.now());
+  if(btn) { btn.disabled=TICKET_CREATE_BUSY || remaining>0 || (!featureVisible('profileCreateTicket')&&!isAdmin()); btn.textContent=TICKET_CREATE_BUSY?'Создание…':remaining>0?`Создать тикет · ${ticketCooldownText(remaining)}`:'Создать тикет'; }
+  if(label) label.textContent=remaining>0?`Повторное создание тикета доступно через ${ticketCooldownText(remaining)}.`:'';
+  if(remaining<=0 && TICKET_COOLDOWN_TIMER) { clearInterval(TICKET_COOLDOWN_TIMER); TICKET_COOLDOWN_TIMER=null; }
+}
+function startTicketCooldownTimer() {
+  if(TICKET_COOLDOWN_TIMER) clearInterval(TICKET_COOLDOWN_TIMER);
+  renderTicketCooldown();
+  TICKET_COOLDOWN_TIMER=setInterval(renderTicketCooldown,250);
+}
+async function refreshTicketCooldown() {
+  if(!CURRENT_ID || !document.getElementById('tk-create-btn')) return;
+  try {
+    const result=await workerRequest('/api/ticket/cooldown');
+    TICKET_COOLDOWN_UNTIL=Number(result.cooldownUntil||0);
+  } catch (_) { /* сервер всё равно проверит cooldown при создании */ }
+  if(document.getElementById('tk-create-btn')) startTicketCooldownTimer();
+}
+async function uiCreateTicket() {
+  if (TICKET_CREATE_BUSY) return;
   if (!featureVisible('profileCreateTicket') && !isAdmin()) return toast('Создание тикетов временно отключено');
+  if(TICKET_COOLDOWN_UNTIL>Date.now()) { renderTicketCooldown(); return toast(`Подожди ${ticketCooldownText(TICKET_COOLDOWN_UNTIL-Date.now())}`); }
   const type = document.getElementById('tk-type').value;
   const amount = +document.getElementById('tk-amount').value || 0;
   const location = document.getElementById('tk-location')?.value || '';
@@ -1391,7 +1478,11 @@ function uiCreateTicket() {
   if (!Object.prototype.hasOwnProperty.call(TICKET_LOCATIONS, location)) return toast('Обязательно выбери локацию');
   if (type === 'withdraw' && amount > (profile?.balance || 0))
     return toast('Сумма вывода не может превышать твой баланс');
-  createTicket(type, amount, location).then(rerender).catch(e=>toast(e.message || 'Не удалось создать тикет'));
+  TICKET_CREATE_BUSY=true; renderTicketCooldown();
+  createTicket(type, amount, location).then(()=>rerender()).catch(async e=>{
+    if(String(e.message||'').includes('TICKET_COOLDOWN')) await refreshTicketCooldown();
+    toast(e.message || 'Не удалось создать тикет');
+  }).finally(()=>{TICKET_CREATE_BUSY=false;renderTicketCooldown();});
 }
 
 /* --- вкладка тикетов для стаффа --- */
@@ -1674,7 +1765,7 @@ function adminUsersHTML() {
       const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
       const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
       return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
-        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span></div><div class="chips">ID: ${esc(id)} · баланс: ${u.balance ?? 0}</div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)} · баланс: ${u.balance ?? 0}</div></div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
       </div>`;
     }).join('') || '<p class="muted">Игроки не найдены.</p>'}
@@ -1684,6 +1775,7 @@ function applyAdminUserSearch() { adminUserSearch = adminUserSearchDraft.trim();
 function openPlayerAdminModal(id) {
   PLAYER_ADMIN_ID = id;
   const u = USERS[id] || {};
+  const banActive = isPlayerBanActive(u.ban);
   document.getElementById('player-admin-name').textContent = `${u.name || 'Игрок'} · Telegram ID ${id}`;
   const role = id === ADMIN_ID || u.is_admin ? 'Администратор' : ROLES[id] === 'moderator' ? 'Модератор' : 'Игрок';
   const inv = Object.keys(u.inventory || {}).length;
@@ -1692,11 +1784,33 @@ function openPlayerAdminModal(id) {
   const created = u.createdAt ? new Date(u.createdAt).toLocaleString('ru-RU') : 'не указана';
   const history = (Array.isArray(u.balanceHistory) ? [...u.balanceHistory] : []).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
   const historyHtml = history.length ? `<div style="margin-top:10px"><h3 style="font-size:13px;margin-bottom:7px">Последние изменения баланса</h3>${history.map(h=>`<div class="ticket-row" style="margin-bottom:6px"><div class="row"><b style="color:${Number(h.delta)>=0?'var(--green)':'var(--red)'}">${Number(h.delta)>=0?'+':''}${Number(h.delta||0).toLocaleString('ru-RU')}</b><span style="flex:1;min-width:0;overflow-wrap:anywhere">${esc(h.reason||'Без причины')}</span></div><div class="chips">${h.at?fmtTime(h.at):'—'} · админ ID ${esc(h.by||'—')}</div></div>`).join('')}</div>` : '<p class="muted" style="margin-top:10px">История ручных корректировок пока пуста.</p>';
-  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${historyHtml}`;
+  const banHistory = (Array.isArray(u.banHistory) ? [...u.banHistory] : []).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,10);
+  const banHistoryHtml = banHistory.length ? `<div style="margin-top:10px"><h3 style="font-size:13px;margin-bottom:7px">История блокировок</h3>${banHistory.map(h=>`<div class="ticket-row" style="margin-bottom:6px"><b style="color:${h.action==='ban'?'var(--red)':'var(--green)'}">${h.action==='ban'?'Блокировка':'Снятие блокировки'}</b><div style="font-size:13px;margin-top:4px;overflow-wrap:anywhere">${esc(h.reason||'Причина не указана')}</div><div class="chips">${h.at?fmtTime(h.at):'—'} · админ ID ${esc(h.by||'—')}${h.durationLabel?` · срок: ${esc(h.durationLabel)}`:''}${h.expiresAt?` · до ${fmtTime(h.expiresAt)}`:''}</div></div>`).join('')}</div>` : '<p class="muted" style="margin-top:10px">История блокировок пуста.</p>';
+  const banBox = `<div style="margin-top:14px;padding:12px;border:1px solid ${banActive?'var(--red)':'var(--line)'};border-radius:12px"><h3 style="font-size:14px;margin-bottom:7px">${banActive?'⛔ Игрок заблокирован':'🛡️ Блокировка игрока'}</h3>${banActive?`<p style="font-size:13px;margin-bottom:5px">Причина: ${esc(u.ban.reason||'не указана')}</p><p data-ban-countdown data-expires-at="${Number(u.ban.expiresAt)||0}" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px">${Number(u.ban.expiresAt)>Date.now()?'Осталось: '+formatRemainingTime(Number(u.ban.expiresAt)-Date.now()):Number(u.ban.expiresAt)>0?'Срок блокировки истёк':'Срок блокировки: бессрочно'}</p>`:`<label for="player-ban-duration">Срок блокировки</label><select id="player-ban-duration"><option value="15m">15 минут</option><option value="1h">1 час</option><option value="6h">6 часов</option><option value="24h">24 часа</option><option value="7d">7 дней</option><option value="30d">30 дней</option><option value="permanent" selected>Бессрочно</option></select>`}<label for="player-ban-reason">${banActive?'Причина снятия (необязательно)':'Причина блокировки (обязательно)'}</label><textarea id="player-ban-reason" rows="2" maxlength="500" placeholder="${banActive?'Комментарий к снятию блокировки':'Укажи причину блокировки'}"></textarea><button class="btn ${banActive?'':'danger'}" style="margin-top:4px" onclick="setPlayerBan('${banActive?'unban':'ban'}')">${banActive?'Снять блокировку':'Заблокировать игрока'}</button></div>`
+  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
   document.getElementById('player-balance-amount').value = '';
   document.getElementById('player-balance-reason').value = '';
   document.getElementById('player-admin-modal').classList.add('show');
 }
+async function setPlayerBan(action) {
+  const targetId = PLAYER_ADMIN_ID;
+  const reason = String(document.getElementById('player-ban-reason')?.value || '').trim();
+  const duration = String(document.getElementById('player-ban-duration')?.value || 'permanent');
+  if (!targetId) return;
+  if (action === 'ban' && !reason) return toast('Укажи причину блокировки');
+  const target = USERS[targetId] || {};
+  const confirmText = action === 'ban' ? `Заблокировать игрока ${target.name || targetId}? Он не сможет войти в игру. Причина: ${reason}` : `Снять блокировку с игрока ${target.name || targetId}?`;
+  if (!confirm(confirmText)) return;
+  try {
+    await workerRequest('/api/admin/ban', {targetId, action, reason, duration});
+    const snap = await db.ref('users/'+targetId).get();
+    if (snap.exists()) USERS[targetId] = snap.val();
+    toast(action === 'ban' ? 'Игрок заблокирован' : 'Блокировка снята');
+    openPlayerAdminModal(targetId);
+    drawAdminBody();
+  } catch (e) { toast(e.message || 'Не удалось изменить блокировку'); }
+}
+
 function closePlayerAdminModal() { document.getElementById('player-admin-modal').classList.remove('show'); PLAYER_ADMIN_ID = null; }
 async function adjustPlayerBalance(action) {
   const targetId = PLAYER_ADMIN_ID;
