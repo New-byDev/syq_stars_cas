@@ -540,6 +540,10 @@ function syncReferralInfoFromLocalData() {
   REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:wholeEarned + pendingHundredths / 100};
 }
 let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
+const SKIN_DEFAULT_PRESET = {name:'Ночной стандарт',bg:'#0b0b0b',bg2:'#181824',card:'#171717',surface:'#101010',text:'#f5f5f5',muted:'#8d8d8d',line:'#2c2c2c',accent:'#ffffff',accentText:'#111111',radius:14,backgroundMode:'solid',fontFamily:'system'};
+let SKIN_CONFIG = {activeId:'default',presets:{default:{...SKIN_DEFAULT_PRESET}}};
+let SKIN_SELECTED_ID = 'default', SKIN_DRAFT = null, SKIN_PREVIEWING = false;
+let CASE_EDIT_ID = null;
 let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
@@ -548,6 +552,7 @@ let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let TICKET_COOLDOWN_UNTIL = 0, TICKET_COOLDOWN_TIMER = null, TICKET_CREATE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
 let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
+let LIVE_REFRESH_TIMER = null, LIVE_REFRESH_BUSY = false;
 const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, referrals:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true, caseFastSpin:true, profileReferralStats:true };
 let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
 let UI_VISIBILITY_MESSAGES = {};
@@ -767,7 +772,7 @@ async function enterApp(id) {
 
   db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
   db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
-  db.ref('cases').on('value', s => { CASES = s.val() || {}; rerenderIfDepends(); });
+  db.ref('cases').on('value', s => { CASES = s.val() || {}; if (CURRENT_TAB === 'admin' && adminSub === 'cases') updateAdminCaseListOnly(); else rerenderIfDepends(); });
   db.ref('users').on('value', s => { USERS = s.val() || {}; syncReferralInfoFromLocalData(); rerenderIfDepends(); });
   db.ref('tickets').on('value', s => {
     const previous = TICKETS;
@@ -783,8 +788,9 @@ async function enterApp(id) {
     TICKETS = nextTickets; TICKET_NOTIF_READY = true; sweepExpired();
     const activeTicket = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
     const previousTicket = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
-    if (activeTicket && previousTicket && activeTicket.status === previousTicket.status && activeTicket.takenBy === previousTicket.takenBy && ['tickets','profile'].includes(CURRENT_TAB)) {
-      updateTicketChat(OPEN_TICKET_ID, activeTicket);
+    if (activeTicket && previousTicket && ['tickets','profile'].includes(CURRENT_TAB)) {
+      if (activeTicket.status !== previousTicket.status || activeTicket.takenBy !== previousTicket.takenBy) rerender();
+      else updateTicketChat(OPEN_TICKET_ID, activeTicket);
     } else rerenderIfDepends();
   });
   db.ref('roles').on('value', s => { ROLES = s.val() || {}; syncReferralInfoFromLocalData(); updateStaffBtn(); rerenderIfDepends(); });
@@ -796,7 +802,8 @@ async function enterApp(id) {
     }
     ANNS = nextAnns; ANN_NOTIF_READY = true;
     if (CURRENT_TAB === 'home') rerender();
-    // Админские объявления перерисовываются только вручную, чтобы не сбрасывать поля ввода.
+    // Список объявлений обновляем отдельно: поля формы создания/редактирования остаются нетронутыми.
+    if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
     if (CURRENT_TAB === 'admin' && adminSub === 'stats') drawAdminBody();
   });
   db.ref('config/maintenance').on('value', s => {
@@ -814,6 +821,11 @@ async function enterApp(id) {
     // Не перерисовываем форму видимости на фоне: сохраняем ввод и фокус.
     if (CURRENT_TAB === 'cases' || CURRENT_TAB === 'inventory' || CURRENT_TAB === 'upgrader' || CURRENT_TAB === 'profile') rerender();
   });
+  db.ref('config/skins').on('value', s => {
+    SKIN_CONFIG = normalizeSkinConfig(s.val() || {});
+    if (!(CURRENT_TAB === 'admin' && adminSub === 'skins' && SKIN_PREVIEWING)) applyActiveSkin();
+    if (CURRENT_TAB === 'admin' && adminSub === 'skins' && !SKIN_PREVIEWING) updateSkinPresetListOnly();
+  });
   db.ref('config/currency').on('value', s => {
     CUR_ICON = s.val()?.icon || '';
     const el = document.getElementById('cur-icon');
@@ -823,6 +835,7 @@ async function enterApp(id) {
 
   go('home');
   loadReferralInfo();
+  startLivePanelRefresh();
   APP_BOOTSTRAPPING = false;
   // Даём первичным подпискам Firebase отдать данные, затем плавно открываем интерфейс.
   window.setTimeout(hideAppLoader, 650);
@@ -830,6 +843,58 @@ async function enterApp(id) {
     showStartupError(error, 'Инициализация профиля и Firebase');
   }
 }
+// Firebase on('value') остаётся основным realtime-каналом. Этот лёгкий fallback
+// перепроверяет только открытые пользователем панели раз в 4 секунды, если событие
+// задержалось/потерялось при переподключении. Формы объявлений не пересоздаются.
+function startLivePanelRefresh() {
+  if (LIVE_REFRESH_TIMER) clearInterval(LIVE_REFRESH_TIMER);
+  LIVE_REFRESH_TIMER = setInterval(refreshLivePanels, 4000);
+  if (!window._livePanelFocusBound) {
+    window._livePanelFocusBound = true;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refreshLivePanels();
+    });
+    window.addEventListener('focus', refreshLivePanels);
+  }
+}
+async function refreshLivePanels() {
+  if (LIVE_REFRESH_BUSY || !CURRENT_ID || document.visibilityState === 'hidden') return;
+  const wantTickets = CURRENT_TAB === 'tickets' || CURRENT_TAB === 'profile' || (CURRENT_TAB === 'admin' && adminSub === 'stats');
+  const wantAnns = CURRENT_TAB === 'home' || (CURRENT_TAB === 'admin' && (adminSub === 'anns' || adminSub === 'stats'));
+  if (!wantTickets && !wantAnns) return;
+  LIVE_REFRESH_BUSY = true;
+  try {
+    const jobs = [];
+    if (wantTickets) jobs.push(db.ref('tickets').get().then(snap => ({kind:'tickets', value:snap.val() || {}})));
+    if (wantAnns) jobs.push(db.ref('anns').get().then(snap => ({kind:'anns', value:snap.val() || {}})));
+    const results = await Promise.all(jobs);
+    for (const result of results) {
+      if (result.kind === 'tickets') {
+        if (JSON.stringify(result.value) === JSON.stringify(TICKETS)) continue;
+        const previous = TICKETS;
+        TICKETS = result.value;
+        const active = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
+        const before = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
+        if (OPEN_TICKET_ID && active && before && (active.status !== before.status || active.takenBy !== before.takenBy)) rerender();
+        else if (OPEN_TICKET_ID && active) updateTicketChat(OPEN_TICKET_ID, active);
+        else if (CURRENT_TAB === 'tickets' || CURRENT_TAB === 'profile' || (CURRENT_TAB === 'admin' && adminSub === 'stats')) {
+          if (CURRENT_TAB === 'admin') drawAdminBody(); else rerender();
+        }
+      } else if (result.kind === 'anns') {
+        if (JSON.stringify(result.value) === JSON.stringify(ANNS)) continue;
+        ANNS = result.value;
+        if (CURRENT_TAB === 'home') rerender();
+        if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
+        if (CURRENT_TAB === 'admin' && adminSub === 'stats') drawAdminBody();
+      }
+    }
+  } catch (_) {
+    // При временном обрыве не сбрасываем интерфейс; следующая проверка повторит запрос.
+  } finally {
+    LIVE_REFRESH_BUSY = false;
+  }
+}
+
 function rerenderIfDepends() {
   // В админ-панели фоновые обновления только обновляют кеш. Интерфейс обновляется вручную,
   // кроме статистики, которой нужна актуальная информация в реальном времени.
@@ -908,6 +973,7 @@ function showAuth() {
 
 /* ---------- НАВИГАЦИЯ ---------- */
 function go(tab) {
+  if (CURRENT_TAB === 'admin' && adminSub === 'skins' && tab !== 'admin') { SKIN_PREVIEWING = false; applyActiveSkin(); }
   if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
   const visibilityKey = ({cases:'cases',inventory:'inventory',upgrader:'upgrader',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
   if (visibilityKey && !featureVisible(visibilityKey) && !isAdmin()) { toast('Этот раздел временно скрыт'); tab='home'; }
@@ -1132,8 +1198,16 @@ async function runUpgrade() {
     const pointer = document.getElementById('upg-pointer');
     const pct = document.getElementById('upg-percent');
     const label = document.getElementById('upg-result');
-    const roll = Math.max(0, Math.min(100, Number(result.rollPercent ?? (result.success ? Number(result.chance)/2 : Number(result.chance)+(100-Number(result.chance))/2))));
-    if (pct) { pct.textContent = `${formatChance(result.chance)}% шанс`; pct.style.color = '#f5f5f5'; pct.style.textShadow = 'none'; }
+    // Результат и граница зон должны использовать исключительно серверные значения.
+    // Локальные цены в интерфейсе могут устареть, из-за чего указатель визуально попадал в одну зону, а текст показывал другую.
+    const serverChance = Math.max(0, Math.min(100, Number(result.chance) || 0));
+    const roll = Math.max(0, Math.min(100, Number(result.rollPercent ?? (result.success ? serverChance / 2 : serverChance + (100 - serverChance) / 2))));
+    const successZone = document.querySelector('.upg-meter-success');
+    const meterLabels = document.querySelectorAll('.upg-meter-labels span');
+    if (successZone) successZone.style.width = `${serverChance}%`;
+    if (meterLabels[0]) meterLabels[0].textContent = `УДАЧА · ${formatChance(serverChance)}%`;
+    if (meterLabels[1]) meterLabels[1].textContent = `НЕУДАЧА · ${formatChance(100 - serverChance)}%`;
+    if (pct) { pct.textContent = `${formatChance(serverChance)}% шанс`; pct.style.color = '#f5f5f5'; pct.style.textShadow = 'none'; }
     if (pointer) { pointer.style.transition = 'left 1.15s cubic-bezier(.12,.72,.12,1)'; requestAnimationFrame(()=>{ pointer.style.left = `${roll}%`; }); }
     if (label) label.textContent = 'Определяем результат…';
     await new Promise(resolve=>setTimeout(resolve,1200));
@@ -1613,13 +1687,20 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
         <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
         <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button>
+        <button class="btn sec ${adminSub==='skins'?'on':''}" onclick="setSub('skins')">🎨 Оформление / скины</button>
       </div>
     </div>
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn sec" type="button" onclick="refreshAdminData()">↻ Обновить данные</button><span id="admin-refresh-status" class="muted" style="align-self:center;font-size:12px"></span></div>
     <div id="admin-body"></div>`;
   drawAdminBody();
 }
-function setSub(s) { adminSub = s; drawAdminBody(); }
+function setSub(s) {
+  const wasSkins = adminSub === 'skins';
+  if (wasSkins && s !== 'skins') { SKIN_PREVIEWING = false; applyActiveSkin(); }
+  if (s === 'skins' && !wasSkins) { SKIN_PREVIEWING = false; SKIN_DRAFT = {...(SKIN_CONFIG.presets[SKIN_SELECTED_ID] || SKIN_DEFAULT_PRESET)}; }
+  adminSub = s;
+  drawAdminBody();
+}
 async function refreshAdminData() {
   const status = document.getElementById('admin-refresh-status');
   if (status) status.textContent = 'Обновление…';
@@ -1633,7 +1714,8 @@ async function refreshAdminData() {
       cur: [['config/currency', v => CUR_ICON = v?.icon || '']],
       system: [['config/maintenance', v => MAINTENANCE = v || {enabled:false,message:''}]],
       stats: [['users', v => USERS = v], ['tickets', v => TICKETS = v], ['roles', v => ROLES = v], ['items', v => ITEMS = v], ['cases', v => CASES = v], ['anns', v => ANNS = v]],
-      notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]]
+      notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]],
+      skins: [['config/skins', v => { SKIN_CONFIG = normalizeSkinConfig(v || {}); if (!SKIN_PREVIEWING) applyActiveSkin(); }]]
     };
     const targets = reads[adminSub] || [];
     await Promise.all(targets.map(async ([path, apply]) => {
@@ -1667,6 +1749,7 @@ function drawAdminBody() {
   if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
   if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
   if (adminSub === 'visibility') b.innerHTML = adminVisibilityHTML();
+  if (adminSub === 'skins') b.innerHTML = adminSkinsHTML();
   restoreFormState(b, snapshot);
   FORM_STATE_SCOPE = scope;
 }
@@ -1765,110 +1848,251 @@ async function addCat() {
 }
 async function delCat(id) { if (confirm('Удалить категорию?')) { await db.ref('categories/' + id).remove(); drawAdminBody(); } }
 
-/* --- Кейсы --- */
+/* --- Кейсы: создание и полноценное редактирование --- */
 function adminCasesHTML() {
   if (!draft) draft = { name:'', img:'', price:0, category:'', totalLimit:0, perUserLimit:0, hours:0, items:[] };
-  return `<div class="card"><h2>➕ Новый кейс</h2>
-    <label>Название</label><input id="cs-name" value="${esc(draft.name)}">
+  const editing = !!CASE_EDIT_ID;
+  return `<div class="card"><h2>${editing?'📝 Редактирование кейса':'➕ Новый кейс'}</h2>
+    ${editing?`<p class="muted" style="margin-bottom:10px">Редактируется «${esc(CASES[CASE_EDIT_ID]?.name||'Кейс')}». Счётчик уже выполненных открытий сохранится.</p>`:''}
+    <label>Название</label><input id="cs-name" value="${esc(draft.name)}" maxlength="100">
     <label>Иконка кейса (файл или ссылка)</label>
     <input type="file" accept="image/*" onchange="onCaseFile(event)">
     <p class="muted" style="text-align:center; margin:4px 0">или</p>
     <input id="cs-img" value="${esc(draft.img)}" placeholder="https://...">
     <img id="cs-prev" class="preview" style="${draft.img ? '' : 'display:none'}" src="${esc(draft.img)}">
-    <label>Стоимость (0 = бесплатный кейс)</label><input id="cs-price" type="number" value="${draft.price}">
+    <label>Стоимость (0 = бесплатный кейс)</label><input id="cs-price" type="number" min="0" step="1" value="${Number(draft.price)||0}">
     <label>Категория (необязательно — иначе «Общая»)</label><select id="cs-cat">
       <option value="">— Общая —</option>
       ${Object.entries(CATS).map(([id, c]) => `<option value="${id}" ${draft.category === id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
     </select>
     <div class="row">
-      <div><label>Всего открытий (0 = ∞)</label><input id="cs-total" type="number" value="${draft.totalLimit}"></div>
-      <div><label>Лимит на игрока (0 = ∞)</label><input id="cs-per" type="number" value="${draft.perUserLimit}"></div>
+      <div><label>Всего открытий (0 = ∞)</label><input id="cs-total" type="number" min="0" step="1" value="${Number(draft.totalLimit)||0}"></div>
+      <div><label>Лимит на игрока (0 = ∞)</label><input id="cs-per" type="number" min="0" step="1" value="${Number(draft.perUserLimit)||0}"></div>
     </div>
-    <label>Исчезнет через (часов, 0 = никогда)</label><input id="cs-hours" type="number" value="${draft.hours}">
-    <hr class="divider">
-    <label>Предметы и шансы</label>
+    <label>Исчезнет через (часов, 0 = никогда)</label><input id="cs-hours" type="number" min="0" step="1" value="${Number(draft.hours)||0}" oninput="if(draft)draft.hoursChanged=true">
+    <hr class="divider"><label>Состав кейса — веса/шансы предметов</label>
     <div class="row" style="align-items:center">
       <button class="btn sec" type="button" style="flex:1;min-width:0" onclick="openCaseItemPicker()">${CASE_ITEM_SELECTED_ID && ITEMS[CASE_ITEM_SELECTED_ID] ? `📦 ${esc(ITEMS[CASE_ITEM_SELECTED_ID].name)} · ${Number(ITEMS[CASE_ITEM_SELECTED_ID].price||0)}` : '📚 Выбрать предмет из базы'}</button>
-      <input id="cs-chance" type="number" placeholder="Шанс, %" value="10" style="flex:0 0 90px">
-      <button class="btn sec" style="flex:0 0 auto; padding:10px" onclick="draftAddItem()">+</button>
+      <input id="cs-chance" type="number" min="0.0001" step="any" placeholder="Вес" value="10" style="flex:0 0 90px">
+      <button class="btn sec" type="button" style="flex:0 0 auto;padding:10px" onclick="draftAddItem()">Добавить</button>
     </div>
-    ${draft.items.map((d, i) => `<div class="row" style="align-items:center">
-      <p style="flex:1">${ITEMS[d.id]?.img ? `<img class="cmini" src="${esc(ITEMS[d.id].img)}" style="border-radius:4px">` : ''} ${esc(ITEMS[d.id]?.name || d.id)} — <b>${d.chance}%</b></p>
-      <button class="del" onclick="draftRemove(${i})">✕</button></div>`).join('') || '<p class="muted">Добавь хотя бы один предмет.</p>'}
-    <button class="btn" style="margin-top:10px" onclick="saveCase()">Создать кейс</button></div>
+    <p class="muted" style="margin:2px 0 8px">Вес — относительная вероятность. Например, вес 20 примерно вдвое чаще веса 10 до поправки динамической экономики.</p>
+    ${draft.items.map((d, i) => { const it=ITEMS[d.id]||{}; return `<div class="row case-edit-item-row" style="align-items:center;gap:8px;margin:7px 0;padding:8px;border:1px solid var(--line);border-radius:10px">
+      <div style="width:34px;flex:0 0 34px;text-align:center">${it.img?`<img src="${esc(it.img)}" alt="" style="width:30px;height:30px;object-fit:contain">`:'📦'}</div>
+      <p style="flex:1;min-width:0;font-size:12px;overflow-wrap:anywhere">${esc(it.name||d.id)}<small class="muted" style="display:block">Цена: ${Number(it.price||0)}</small></p>
+      <div style="flex:0 0 86px"><label>Вес</label><input class="case-item-chance" data-index="${i}" type="number" min="0.0001" step="any" value="${esc(d.chance)}" style="margin:3px 0 0;padding:8px 5px"></div>
+      <button type="button" class="del" onclick="draftRemove(${i})">✕</button></div>`; }).join('') || '<p class="muted" style="padding:8px 0">Добавь хотя бы один предмет.</p>'}
+    <div class="row" style="margin-top:10px"><button class="btn" type="button" onclick="saveCase()">${editing?'Сохранить изменения':'Создать кейс'}</button>${editing?'<button class="btn sec" type="button" onclick="cancelCaseEdit()">Отмена</button>':''}</div>
+  </div>
   <div class="card"><h2>📦 Кейсы (${Object.keys(CASES).length})</h2>
-    ${Object.entries(CASES).map(([id, k]) =>
-      `<div class="row" style="align-items:center; margin-bottom:6px">
-        <p style="flex:1">${k.img ? `<img class="cmini" src="${esc(k.img)}" style="border-radius:4px">` : ''} ${esc(k.name)} · ${k.price > 0 ? k.price : 'бесплатно'} · открыто: ${k.opened || 0}</p>
-        <button class="del" onclick="delCase('${id}')">Удалить</button></div>`).join('') || '<p class="muted">Пока нет.</p>'}
+    ${Object.entries(CASES).map(([id, k]) => `<div class="ticket-row" style="padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)">
+      <div class="row" style="align-items:center;gap:10px">
+        <div style="flex:0 0 40px">${k.img?`<img src="${esc(k.img)}" alt="" style="width:36px;height:36px;object-fit:contain">`:'📦'}</div>
+        <div style="flex:1;min-width:0"><b>${esc(k.name||'Кейс')}</b><div class="muted" style="margin-top:4px">${Number(k.price)>0?`${Number(k.price)} золота`:'Бесплатно'} · открыто: ${Number(k.opened)||0} · предметов: ${Object.keys(k.items||{}).length}</div></div>
+      </div>
+      <div class="row" style="margin-top:8px"><button class="btn sec" type="button" onclick="editCase('${id}')">✏️ Изменить кейс и содержимое</button><button class="btn danger" type="button" style="max-width:90px" onclick="delCase('${id}')">Удалить</button></div>
+    </div>`).join('') || '<p class="muted">Пока нет.</p>'}
   </div>`;
 }
+function updateAdminCaseListOnly() {
+  const b=document.getElementById('admin-body'); if(!b||CURRENT_TAB!=='admin'||adminSub!=='cases') return;
+  const temp=document.createElement('div'); temp.innerHTML=adminCasesHTML();
+  const cards=temp.querySelectorAll('.card'), current=b.querySelectorAll('.card');
+  if(cards[1]&&current[1]) current[1].innerHTML=cards[1].innerHTML;
+}
 function readDraft() {
-  draft.name = document.getElementById('cs-name').value;
-  draft.img = document.getElementById('cs-img').value.trim();
-  draft.price = +document.getElementById('cs-price').value || 0;
-  draft.category = document.getElementById('cs-cat').value;
-  draft.totalLimit = +document.getElementById('cs-total').value || 0;
-  draft.perUserLimit = +document.getElementById('cs-per').value || 0;
-  draft.hours = +document.getElementById('cs-hours').value || 0;
+  if (document.getElementById('cs-name')) {
+    draft.name = document.getElementById('cs-name').value;
+    draft.img = document.getElementById('cs-img').value.trim();
+    draft.price = Number(document.getElementById('cs-price').value);
+    draft.category = document.getElementById('cs-cat').value;
+    draft.totalLimit = Number(document.getElementById('cs-total').value);
+    draft.perUserLimit = Number(document.getElementById('cs-per').value);
+    draft.hours = Number(document.getElementById('cs-hours').value);
+  }
+  document.querySelectorAll('#admin-body .case-item-chance').forEach(el => {
+    const i=Number(el.dataset.index); if (draft.items[i]) draft.items[i].chance=Number(el.value);
+  });
 }
 function onCaseFile(e) {
-  const f = e.target.files[0];
-  if (!f) return;
+  const f = e.target.files[0]; if (!f) return;
   readDraft();
-  fileToDataUrl(f, url => {
-    draft.img = url;
-    drawAdminBody();
-    toast('Картинка загружена');
-  });
+  fileToDataUrl(f, url => { draft.img=url; FORM_STATE_SCOPE=''; drawAdminBody(); toast('Картинка загружена'); });
 }
 function openCaseItemPicker() {
-  readDraft();
-  caseItemSearchDraft = '';
-  const input = document.getElementById('case-item-search'); if (input) input.value = '';
-  document.getElementById('case-item-picker').classList.add('show');
-  renderCaseItemPicker();
+  readDraft(); caseItemSearchDraft='';
+  const input=document.getElementById('case-item-search'); if(input) input.value='';
+  document.getElementById('case-item-picker').classList.add('show'); renderCaseItemPicker();
 }
 function closeCaseItemPicker() { document.getElementById('case-item-picker').classList.remove('show'); }
-function applyCaseItemSearch() { caseItemSearchDraft = (document.getElementById('case-item-search')?.value || '').trim().toLowerCase(); renderCaseItemPicker(); }
+function applyCaseItemSearch() { caseItemSearchDraft=(document.getElementById('case-item-search')?.value||'').trim().toLowerCase(); renderCaseItemPicker(); }
 function renderCaseItemPicker() {
-  const host = document.getElementById('case-item-picker-list'); if (!host) return;
-  const entries = Object.entries(ITEMS).filter(([id,it]) => String(it.name||it.title||'').trim() && Number(it.price??it.cost)>0 && (!caseItemSearchDraft || String(it.name||'').toLowerCase().includes(caseItemSearchDraft) || id.toLowerCase().includes(caseItemSearchDraft))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
-  host.innerHTML = entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" onclick="chooseCaseItem('${id}')">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('') || '<p class="muted" style="grid-column:1/-1;text-align:center">Предметы не найдены.</p>';
+  const host=document.getElementById('case-item-picker-list'); if(!host) return;
+  const existing=new Set((draft?.items||[]).map(x=>x.id));
+  const entries=Object.entries(ITEMS).filter(([id,it])=>String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0&&(!caseItemSearchDraft||String(it.name||'').toLowerCase().includes(caseItemSearchDraft)||id.toLowerCase().includes(caseItemSearchDraft))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
+  host.innerHTML=entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" onclick="chooseCaseItem('${id}')" ${existing.has(id)?'disabled':''}>${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${esc(it.name||'Предмет')}${existing.has(id)?' · уже добавлен':''}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('')||'<p class="muted" style="grid-column:1/-1;text-align:center">Предметы не найдены.</p>';
 }
 function chooseCaseItem(id) {
-  CASE_ITEM_SELECTED_ID = id; closeCaseItemPicker();
-  const btn = document.querySelector('#admin-body button[onclick="openCaseItemPicker()"]');
-  const it = ITEMS[id]; if (btn) btn.textContent = it ? `📦 ${it.name} · ${Number(it.price||0)}` : '📚 Выбрать предмет из базы';
+  CASE_ITEM_SELECTED_ID=id; closeCaseItemPicker();
+  const btn=document.querySelector('#admin-body button[onclick="openCaseItemPicker()"]'); const it=ITEMS[id];
+  if(btn) btn.textContent=it?`📦 ${it.name} · ${Number(it.price||0)}`:'📚 Выбрать предмет из базы';
 }
-
 function draftAddItem() {
-  const id = CASE_ITEM_SELECTED_ID;
-  const chance = +document.getElementById('cs-chance').value || 0;
-  if (!id || chance <= 0) return toast('Выбери предмет и шанс больше 0');
+  const id=CASE_ITEM_SELECTED_ID; const chance=Number(document.getElementById('cs-chance')?.value)||0;
+  if(!id||!ITEMS[id]) return toast('Сначала выбери предмет');
+  if(!Number.isFinite(chance)||chance<=0) return toast('Вес предмета должен быть больше нуля');
   readDraft();
-  draft.items.push({ id, chance });
-  drawAdminBody();
+  if(draft.items.some(x=>x.id===id)) return toast('Этот предмет уже добавлен в кейс');
+  draft.items.push({id,chance}); CASE_ITEM_SELECTED_ID=''; FORM_STATE_SCOPE=''; drawAdminBody();
 }
-function draftRemove(i) { readDraft(); draft.items.splice(i, 1); drawAdminBody(); }
+function draftRemove(i) { readDraft(); draft.items.splice(i,1); FORM_STATE_SCOPE=''; drawAdminBody(); }
+function editCase(id) {
+  const k=CASES[id]; if(!k) return toast('Кейс не найден');
+  CASE_EDIT_ID=id; CASE_ITEM_SELECTED_ID='';
+  const initialHours=k.expiresAt?Math.max(0,Math.ceil((Number(k.expiresAt)-Date.now())/3600000)):0;
+  draft={name:String(k.name||''),img:String(k.img||''),price:Number(k.price)||0,category:String(k.category||''),totalLimit:Number(k.totalLimit)||0,perUserLimit:Number(k.perUserLimit)||0,hours:initialHours,hoursChanged:false,originalExpiresAt:Number(k.expiresAt)||0,items:Object.entries(k.items||{}).map(([itemId,chance])=>({id:itemId,chance:Number(chance)}))};
+  FORM_STATE_SCOPE=''; drawAdminBody();
+  document.getElementById('admin-body')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelCaseEdit() { CASE_EDIT_ID=null; draft=null; CASE_ITEM_SELECTED_ID=''; FORM_STATE_SCOPE=''; drawAdminBody(); }
 async function saveCase() {
   readDraft();
-  if (!draft.name.trim()) return toast('Введи название');
-  if (draft.items.length === 0) return toast('Добавь предметы в кейс');
-  await db.ref('cases').push().set({
-    name: draft.name.trim(), img: draft.img,
-    category: draft.category,
-    price: draft.price, totalLimit: draft.totalLimit, perUserLimit: draft.perUserLimit,
-    expiresAt: draft.hours ? Date.now() + draft.hours * 3600000 : 0,
-    opened: 0,
-    items: Object.fromEntries(draft.items.map(d => [d.id, d.chance])),
-    createdAt: Date.now()
-  });
-  draft = null; CASE_ITEM_SELECTED_ID = '';
-  toast('Кейс создан!');
-  drawAdminBody();
+  const name=String(draft.name||'').trim();
+  const price=Number(draft.price), totalLimit=Number(draft.totalLimit), perUserLimit=Number(draft.perUserLimit), hours=Number(draft.hours);
+  if(!name) return toast('Введи название кейса');
+  if(!Number.isSafeInteger(price)||price<0) return toast('Цена должна быть целым числом от 0');
+  if(!Number.isSafeInteger(totalLimit)||totalLimit<0||!Number.isSafeInteger(perUserLimit)||perUserLimit<0||!Number.isSafeInteger(hours)||hours<0) return toast('Лимиты и срок должны быть целыми числами от 0');
+  if(!draft.items.length) return toast('Добавь хотя бы один предмет в кейс');
+  if(draft.items.some(x=>!ITEMS[x.id]||!Number.isFinite(Number(x.chance))||Number(x.chance)<=0)) return toast('Проверь предметы и веса: каждый вес должен быть больше нуля');
+  const items={}; for(const d of draft.items) items[d.id]=Number(d.chance);
+  if(Object.keys(items).length!==draft.items.length) return toast('В кейсе не должно быть одинаковых предметов дважды');
+  const existing=CASE_EDIT_ID?CASES[CASE_EDIT_ID]:null;
+  const expiresAt=existing && draft.hoursChanged!==true ? (Number(draft.originalExpiresAt)||0) : (hours?Date.now()+hours*3600000:0);
+  const payload={name,img:String(draft.img||'').trim(),category:String(draft.category||''),price,totalLimit,perUserLimit,expiresAt,opened:Math.max(0,Number(existing?.opened)||0),items,createdAt:Number(existing?.createdAt)||Date.now(),updatedAt:Date.now()};
+  try {
+    if(CASE_EDIT_ID) { const id=CASE_EDIT_ID; await db.ref('cases/'+id).set(payload); CASES={...CASES,[id]:payload}; }
+    else { const ref=db.ref('cases').push(); await ref.set(payload); CASES={...CASES,[ref.key]:payload}; }
+    CASE_EDIT_ID=null; draft=null; CASE_ITEM_SELECTED_ID=''; FORM_STATE_SCOPE='';
+    toast(existing?'Изменения кейса сохранены':'Кейс создан'); drawAdminBody();
+    if(CASE_DETAIL_ID && (existing || CASE_DETAIL_ID)) { CASE_DYNAMIC_ODDS=null; }
+  } catch(e) { toast(e?.message||'Не удалось сохранить кейс'); }
 }
-async function delCase(id) { if (confirm('Удалить кейс?')) { await db.ref('cases/' + id).remove(); drawAdminBody(); } }
+async function delCase(id) { if(confirm('Удалить кейс?')) { try { await db.ref('cases/'+id).remove(); const next={...CASES}; delete next[id]; CASES=next; if(CASE_EDIT_ID===id) {CASE_EDIT_ID=null;draft=null;} FORM_STATE_SCOPE=''; drawAdminBody(); } catch(e) { toast(e?.message||'Не удалось удалить кейс'); } } }
+
+/* --- Глобальное оформление и менеджер скинов --- */
+function normalizeSkinPreset(src={}) {
+  const d=SKIN_DEFAULT_PRESET, color=(v,f)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):f;
+  return {
+    name:String(src.name||d.name).trim().slice(0,48)||d.name,
+    bg:color(src.bg,d.bg), bg2:color(src.bg2,d.bg2), card:color(src.card,d.card), surface:color(src.surface,d.surface),
+    text:color(src.text,d.text), muted:color(src.muted,d.muted), line:color(src.line,d.line), accent:color(src.accent,d.accent), accentText:color(src.accentText,d.accentText),
+    radius:Math.max(6,Math.min(28,Math.round(Number(src.radius)||d.radius))),
+    backgroundMode:src.backgroundMode==='gradient'?'gradient':'solid',
+    fontFamily:['system','rounded','mono'].includes(src.fontFamily)?src.fontFamily:'system'
+  };
+}
+function normalizeSkinConfig(raw={}) {
+  const presets={default:{...SKIN_DEFAULT_PRESET}};
+  for(const [id,value] of Object.entries(raw?.presets||{})) {
+    if(!/^[A-Za-z0-9_-]{1,100}$/.test(id)) continue;
+    presets[id]=normalizeSkinPreset(value||{});
+  }
+  const activeId=presets[String(raw?.activeId||'default')]?String(raw.activeId||'default'):'default';
+  return {activeId,presets,updatedAt:Number(raw?.updatedAt)||0};
+}
+function skinFontValue(font) {
+  return font==='mono'?"'SFMono-Regular',Consolas,monospace":font==='rounded'?"'Trebuchet MS','Segoe UI',sans-serif":"-apple-system,'Segoe UI',Roboto,sans-serif";
+}
+function applySkinPreset(preset) {
+  const k=normalizeSkinPreset(preset||SKIN_DEFAULT_PRESET), styleId='zombix-active-skin-style';
+  let style=document.getElementById(styleId); if(!style) { style=document.createElement('style'); style.id=styleId; document.head.appendChild(style); }
+  const bgPaint=k.backgroundMode==='gradient'?`linear-gradient(155deg,${k.bg} 0%,${k.bg2} 100%)`:k.bg;
+  style.textContent=`
+    :root{--bg:${k.bg};--card:${k.card};--text:${k.text};--muted:${k.muted};--line:${k.line};--accent:${k.accent};--skin-bg2:${k.bg2};--skin-surface:${k.surface};--skin-accent-text:${k.accentText};--skin-radius:${k.radius}px;--skin-font:${skinFontValue(k.fontFamily)};--skin-bg-paint:${bgPaint};}
+    html,body,#app,#auth-screen{background:${bgPaint}!important;color:${k.text}!important;font-family:${skinFontValue(k.fontFamily)}!important;}
+    header,.menu-panel,.card,.ann-wrap,.ticket-row,.case-result-card,.picker-box,.cm-box,.player-info-cell,.balance,.burger,.nav-item:not(.active),.case-prize-row,.case-counts button,.subtabs button,.feature-disabled-message,.ticket-chat,.ticket-message,.role-modal .card,.role-box,.blocked-box,.maintenance-box,.startup-error-box,.ticket-confirm-box,.reward-picker-box{background-color:${k.card}!important;color:${k.text}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
+    main{background:transparent!important;color:${k.text}!important;}
+    input,select,textarea{background:${k.surface}!important;color:${k.text}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;font-family:${skinFontValue(k.fontFamily)}!important;}
+    .btn:not(.sec):not(.danger),.nav-item.active,.ann-btn,.badge:not(.mod),.case-counts button.on{background:${k.accent}!important;color:${k.accentText}!important;border-color:${k.accent}!important;border-radius:${k.radius}px!important;}
+    .btn.sec,.nav-item:not(.active),.case-counts button,.burger{background:${k.surface}!important;color:${k.text}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
+    .item-card{background:linear-gradient(145deg,${k.card},${k.bg})!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
+    .ann-wrap.no-frame{background:transparent!important;border-color:transparent!important;}
+    .case-detail-img{background:${k.surface}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
+    .case-open-btn{background:${k.accent}!important;color:${k.accentText}!important;border-radius:${k.radius}px!important;}
+    .case-prize-row,.case-result-card{border-radius:${k.radius}px!important;}
+    .divider{border-color:${k.line}!important;}
+  `;
+}
+function applyActiveSkin() { const cfg=normalizeSkinConfig(SKIN_CONFIG); SKIN_CONFIG=cfg; applySkinPreset(cfg.presets[cfg.activeId]||SKIN_DEFAULT_PRESET); }
+function skinFieldColor(key,label,help='') { const value=normalizeSkinPreset(SKIN_DRAFT||SKIN_DEFAULT_PRESET)[key]; return `<div style="min-width:0"><label>${label}</label><div class="row" style="align-items:center;gap:8px"><input aria-label="${label}" type="color" value="${value}" oninput="skinDraftInput('${key}',this.value)" style="flex:0 0 52px;width:52px;height:42px;padding:3px"><input aria-label="HEX ${label}" type="text" value="${value}" maxlength="7" onchange="skinDraftInput('${key}',this.value)" style="flex:1;min-width:0;text-transform:uppercase"></div>${help?`<small class="muted">${help}</small>`:''}</div>`; }
+function adminSkinsHTML() {
+  if(!SKIN_DRAFT) SKIN_DRAFT={...(SKIN_CONFIG.presets[SKIN_SELECTED_ID]||SKIN_DEFAULT_PRESET)};
+  const d=normalizeSkinPreset(SKIN_DRAFT), active=SKIN_CONFIG.activeId===SKIN_SELECTED_ID;
+  const saved=SKIN_CONFIG.presets[SKIN_SELECTED_ID];
+  const list=Object.entries(SKIN_CONFIG.presets).map(([id,k])=>`<div class="ticket-row" style="padding:10px;margin:7px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)"><div class="row" style="align-items:center;gap:8px"><div style="display:flex;gap:3px;flex:0 0 auto"><i style="display:block;width:13px;height:28px;border-radius:4px;background:${normalizeSkinPreset(k).bg}"></i><i style="display:block;width:13px;height:28px;border-radius:4px;background:${normalizeSkinPreset(k).card}"></i><i style="display:block;width:13px;height:28px;border-radius:4px;background:${normalizeSkinPreset(k).accent}"></i></div><div style="flex:1;min-width:0"><b>${esc(k.name||'Скин')}</b><div class="muted">${id==='default'?'Встроенный пресет':`ID: ${esc(id)}`}${SKIN_CONFIG.activeId===id?' · активен у игроков':''}</div></div></div><div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn sec small" type="button" onclick="selectSkinPreset('${id}')">Редактировать</button><button class="btn sec small" type="button" onclick="activateSkin('${id}')">Применить</button><button class="btn sec small" type="button" onclick="duplicateSkin('${id}')">Копия</button>${id!=='default'?`<button class="del" type="button" onclick="deleteSkin('${id}')">Удалить</button>`:''}</div></div>`).join('');
+  return `<div class="card"><h2>🎨 Редактор оформления и скинов</h2><p class="muted">Настройки применяются ко всем пользовательским экранам: главной, кейсам, инвентарю, апгрейдеру, профилю, тикетам, формам и модальным окнам. Сохранённый скин можно оставить как пресет или применить всем игрокам.</p>
+    <div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="btn" type="button" onclick="newSkinPreset()">＋ Новый скин</button><button class="btn sec" type="button" onclick="resetSkinPreview()">↺ Сбросить предпросмотр</button></div>
+    <hr class="divider"><h3 style="font-size:14px;margin-bottom:10px">${saved?'Редактирование пресета':'Новый пресет'}</h3>
+    <label>Название скина</label><input id="skin-name" maxlength="48" value="${esc(d.name)}" oninput="skinDraftInput('name',this.value)" placeholder="Например, Neon Purple">
+    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('bg','Основной фон')}${skinFieldColor('bg2','Второй цвет фона')}</div>
+    <div style="margin:8px 0"><label>Фон экранов</label><select id="skin-backgroundMode" onchange="skinDraftInput('backgroundMode',this.value)"><option value="solid" ${d.backgroundMode==='solid'?'selected':''}>Однотонный</option><option value="gradient" ${d.backgroundMode==='gradient'?'selected':''}>Градиент</option></select></div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('card','Карточки и окна')}${skinFieldColor('surface','Поля и вторичные кнопки')}</div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('text','Основной текст')}${skinFieldColor('muted','Вторичный текст')}</div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('line','Границы')}${skinFieldColor('accent','Акцент / основные кнопки')}</div>
+    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('accentText','Текст на акцентных кнопках')}<div style="flex:1;min-width:0"><label>Скругление интерфейса: <b id="skin-radius-label">${d.radius}px</b></label><input id="skin-radius" type="range" min="6" max="28" step="1" value="${d.radius}" oninput="skinDraftInput('radius',this.value)"></div></div>
+    <label>Шрифт</label><select id="skin-fontFamily" onchange="skinDraftInput('fontFamily',this.value)"><option value="system" ${d.fontFamily==='system'?'selected':''}>Системный — нейтральный</option><option value="rounded" ${d.fontFamily==='rounded'?'selected':''}>Округлый</option><option value="mono" ${d.fontFamily==='mono'?'selected':''}>Моноширинный</option></select>
+    <div class="skin-preview-card" style="padding:14px;border:1px solid ${d.line};border-radius:${d.radius}px;background:${d.backgroundMode==='gradient'?`linear-gradient(155deg,${d.bg},${d.bg2})`:d.bg};margin:8px 0 12px"><div class="skin-preview-inner" style="padding:12px;border-radius:${d.radius}px;background:${d.card};color:${d.text};border:1px solid ${d.line}"><b style="display:block;margin-bottom:5px">Предпросмотр скина</b><p class="skin-preview-muted" style="font-size:12px;color:${d.muted};margin-bottom:10px">Текст и карточки · кнопки · общий фон</p><button class="skin-preview-button" type="button" style="border:0;padding:9px 13px;border-radius:${d.radius}px;background:${d.accent};color:${d.accentText};font-weight:700">Пример кнопки</button></div></div>
+    <label style="display:flex;align-items:center;gap:8px;color:var(--text);margin:4px 0 12px"><input id="skin-apply-active" type="checkbox" ${active?'checked':''} style="width:auto;margin:0"> Применить этот скин всем игрокам после сохранения</label>
+    <button class="btn" type="button" onclick="saveSkinPreset()">💾 Сохранить скин</button>
+  </div><div class="card"><h2>🗂 Сохранённые скины (${Object.keys(SKIN_CONFIG.presets).length})</h2>${list}</div>`;
+}
+function skinDraftInput(key,value) {
+  if(!SKIN_DRAFT) SKIN_DRAFT={...SKIN_DEFAULT_PRESET};
+  if(['bg','bg2','card','surface','text','muted','line','accent','accentText'].includes(key) && !/^#[0-9a-f]{6}$/i.test(String(value||''))) return;
+  if(key==='radius') value=Math.max(6,Math.min(28,Math.round(Number(value)||14)));
+  if(key==='name') value=String(value||'').slice(0,48);
+  if(key==='backgroundMode' && !['solid','gradient'].includes(value)) return;
+  if(key==='fontFamily' && !['system','rounded','mono'].includes(value)) return;
+  SKIN_DRAFT[key]=value; SKIN_PREVIEWING=true; applySkinPreset(SKIN_DRAFT);
+  const trigger=document.activeElement; if(trigger?.parentElement?.classList?.contains('row')) trigger.parentElement.querySelectorAll('input').forEach(el=>{if(el!==trigger) el.value=String(value);});
+  const radiusLabel=document.getElementById('skin-radius-label'); if(radiusLabel) radiusLabel.textContent=`${SKIN_DRAFT.radius||14}px`;
+  const previewHost=document.querySelector('#admin-body .skin-preview-card');
+  if(previewHost){ const d=normalizeSkinPreset(SKIN_DRAFT); previewHost.style.background=d.backgroundMode==='gradient'?`linear-gradient(155deg,${d.bg},${d.bg2})`:d.bg; previewHost.style.borderColor=d.line; previewHost.style.borderRadius=d.radius+'px'; const inner=previewHost.querySelector('.skin-preview-inner'); if(inner){inner.style.background=d.card;inner.style.color=d.text;inner.style.borderColor=d.line;inner.style.borderRadius=d.radius+'px';} const sub=previewHost.querySelector('.skin-preview-muted'); if(sub) sub.style.color=d.muted; const btn=previewHost.querySelector('.skin-preview-button'); if(btn){btn.style.background=d.accent;btn.style.color=d.accentText;btn.style.borderRadius=d.radius+'px';} }
+}
+function selectSkinPreset(id) { const value=SKIN_CONFIG.presets[id]; if(!value) return; SKIN_SELECTED_ID=id; SKIN_DRAFT={...value}; SKIN_PREVIEWING=true; FORM_STATE_SCOPE=''; applySkinPreset(SKIN_DRAFT); drawAdminBody(); }
+function newSkinPreset() { SKIN_SELECTED_ID=''; SKIN_DRAFT={...SKIN_DEFAULT_PRESET,name:'Новый скин'}; SKIN_PREVIEWING=true; FORM_STATE_SCOPE=''; applySkinPreset(SKIN_DRAFT); drawAdminBody(); }
+function resetSkinPreview() { SKIN_PREVIEWING=false; SKIN_DRAFT={...(SKIN_CONFIG.presets[SKIN_SELECTED_ID]||SKIN_DEFAULT_PRESET)}; applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); }
+function updateSkinPresetListOnly() { const b=document.getElementById('admin-body'); if(!b||CURRENT_TAB!=='admin'||adminSub!=='skins') return; const fresh=adminSkinsHTML(); const temp=document.createElement('div'); temp.innerHTML=fresh; const cards=temp.querySelectorAll('.card'); if(cards[1]&&b.querySelectorAll('.card')[1]) b.querySelectorAll('.card')[1].innerHTML=cards[1].innerHTML; }
+async function saveSkinPreset() {
+  const name=String(document.getElementById('skin-name')?.value||SKIN_DRAFT?.name||'').trim(); if(!name) return toast('Введи название скина');
+  const id=SKIN_SELECTED_ID || ('skin_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7));
+  const preset=normalizeSkinPreset({...SKIN_DRAFT,name}); const next=normalizeSkinConfig(SKIN_CONFIG); next.presets[id]=preset;
+  const apply=document.getElementById('skin-apply-active')?.checked===true;
+  if(apply) next.activeId=id; else if(next.activeId===id) next.activeId='default';
+  next.updatedAt=Date.now();
+  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); SKIN_SELECTED_ID=id; SKIN_DRAFT={...preset}; SKIN_PREVIEWING=false; applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); toast(apply?'Скин сохранён и применён игрокам':'Скин сохранён как пресет'); }
+  catch(e) { toast(e?.message||'Не удалось сохранить скин'); }
+}
+async function activateSkin(id) {
+  if(!SKIN_CONFIG.presets[id]) return toast('Скин не найден');
+  const next={...normalizeSkinConfig(SKIN_CONFIG),activeId:id,updatedAt:Date.now()};
+  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); SKIN_PREVIEWING=false; SKIN_SELECTED_ID=id; SKIN_DRAFT={...next.presets[id]}; applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); toast('Скин применён всем игрокам'); }
+  catch(e) { toast(e?.message||'Не удалось применить скин'); }
+}
+async function duplicateSkin(id) {
+  const source=SKIN_CONFIG.presets[id]; if(!source) return;
+  const next=normalizeSkinConfig(SKIN_CONFIG), newId='skin_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+  next.presets[newId]={...source,name:(String(source.name||'Скин')+' — копия').slice(0,48)}; next.updatedAt=Date.now();
+  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); SKIN_SELECTED_ID=newId; SKIN_DRAFT={...next.presets[newId]}; SKIN_PREVIEWING=true; applySkinPreset(SKIN_DRAFT); FORM_STATE_SCOPE=''; drawAdminBody(); toast('Копия скина создана'); }
+  catch(e) { toast(e?.message||'Не удалось скопировать скин'); }
+}
+async function deleteSkin(id) {
+  if(id==='default') return toast('Встроенный скин нельзя удалить');
+  if(!SKIN_CONFIG.presets[id]||!confirm('Удалить сохранённый скин?')) return;
+  const next=normalizeSkinConfig(SKIN_CONFIG); delete next.presets[id]; if(next.activeId===id) next.activeId='default'; next.updatedAt=Date.now();
+  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); if(SKIN_SELECTED_ID===id){SKIN_SELECTED_ID='default';SKIN_DRAFT={...SKIN_CONFIG.presets.default};} SKIN_PREVIEWING=false; applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); toast('Скин удалён'); }
+  catch(e) { toast(e?.message||'Не удалось удалить скин'); }
+}
 
 /* --- Игроки и роли --- */
 function adminUsersHTML() {
