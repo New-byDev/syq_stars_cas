@@ -545,7 +545,8 @@ let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ACTIVE_GIFT_TOKEN = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
-let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = ''; 
+let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = '';
+let ADMIN_LOG_ITEMS = [], ADMIN_LOG_OFFSET = 0, ADMIN_LOG_HAS_MORE = false, ADMIN_LOG_LOADING = false, ADMIN_LOG_REFRESH_TIMER = null, ADMIN_LOG_REFRESH_BUSY = false; 
 let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let TICKET_COOLDOWN_UNTIL = 0, TICKET_COOLDOWN_TIMER = null, TICKET_CREATE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
@@ -558,7 +559,7 @@ let MAINTENANCE = { enabled:false, message:'Ведутся технически�
 let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
 let HOME_ANNS_RENDER_SIGNATURE = '';
-let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0, CASE_DYNAMIC_ODDS = null, CASE_FAST_SPIN = false;
+let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0, CASE_DYNAMIC_ODDS = null, CASE_ODDS_LOADING = false, CASE_FAST_SPIN = false;
 const IMG_SIZE = 128;
 const DAY = 24 * 3600 * 1000;
 
@@ -773,7 +774,18 @@ async function enterApp(id) {
   db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
   db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
   db.ref('cases').on('value', s => { CASES = s.val() || {}; if (CURRENT_TAB === 'admin' && adminSub === 'cases') updateAdminCaseListOnly(); else rerenderIfDepends(); });
-  db.ref('users').on('value', s => { USERS = s.val() || {}; syncReferralInfoFromLocalData(); if (CURRENT_TAB === 'home') updateHomeTopSpenders(); rerenderIfDepends(); });
+  // Большой раздел users не загружаем в критическом пути запуска.
+  // Он нужен для рейтинга и админской статистики, поэтому подписываемся после показа основного интерфейса.
+  const usersLoadFor = id;
+  window.setTimeout(() => {
+    if (!CURRENT_ID || CURRENT_ID !== usersLoadFor) return;
+    db.ref('users').on('value', s => {
+      USERS = s.val() || {};
+      syncReferralInfoFromLocalData();
+      if (CURRENT_TAB === 'home') updateHomeTopSpenders();
+      if (CURRENT_TAB === 'admin' && ['users','stats'].includes(adminSub)) drawAdminBody();
+    });
+  }, 2500);
   db.ref('tickets').on('value', s => {
     const previous = TICKETS;
     const nextTickets = s.val() || {};
@@ -857,8 +869,8 @@ function startLivePanelRefresh() {
 }
 async function refreshLivePanels() {
   if (LIVE_REFRESH_BUSY || !CURRENT_ID || document.visibilityState === 'hidden') return;
-  const wantTickets = CURRENT_TAB === 'tickets' || CURRENT_TAB === 'profile' || (CURRENT_TAB === 'admin' && adminSub === 'stats');
-  const wantAnns = CURRENT_TAB === 'home' || (CURRENT_TAB === 'admin' && (adminSub === 'anns' || adminSub === 'stats'));
+  const wantTickets = CURRENT_TAB === 'tickets' || CURRENT_TAB === 'profile';
+  const wantAnns = CURRENT_TAB === 'home' || (CURRENT_TAB === 'admin' && adminSub === 'anns');
   if (!wantTickets && !wantAnns) return;
   LIVE_REFRESH_BUSY = true;
   try {
@@ -875,7 +887,7 @@ async function refreshLivePanels() {
         const before = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
         if (OPEN_TICKET_ID && active && before && (active.status !== before.status || active.takenBy !== before.takenBy)) rerender();
         else if (OPEN_TICKET_ID && active) updateTicketChat(OPEN_TICKET_ID, active);
-        else if (CURRENT_TAB === 'tickets' || CURRENT_TAB === 'profile' || (CURRENT_TAB === 'admin' && adminSub === 'stats')) {
+        else if (CURRENT_TAB === 'tickets' || CURRENT_TAB === 'profile') {
           if (CURRENT_TAB === 'admin') drawAdminBody(); else rerender();
         }
       } else if (result.kind === 'anns') {
@@ -883,7 +895,6 @@ async function refreshLivePanels() {
         ANNS = result.value;
         if (CURRENT_TAB === 'home') updateHomeAnnouncements();
         if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
-        if (CURRENT_TAB === 'admin' && adminSub === 'stats') drawAdminBody();
       }
     }
   } catch (_) {
@@ -974,6 +985,7 @@ function go(tab) {
   if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
   const visibilityKey = ({cases:'cases',inventory:'inventory',upgrader:'upgrader',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
   if (visibilityKey && !featureVisible(visibilityKey) && !isAdmin()) { toast('Этот раздел временно скрыт'); tab='home'; }
+  if(tab!=='admin') stopAdminLogAutoRefresh();
   CURRENT_TAB = tab;
   OPEN_TICKET_ID = null;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
@@ -990,7 +1002,7 @@ function captureFormState(root) {
   return Array.from(root.querySelectorAll('input,textarea,select')).map((el, index) => {
     if (el.type === 'file') return null;
     const key = el.id ? `id:${el.id}` : el.name ? `name:${el.tagName}:${el.name}:${el.type||''}` : `idx:${index}:${el.tagName}:${el.type||''}`;
-    return { key, value: el.value, checked: ('checked' in el) ? el.checked : undefined,
+    return { key, value: el.value, checked: ('checked' in el) ? el.checked : undefined, active: el===document.activeElement,
       selected: el.tagName === 'SELECT' ? Array.from(el.options).map(o=>o.selected) : undefined,
       start: typeof el.selectionStart === 'number' ? el.selectionStart : null,
       end: typeof el.selectionEnd === 'number' ? el.selectionEnd : null };
@@ -1010,6 +1022,7 @@ function restoreFormState(root, snapshot) {
     if (item.checked !== undefined) el.checked=item.checked;
     if (item.selected && el.tagName==='SELECT') Array.from(el.options).forEach((o,i)=>o.selected=!!item.selected[i]);
     if (item.start !== null && item.start !== undefined && typeof el.setSelectionRange==='function') { try { el.setSelectionRange(item.start,item.end); } catch(_) {} }
+    if(item.active) { try { el.focus({preventScroll:true}); } catch(_) { el.focus(); } }
   }
 }
 function rerender() {
@@ -1181,10 +1194,10 @@ function renderInventory(c) {
 async function openGiftedCase(tokenId) {
   const gift=profile?.giftedCases?.[tokenId];
   if(!gift||gift.status!=='available'||!CASES[gift.caseId]) return toast('Подаренный кейс не найден. Обнови инвентарь.');
-  ACTIVE_GIFT_TOKEN=tokenId; CASE_DETAIL_ID=gift.caseId; CASE_OPEN_COUNT=1; CASE_OPEN_BUSY=false; CASE_DYNAMIC_ODDS=null;
+  ACTIVE_GIFT_TOKEN=tokenId; CASE_DETAIL_ID=gift.caseId; CASE_OPEN_COUNT=1; CASE_OPEN_BUSY=false; CASE_DYNAMIC_ODDS=null; CASE_ODDS_LOADING=true;
   renderCaseDetails(CASES[gift.caseId]);
   document.getElementById('case-modal').classList.add('show');
-  workerRequest('/api/case/odds',{caseId:gift.caseId}).then(result=>{if(ACTIVE_GIFT_TOKEN===tokenId&&result.odds){CASE_DYNAMIC_ODDS=result;renderCaseDetails(CASES[gift.caseId]||{});}}).catch(()=>{});
+  workerRequest('/api/case/odds',{caseId:gift.caseId}).then(result=>{if(ACTIVE_GIFT_TOKEN===tokenId&&result.odds) CASE_DYNAMIC_ODDS=result;}).catch(()=>{}).finally(()=>{if(ACTIVE_GIFT_TOKEN===tokenId&&CASE_DETAIL_ID===gift.caseId){CASE_ODDS_LOADING=false;renderCaseDetails(CASES[gift.caseId]||{});}});
 }
 
 async function deleteOwnInventoryItem(entryKey) {
@@ -1305,10 +1318,15 @@ function renderCasesShop(c) {
 function openCase(caseId) {
   const k = CASES[caseId]; if (!k) return;
   ACTIVE_GIFT_TOKEN = null;
-  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false; CASE_DYNAMIC_ODDS = null;
+  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false; CASE_DYNAMIC_ODDS = null; CASE_ODDS_LOADING = true;
   renderCaseDetails(k);
   document.getElementById('case-modal').classList.add('show');
-  workerRequest('/api/case/odds', {caseId}).then(result => { if (CASE_DETAIL_ID === caseId && result.odds) { CASE_DYNAMIC_ODDS = result; renderCaseDetails(CASES[caseId] || k); } }).catch(() => {});
+  // Рассчитываем динамические шансы до активации кнопки, чтобы ожидание не начиналось после нажатия.
+  workerRequest('/api/case/odds', {caseId}).then(result => {
+    if (CASE_DETAIL_ID === caseId && result.odds) CASE_DYNAMIC_ODDS = result;
+  }).catch(() => {}).finally(() => {
+    if (CASE_DETAIL_ID === caseId && !ACTIVE_GIFT_TOKEN) { CASE_ODDS_LOADING = false; renderCaseDetails(CASES[caseId] || k); }
+  });
 }
 function toggleCaseFastSpin() { if (!featureVisible('caseFastSpin') && !isAdmin()) return toast('Быстрая прокрутка временно отключена'); if (CASE_OPEN_BUSY) return; CASE_FAST_SPIN=!CASE_FAST_SPIN; const k=CASES[CASE_DETAIL_ID]; if(k) renderCaseDetails(k); }
 function setCaseOpenCount(count) {
@@ -1325,12 +1343,12 @@ function renderCaseDetails(k) {
   const totalPrice = isGiftOpen ? 0 : Math.max(0, Number(k.price)||0) * count;
   const remainingTotal = isGiftOpen ? Infinity : (k.totalLimit ? Math.max(0,Number(k.totalLimit)-Number(k.opened||0)) : Infinity);
   const remainingUser = isGiftOpen ? Infinity : (k.perUserLimit ? Math.max(0,Number(k.perUserLimit)-Number(profile?.openedCases?.[CASE_DETAIL_ID]||0)) : Infinity);
-  const canOpen = (featureVisible('caseOpen') || isAdmin()) && !CASE_OPEN_BUSY && count<=remainingTotal && count<=remainingUser && (isGiftOpen || Number(profile?.balance||0)>=totalPrice);
+  const canOpen = (featureVisible('caseOpen') || isAdmin()) && !CASE_OPEN_BUSY && !CASE_ODDS_LOADING && count<=remainingTotal && count<=remainingUser && (isGiftOpen || Number(profile?.balance||0)>=totalPrice);
   box.innerHTML = `
     <div class="case-detail-top">
       <div class="case-detail-img">${k.img?`<img src="${esc(k.img)}" alt="">`:'📦'}</div>
       <div class="case-detail-title"><h2>${esc(k.name||'Кейс')} ${hiddenAdminBadge('cases')}</h2><div class="muted" style="font-size:11px">${entries.length} предметов · ${k.price>0?`Цена за кейс: ${Number(k.price)}`:'Бесплатный кейс'}</div></div>
-      ${featureDisplayVisible('caseOpen') ? `${hiddenAdminBadge('caseOpen')}<button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':(isGiftOpen?'🎁 Открыть подаренный кейс':`Открыть · ${totalPrice}`)}</button>` : featurePlaceholder('caseOpen')}
+      ${featureDisplayVisible('caseOpen') ? `${hiddenAdminBadge('caseOpen')}<button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':(CASE_ODDS_LOADING?'⏳ Подготавливаем шансы…':(isGiftOpen?'🎁 Открыть подаренный кейс':`Открыть · ${totalPrice}`))}</button>` : featurePlaceholder('caseOpen')}
     </div>
     ${!isGiftOpen ? `<div class="case-counts" aria-label="Количество кейсов">
       ${featureDisplayVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY || (!featureVisible('multiCaseOpen') && !isAdmin())?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
@@ -1754,6 +1772,7 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
         <button class="btn sec ${adminSub==='system'?'on':''}" onclick="setSub('system')">🛠 Система</button>
         <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
+        <button class="btn sec ${adminSub==='logs'?'on':''}" onclick="setSub('logs')">📜 Логи</button>
         <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
         <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button>
       </div>
@@ -1761,10 +1780,13 @@ function renderAdmin(c) {
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn sec" type="button" onclick="refreshAdminData()">↻ Обновить данные</button><span id="admin-refresh-status" class="muted" style="align-self:center;font-size:12px"></span></div>
     <div id="admin-body"></div>`;
   drawAdminBody();
+  if(adminSub==='logs') { if(ADMIN_LOG_ITEMS.length) startAdminLogAutoRefresh(); else loadAdminLogs(true); }
 }
 function setSub(s) {
+  stopAdminLogAutoRefresh();
   adminSub = s;
   drawAdminBody();
+  if(s==='logs') loadAdminLogs(true);
 }
 async function refreshAdminData() {
   const status = document.getElementById('admin-refresh-status');
@@ -1811,10 +1833,56 @@ function drawAdminBody() {
   if (adminSub === 'cur')   b.innerHTML = adminCurHTML();
   if (adminSub === 'system') b.innerHTML = adminSystemHTML();
   if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
+  if (adminSub === 'logs') b.innerHTML = adminLogsHTML();
   if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
   if (adminSub === 'visibility') b.innerHTML = adminVisibilityHTML();
   restoreFormState(b, snapshot);
   FORM_STATE_SCOPE = scope;
+}
+
+function adminLogsHTML() {
+  const rows=ADMIN_LOG_ITEMS||[];
+  return `<div class="card"><h2>📜 Логи действий игроков</h2><p class="muted" style="font-size:11px">Загружается по 100 записей. Каждое действие появляется сверху автоматически; остальные разделы админ-панели не перерисовываются.</p><div style="display:flex;gap:8px;margin-bottom:10px;align-items:center"><button class="btn sec small" onclick="loadAdminLogs(true)">↻ Обновить</button><span id="admin-log-count" class="muted" style="font-size:11px">Записей: ${rows.length}</span><span id="admin-log-live" class="muted" style="font-size:10px;margin-left:auto">Автообновление включено</span></div><div id="admin-log-rows" style="font-size:10px;line-height:1.25;overflow-x:auto;max-width:100%"><div style="min-width:680px">${rows.map(x=>`<div style="display:grid;grid-template-columns:118px 150px minmax(100px,1fr) minmax(100px,1fr);gap:8px;align-items:start;padding:5px 0;border-bottom:1px solid var(--line);white-space:nowrap"><span>${esc(fmtTime(x.at))}${new Date(x.at).getFullYear()!==new Date().getFullYear()?' '+new Date(x.at).getFullYear():''}</span><b style="color:var(--accent);overflow:hidden;text-overflow:ellipsis">${esc(x.action||x.endpoint||'Действие')}</b><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.actorName||'')}">${esc(x.actorName||'Игрок')} · ${esc(x.actorId||'—')}</span><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.details&&Object.keys(x.details).length?Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · '):'')}">${x.targetId?'Цель: '+esc(x.targetId)+' · ':''}${x.details&&Object.keys(x.details).length?esc(Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · ')):''}</span></div>`).join('')||'<p class="muted">Логов пока нет. Новые действия начнут записываться после обновления Worker.</p>'}</div></div><div class="row" style="margin-top:10px;gap:8px"><button class="btn" ${ADMIN_LOG_HAS_MORE?'':'disabled'} onclick="loadAdminLogs(false)">${ADMIN_LOG_LOADING?'Загрузка…':'Загрузить ещё 100'}</button><span class="muted" style="font-size:11px">${ADMIN_LOG_HAS_MORE?'Есть следующие записи':'Конец списка'}</span></div></div>`;
+}
+function stopAdminLogAutoRefresh() { if(ADMIN_LOG_REFRESH_TIMER) clearInterval(ADMIN_LOG_REFRESH_TIMER); ADMIN_LOG_REFRESH_TIMER=null; }
+function startAdminLogAutoRefresh() {
+  stopAdminLogAutoRefresh();
+  if(CURRENT_TAB==='admin'&&adminSub==='logs') ADMIN_LOG_REFRESH_TIMER=setInterval(refreshAdminLogsOnly,3000);
+}
+async function refreshAdminLogsOnly() {
+  if(ADMIN_LOG_REFRESH_BUSY || CURRENT_TAB!=='admin' || adminSub!=='logs' || document.visibilityState==='hidden') return;
+  ADMIN_LOG_REFRESH_BUSY=true;
+  try {
+    const r=await workerRequest('/api/admin/logs',{offset:0,limit:100});
+    const got=Array.isArray(r.items)?r.items:[];
+    const oldTop=ADMIN_LOG_ITEMS[0]?.id || '';
+    const oldIds=new Set(ADMIN_LOG_ITEMS.map(x=>x.id));
+    const fresh=got.filter(x=>!oldIds.has(x.id));
+    if(fresh.length) {
+      const seen=new Set();
+      ADMIN_LOG_ITEMS=[...fresh,...ADMIN_LOG_ITEMS].filter(x=>{if(seen.has(x.id))return false;seen.add(x.id);return true;});
+      ADMIN_LOG_OFFSET=ADMIN_LOG_ITEMS.length;
+      ADMIN_LOG_HAS_MORE=!!r.hasMore;
+      const rowsEl=document.getElementById('admin-log-rows');
+      if(rowsEl) rowsEl.innerHTML=`<div style="min-width:680px">${ADMIN_LOG_ITEMS.map(x=>`<div style="display:grid;grid-template-columns:118px 150px minmax(100px,1fr) minmax(100px,1fr);gap:8px;align-items:start;padding:5px 0;border-bottom:1px solid var(--line);white-space:nowrap"><span>${esc(fmtTime(x.at))}${new Date(x.at).getFullYear()!==new Date().getFullYear()?' '+new Date(x.at).getFullYear():''}</span><b style="color:var(--accent);overflow:hidden;text-overflow:ellipsis">${esc(x.action||x.endpoint||'Действие')}</b><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.actorName||'')}">${esc(x.actorName||'Игрок')} · ${esc(x.actorId||'—')}</span><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.details&&Object.keys(x.details).length?Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · '):'')}">${x.targetId?'Цель: '+esc(x.targetId)+' · ':''}${x.details&&Object.keys(x.details).length?esc(Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · ')):''}</span></div>`).join('')}</div>`;
+      const countEl=document.getElementById('admin-log-count'); if(countEl) countEl.textContent=`Записей: ${ADMIN_LOG_ITEMS.length}`;
+      const liveEl=document.getElementById('admin-log-live'); if(liveEl) liveEl.textContent=`Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
+    }
+  } catch(_) { /* Не перерисовываем панель и не мешаем вводу при временной ошибке сети. */ }
+  finally { ADMIN_LOG_REFRESH_BUSY=false; }
+}
+async function loadAdminLogs(reset=true) {
+  if(ADMIN_LOG_LOADING) return;
+  ADMIN_LOG_LOADING=true;
+  if(reset){ADMIN_LOG_ITEMS=[];ADMIN_LOG_OFFSET=0;ADMIN_LOG_HAS_MORE=false;drawAdminBody();}
+  try {
+    const r=await workerRequest('/api/admin/logs',{offset:reset?0:ADMIN_LOG_OFFSET,limit:100});
+    const got=Array.isArray(r.items)?r.items:[ ];
+    ADMIN_LOG_ITEMS=reset?got:ADMIN_LOG_ITEMS.concat(got);
+    ADMIN_LOG_OFFSET=ADMIN_LOG_ITEMS.length;
+    ADMIN_LOG_HAS_MORE=!!r.hasMore;
+  } catch(e) { toast(e.message||'Не удалось загрузить логи'); }
+  finally { ADMIN_LOG_LOADING=false; if(CURRENT_TAB==='admin'&&adminSub==='logs') { drawAdminBody(); startAdminLogAutoRefresh(); } }
 }
 
 const UI_VISIBILITY_LABELS = {
@@ -2066,6 +2134,11 @@ function adminUsersHTML() {
 function applyAdminUserSearch() { adminUserSearch = adminUserSearchDraft.trim(); drawAdminBody(); }
 function showAllAdminUsers() { adminUserSearch = ''; adminUserSearchDraft = ''; drawAdminBody(); }
 function openPlayerAdminModal(id) {
+  const modal=document.getElementById('player-admin-modal');
+  const samePlayerAlreadyOpen=PLAYER_ADMIN_ID===id && modal?.classList.contains('show');
+  const focusedBefore=samePlayerAlreadyOpen?document.activeElement:null;
+  const focusInfo=samePlayerAlreadyOpen&&focusedBefore&&focusedBefore.id?{id:focusedBefore.id,start:typeof focusedBefore.selectionStart==='number'?focusedBefore.selectionStart:null,end:typeof focusedBefore.selectionEnd==='number'?focusedBefore.selectionEnd:null}:null;
+  const preservedInputs=samePlayerAlreadyOpen?{balanceAmount:document.getElementById('player-balance-amount')?.value||'',balanceReason:document.getElementById('player-balance-reason')?.value||'',giftCount:document.getElementById('player-gift-count')?.value||'1',giftNoSell:!!document.getElementById('player-gift-no-sell')?.checked,luckPercent:document.getElementById('player-luck-percent')?.value}:null;
   PLAYER_ADMIN_ID = id;
   const u = USERS[id] || {};
   const banActive = isPlayerBanActive(u.ban);
@@ -2079,16 +2152,35 @@ function openPlayerAdminModal(id) {
   const historyHtml = history.length ? `<div style="margin-top:10px"><h3 style="font-size:13px;margin-bottom:7px">Последние изменения баланса</h3>${history.map(h=>`<div class="ticket-row" style="margin-bottom:6px"><div class="row"><b style="color:${Number(h.delta)>=0?'var(--green)':'var(--red)'}">${Number(h.delta)>=0?'+':''}${Number(h.delta||0).toLocaleString('ru-RU')}</b><span style="flex:1;min-width:0;overflow-wrap:anywhere">${esc(h.reason||'Без причины')}</span></div><div class="chips">${h.at?fmtTime(h.at):'—'} · админ ID ${esc(h.by||'—')}</div></div>`).join('')}</div>` : '<p class="muted" style="margin-top:10px">История ручных корректировок пока пуста.</p>';
   const banHistory = (Array.isArray(u.banHistory) ? [...u.banHistory] : []).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,10);
   const banHistoryHtml = banHistory.length ? `<div style="margin-top:10px"><h3 style="font-size:13px;margin-bottom:7px">История блокировок</h3>${banHistory.map(h=>`<div class="ticket-row" style="margin-bottom:6px"><b style="color:${h.action==='ban'?'var(--red)':'var(--green)'}">${h.action==='ban'?'Блокировка':'Снятие блокировки'}</b><div style="font-size:13px;margin-top:4px;overflow-wrap:anywhere">${esc(h.reason||'Причина не указана')}</div><div class="chips">${h.at?fmtTime(h.at):'—'} · админ ID ${esc(h.by||'—')}${h.durationLabel?` · срок: ${esc(h.durationLabel)}`:''}${h.expiresAt?` · до ${fmtTime(h.expiresAt)}`:''}</div></div>`).join('')}</div>` : '<p class="muted" style="margin-top:10px">История блокировок пуста.</p>';
+  const playerMoneyTickets=Object.entries(TICKETS||{}).filter(([,t])=>t&&String(t.owner)===String(id)&&['deposit','withdraw'].includes(t.type)).map(([key,t])=>({id:key,...t})).sort((a,b)=>(Number(b.createdAt||b.at||b.closedAt)||0)-(Number(a.createdAt||a.at||a.closedAt)||0));
+  const moneyTicketsHtml=`<div style="margin-top:12px"><h3 style="font-size:13px;margin-bottom:7px">💳 История пополнений и выводов (${playerMoneyTickets.length})</h3>${playerMoneyTickets.length?playerMoneyTickets.map(t=>{const isDep=t.type==='deposit';const status=t.status==='closed'?(t.transactionApplied?'Выполнено':'Закрыто без выполнения'):t.status==='taken'?'В работе':'Ожидает';const at=Number(t.createdAt||t.at||t.openedAt||t.closedAt)||0;return `<div class="ticket-row" style="padding:7px;margin-bottom:5px;font-size:11px"><div class="row" style="align-items:center;gap:6px"><b style="color:${isDep?'var(--green)':'var(--red)'}">${isDep?'Пополнение':'Вывод'} · ${Number(t.amount||0).toLocaleString('ru-RU')} зол.</b><span style="margin-left:auto;color:var(--muted)">${esc(status)}</span></div><div class="chips" style="font-size:10px">${at?esc(fmtTime(at)):'Время не указано'} · тикет #${esc(t.num||t.id||t.key||'—')}${t.closedAt?' · закрыт '+esc(fmtTime(t.closedAt)):''}</div>${t.reason?`<div style="color:var(--muted);margin-top:3px">${esc(t.reason)}</div>`:''}</div>`}).join(''):'<p class="muted" style="font-size:11px">Заявок на пополнение или вывод пока нет.</p>'}</div>`;
   const inventoryEntries=Object.entries(u.inventory||{}).sort((a,b)=>(Number(b[1]?.at)||0)-(Number(a[1]?.at)||0));
   const giftEntries=Object.entries(u.giftedCases||{}).filter(([,g])=>g&&g.status==='available');
+  const luckPercent=Math.max(0,Math.min(100,Number.isFinite(Number(u.luckPercent))?Number(u.luckPercent):100));
+  const luckHtml=`<div style="margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px"><h3 style="font-size:14px;margin-bottom:6px">🍀 Удача игрока</h3><p class="muted" style="font-size:11px">100% — обычные шансы. Чем ниже значение, тем сильнее снижается вес предметов дороже цены кейса; шанс не обнуляется полностью.</p><label for="player-luck-percent">Процент удачи (0–100)</label><div class="row" style="gap:8px;align-items:center"><input id="player-luck-percent" type="number" min="0" max="100" step="1" value="${luckPercent}" inputmode="numeric" style="flex:1"><button class="btn" type="button" onclick="savePlayerLuck()">Сохранить</button></div></div>`;
   const inventoryEditorHtml=`<div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px"><h3 style="font-size:14px;margin-bottom:8px">🎒 Редактирование инвентаря (${inventoryEntries.length+giftEntries.length})</h3><p class="muted" style="font-size:12px">Можно удалить предмет или неоткрытый подаренный кейс. Для выдачи новых кейсов используй блок «Подарить кейс» выше.</p>${giftEntries.map(([key,g])=>`<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>🎁 ${esc(g.name||CASES[g.caseId]?.name||'Подаренный кейс')}</b><div class="chips">Подаренный кейс · доступен</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('gift','${key}')">Удалить</button></div></div>`).join('')}${inventoryEntries.map(([key,e])=>{const meta=getInventoryItemMeta(e)||{};return `<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>${esc(meta.name||e.name||'Предмет')}</b><div class="chips">${esc(meta.price||e.price||0)} · ${esc(e.source||'инвентарь')}${e.caseId?' · выпал из кейса':''}</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('item','${key}')">Удалить</button></div></div>`;}).join('')||(!giftEntries.length?'<p class="muted">Предметов нет.</p>':'')}</div>`;
   const banBox = `<div style="margin-top:14px;padding:12px;border:1px solid ${banActive?'var(--red)':'var(--line)'};border-radius:12px"><h3 style="font-size:14px;margin-bottom:7px">${banActive?'⛔ Игрок заблокирован':'🛡️ Блокировка игрока'}</h3>${banActive?`<p style="font-size:13px;margin-bottom:5px">Причина: ${esc(u.ban.reason||'не указана')}</p><p data-ban-countdown data-expires-at="${Number(u.ban.expiresAt)||0}" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px">${Number(u.ban.expiresAt)>Date.now()?'Осталось: '+formatRemainingTime(Number(u.ban.expiresAt)-Date.now()):Number(u.ban.expiresAt)>0?'Срок блокировки истёк':'Срок блокировки: бессрочно'}</p>`:`<label for="player-ban-duration">Срок блокировки</label><select id="player-ban-duration"><option value="15m">15 минут</option><option value="1h">1 час</option><option value="6h">6 часов</option><option value="24h">24 часа</option><option value="7d">7 дней</option><option value="30d">30 дней</option><option value="permanent" selected>Бессрочно</option></select>`}<label for="player-ban-reason">${banActive?'Причина снятия (необязательно)':'Причина блокировки (обязательно)'}</label><textarea id="player-ban-reason" rows="2" maxlength="500" placeholder="${banActive?'Комментарий к снятию блокировки':'Укажи причину блокировки'}"></textarea><button class="btn ${banActive?'':'danger'}" style="margin-top:4px" onclick="setPlayerBan('${banActive?'unban':'ban'}')">${banActive?'Снять блокировку':'Заблокировать игрока'}</button></div>`
-  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
+  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${moneyTicketsHtml}${luckHtml}${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
   const giftSelect=document.getElementById('player-gift-case'); if(giftSelect) giftSelect.innerHTML=Object.entries(CASES||{}).map(([caseId,caseData])=>`<option value="${esc(caseId)}">${esc(caseData.name||caseId)}</option>`).join('') || '<option value="">Нет доступных кейсов</option>';
-  document.getElementById('player-balance-amount').value = '';
-  document.getElementById('player-balance-reason').value = '';
+  if(!samePlayerAlreadyOpen) { document.getElementById('player-balance-amount').value = ''; document.getElementById('player-balance-reason').value = ''; }
+  if(preservedInputs) { document.getElementById('player-balance-amount').value=preservedInputs.balanceAmount; document.getElementById('player-balance-reason').value=preservedInputs.balanceReason; const gc=document.getElementById('player-gift-count'); if(gc)gc.value=preservedInputs.giftCount; const ns=document.getElementById('player-gift-no-sell'); if(ns)ns.checked=preservedInputs.giftNoSell; const lp=document.getElementById('player-luck-percent'); if(lp && preservedInputs.luckPercent!==undefined) lp.value=preservedInputs.luckPercent; }
   document.getElementById('player-admin-modal').classList.add('show');
+  if(focusInfo) { const el=document.getElementById(focusInfo.id); if(el){el.focus({preventScroll:true});if(focusInfo.start!==null&&typeof el.setSelectionRange==='function'){try{el.setSelectionRange(focusInfo.start,focusInfo.end)}catch(_){}}} }
 }
+async function savePlayerLuck() {
+  const targetId=PLAYER_ADMIN_ID, input=document.getElementById('player-luck-percent');
+  const luckPercent=Number(input?.value);
+  if(!targetId || !Number.isInteger(luckPercent) || luckPercent<0 || luckPercent>100) return toast('Укажи целое число от 0 до 100');
+  const button=input?.parentElement?.querySelector('button'); if(button){button.disabled=true;button.textContent='Сохранение…';}
+  try {
+    await workerRequest('/api/admin/player/luck',{targetId,luckPercent});
+    if(USERS[targetId]) USERS[targetId].luckPercent=luckPercent;
+    toast(`Удача игрока установлена: ${luckPercent}%`);
+    // Не перерисовываем модальное окно: ввод и фокус остаются на месте.
+  } catch(e) { toast(e.message||'Не удалось сохранить удачу'); }
+  finally { if(button){button.disabled=false;button.textContent='Сохранить';} }
+}
+
 async function giftCaseToPlayer() {
   const targetId=PLAYER_ADMIN_ID, caseId=String(document.getElementById('player-gift-case')?.value||''), count=Number(document.getElementById('player-gift-count')?.value||1), noSellDrop=!!document.getElementById('player-gift-no-sell')?.checked;
   if(!targetId||!caseId) return toast('Выбери игрока и кейс');
