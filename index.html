@@ -556,6 +556,7 @@ const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSp
 let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
 let UI_VISIBILITY_MESSAGES = {};
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
+let GLOBAL_LUCK = { luckPercent:100 };
 let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
 let HOME_ANNS_RENDER_SIGNATURE = '';
@@ -826,6 +827,10 @@ async function enterApp(id) {
     }
     MAINTENANCE = nextMaintenance; MAINTENANCE_NOTIF_READY = true; updateMaintenanceScreen();
     // Синхронизируем экран системы у всех администраторов, когда другой админ меняет режим.
+    if (CURRENT_TAB === 'admin' && adminSub === 'system') drawAdminBody();
+  });
+  db.ref('config/globalLuck').on('value', s => {
+    GLOBAL_LUCK = s.val() || {luckPercent:100};
     if (CURRENT_TAB === 'admin' && adminSub === 'system') drawAdminBody();
   });
   db.ref('config/uiVisibility').on('value', s => {
@@ -2437,11 +2442,27 @@ function adminSystemHTML() {
   const enabled = !!MAINTENANCE?.enabled;
   const updatedBy = MAINTENANCE?.updatedBy ? `Администратор ID: ${esc(MAINTENANCE.updatedBy)}` : '';
   const updatedAt = Number(MAINTENANCE?.updatedAt) > 0 ? new Date(Number(MAINTENANCE.updatedAt)).toLocaleString('ru-RU') : '';
-  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
+  const globalLuckPercent=Math.max(0,Math.min(100,Number.isInteger(Number(GLOBAL_LUCK?.luckPercent))?Number(GLOBAL_LUCK.luckPercent):100));
+  const globalLuckUpdated=GLOBAL_LUCK?.updatedAt?new Date(Number(GLOBAL_LUCK.updatedAt)).toLocaleString('ru-RU'):'';
+  return `<div class="card"><h2>🍀 Общая удача игроков</h2><p class="muted">Значение действует на всех игроков и является верхним пределом персональной удачи. Например, при общей удаче 40% игрок с персональными 80% будет играть с 40%, а игрок с персональными 20% — с 20%. Значение влияет только на выпадение предметов, но не меняет отображаемые шансы.</p>
+    <label for="global-luck-percent">Общая удача (0–100%)</label><div class="row" style="gap:8px;align-items:center"><input id="global-luck-percent" type="number" min="0" max="100" step="1" inputmode="numeric" value="${globalLuckPercent}" style="flex:1"><button class="btn" type="button" onclick="saveGlobalLuck()">Сохранить</button></div>
+    <p class="muted" style="font-size:11px;margin-top:8px">100% — без общего снижения удачи; 0% — максимальное влияние настройки. ${globalLuckUpdated?`Последнее изменение: ${esc(globalLuckUpdated)} · ID: ${esc(GLOBAL_LUCK.updatedBy||'—')}`:''}</p></div>
+    <div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
     <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
     <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
     <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p>
     ${enabled && updatedBy ? `<p class="muted">Включил: ${updatedBy}${updatedAt ? ` · ${updatedAt}` : ''}</p>` : ''}</div>`;
+}
+async function saveGlobalLuck() {
+  const input=document.getElementById('global-luck-percent');
+  const luckPercent=Number(input?.value);
+  if(!Number.isInteger(luckPercent)||luckPercent<0||luckPercent>100) return toast('Укажи целое число от 0 до 100');
+  try {
+    const result=await workerRequest('/api/admin/global-luck',{luckPercent});
+    GLOBAL_LUCK={luckPercent:result.luckPercent,updatedAt:result.updatedAt,updatedBy:result.updatedBy};
+    toast(`Общая удача установлена: ${luckPercent}%`);
+    drawAdminBody();
+  } catch(e) { toast(e.message||'Не удалось сохранить общую удачу'); }
 }
 async function saveMaintenance(enabled) {
   const message = document.getElementById('maintenance-text')?.value.trim() || 'Ведутся технические работы. Попробуйте зайти позже.';
