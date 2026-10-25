@@ -451,9 +451,9 @@ window.addEventListener('unhandledrejection', event => {
 // Не оставляем экран загрузки навсегда при сетевой ошибке или недоступности базы.
 window.setTimeout(() => {
   if (APP_BOOTSTRAPPING && !document.getElementById('startup-error')?.classList.contains('show')) {
-    showStartupError(new Error('Приложение не завершило запуск за 15 секунд. Проверьте соединение и доступ Firebase.'), 'Тайм-аут загрузки');
+    showStartupError(new Error('Приложение не завершило запуск за 30 секунд. Проверьте соединение и доступ Firebase.'), 'Тайм-аут загрузки');
   } else hideAppLoader();
-}, 15000);
+}, 30000);
 function priceTier(value) {
   const price = Math.max(0, Number(value) || 0);
   if (price >= 10000) return 'mythic';
@@ -540,24 +540,6 @@ function syncReferralInfoFromLocalData() {
   REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:wholeEarned + pendingHundredths / 100};
 }
 let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
-const SKIN_DEFAULT_PRESET = {name:'Ночной стандарт',bg:'#0b0b0b',bg2:'#181824',card:'#171717',surface:'#101010',text:'#f5f5f5',muted:'#8d8d8d',line:'#2c2c2c',accent:'#ffffff',accentText:'#111111',radius:14,backgroundMode:'solid',gradientAngle:155,fontFamily:'system',layout:{}};
-const SKIN_LAYOUT_SCREENS = [{id:'home',label:'Главная'},{id:'cases',label:'Кейсы'},{id:'inventory',label:'Инвентарь'},{id:'upgrader',label:'Апгрейдер'},{id:'profile',label:'Профиль'},{id:'settings',label:'Настройки'},{id:'tickets',label:'Тикеты'}];
-const SKIN_LAYOUT_ELEMENTS = {
-  announcement:{label:'Окно объявления',screens:['home'],selectors:['#content #home-announcements-host .ann-wrap']},
-  welcomeCard:{label:'Окно приветствия',screens:['home'],selectors:['#content #home-welcome-host > .card']},
-  topSpenders:{label:'Окно рейтинга трат',screens:['home'],selectors:['#content #home-top-host > .card']},
-  cards:{label:'Карточки / окно выбранного экрана',selectors:['#content > .card']},
-  buttons:{label:'Основные кнопки',selectors:['#content .btn:not(.sec):not(.danger)']},
-  fields:{label:'Поля ввода и списки',selectors:['#content input','#content select','#content textarea']},
-  itemGrid:{label:'Сетка предметов',screens:['inventory'],selectors:['#content .item-grid']},
-  caseDetails:{label:'Окно выбранного кейса',screens:['cases'],selectors:['#content .case-detail-top','#content .case-counts','#content .case-prize-list']},
-  upgraderPanels:{label:'Панели апгрейдера',screens:['upgrader'],selectors:['#content .upg-panel','#content .upg-stage']},
-  header:{label:'Верхняя панель и баланс',selectors:['#app > header']},
-  menu:{label:'Выдвижное меню',selectors:['#menu-panel']},
-  modal:{label:'Модальные окна',selectors:['#case-modal .cm-box','#role-modal .role-box','#player-admin-modal .role-box','#ann-reward-picker .reward-picker-box','#case-item-picker .picker-box','#ticket-close-modal .ticket-confirm-box'],outsideApp:true}
-};
-let SKIN_CONFIG = {activeId:'default',presets:{default:{...SKIN_DEFAULT_PRESET}}};
-let SKIN_SELECTED_ID = 'default', SKIN_DRAFT = null, SKIN_PREVIEWING = false;
 let CASE_EDIT_ID = null;
 let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
@@ -576,7 +558,6 @@ let MAINTENANCE = { enabled:false, message:'Ведутся технически�
 let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
 let annIndex = 0, annTimer = null, annCount = 0;
 let HOME_ANNS_RENDER_SIGNATURE = '';
-let SKIN_LAYOUT_SCREEN = 'home', SKIN_LAYOUT_ELEMENT = 'announcement', SKIN_LAYOUT_PREVIEW_NAV = false;
 let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0, CASE_DYNAMIC_ODDS = null, CASE_FAST_SPIN = false;
 const IMG_SIZE = 128;
 const DAY = 24 * 3600 * 1000;
@@ -832,6 +813,8 @@ async function enterApp(id) {
       else toast('Технический перерыв окончен. Приложение снова доступно.');
     }
     MAINTENANCE = nextMaintenance; MAINTENANCE_NOTIF_READY = true; updateMaintenanceScreen();
+    // Синхронизируем экран системы у всех администраторов, когда другой админ меняет режим.
+    if (CURRENT_TAB === 'admin' && adminSub === 'system') drawAdminBody();
   });
   db.ref('config/uiVisibility').on('value', s => {
     UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(s.val() || {})};
@@ -840,11 +823,6 @@ async function enterApp(id) {
     if (CURRENT_TAB === 'home') { updateHomeAnnouncements(); updateHomeWelcome(); updateHomeTopSpenders(); }
     // Не перерисовываем форму видимости на фоне: сохраняем ввод и фокус.
     if (CURRENT_TAB === 'cases' || CURRENT_TAB === 'inventory' || CURRENT_TAB === 'upgrader' || CURRENT_TAB === 'profile') rerender();
-  });
-  db.ref('config/skins').on('value', s => {
-    SKIN_CONFIG = normalizeSkinConfig(s.val() || {});
-    if (!(CURRENT_TAB === 'admin' && adminSub === 'skins' && SKIN_PREVIEWING)) applyActiveSkin();
-    if (CURRENT_TAB === 'admin' && adminSub === 'skins' && !SKIN_PREVIEWING) updateSkinPresetListOnly();
   });
   db.ref('config/currency').on('value', s => {
     CUR_ICON = s.val()?.icon || '';
@@ -993,13 +971,10 @@ function showAuth() {
 
 /* ---------- НАВИГАЦИЯ ---------- */
 function go(tab) {
-  if (CURRENT_TAB === 'admin' && adminSub === 'skins' && tab !== 'admin' && !SKIN_LAYOUT_PREVIEW_NAV) { SKIN_PREVIEWING = false; applyActiveSkin(); }
   if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
   const visibilityKey = ({cases:'cases',inventory:'inventory',upgrader:'upgrader',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
   if (visibilityKey && !featureVisible(visibilityKey) && !isAdmin()) { toast('Этот раздел временно скрыт'); tab='home'; }
   CURRENT_TAB = tab;
-  document.body.dataset.skinScreen = tab;
-  const appRoot = document.getElementById('app'); if (appRoot) appRoot.dataset.skinScreen = tab;
   OPEN_TICKET_ID = null;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
   document.getElementById('menu-panel').classList.remove('open');
@@ -1781,7 +1756,6 @@ function renderAdmin(c) {
         <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
         <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
         <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button>
-        <button class="btn sec ${adminSub==='skins'?'on':''}" onclick="setSub('skins')">🎨 Оформление / скины</button>
       </div>
     </div>
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn sec" type="button" onclick="refreshAdminData()">↻ Обновить данные</button><span id="admin-refresh-status" class="muted" style="align-self:center;font-size:12px"></span></div>
@@ -1789,9 +1763,6 @@ function renderAdmin(c) {
   drawAdminBody();
 }
 function setSub(s) {
-  const wasSkins = adminSub === 'skins';
-  if (wasSkins && s !== 'skins') { SKIN_PREVIEWING = false; applyActiveSkin(); }
-  if (s === 'skins' && !wasSkins) { SKIN_PREVIEWING = false; SKIN_DRAFT = normalizeSkinPreset(SKIN_CONFIG.presets[SKIN_SELECTED_ID] || SKIN_DEFAULT_PRESET); }
   adminSub = s;
   drawAdminBody();
 }
@@ -1808,8 +1779,7 @@ async function refreshAdminData() {
       cur: [['config/currency', v => CUR_ICON = v?.icon || '']],
       system: [['config/maintenance', v => MAINTENANCE = v || {enabled:false,message:''}]],
       stats: [['users', v => USERS = v], ['tickets', v => TICKETS = v], ['roles', v => ROLES = v], ['items', v => ITEMS = v], ['cases', v => CASES = v], ['anns', v => ANNS = v]],
-      notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]],
-      skins: [['config/skins', v => { SKIN_CONFIG = normalizeSkinConfig(v || {}); if (!SKIN_PREVIEWING) applyActiveSkin(); }]]
+      notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]]
     };
     const targets = reads[adminSub] || [];
     await Promise.all(targets.map(async ([path, apply]) => {
@@ -1843,7 +1813,6 @@ function drawAdminBody() {
   if (adminSub === 'stats') b.innerHTML = adminStatsHTML();
   if (adminSub === 'notifications') b.innerHTML = adminNotificationsHTML();
   if (adminSub === 'visibility') b.innerHTML = adminVisibilityHTML();
-  if (adminSub === 'skins') b.innerHTML = adminSkinsHTML();
   restoreFormState(b, snapshot);
   FORM_STATE_SCOPE = scope;
 }
@@ -2074,252 +2043,6 @@ async function saveCase() {
   } catch(e) { toast(e?.message||'Не удалось сохранить кейс'); }
 }
 async function delCase(id) { if(confirm('Удалить кейс?')) { try { await db.ref('cases/'+id).remove(); const next={...CASES}; delete next[id]; CASES=next; if(CASE_EDIT_ID===id) {CASE_EDIT_ID=null;draft=null;} FORM_STATE_SCOPE=''; drawAdminBody(); } catch(e) { toast(e?.message||'Не удалось удалить кейс'); } } }
-
-/* --- Глобальное оформление и менеджер скинов --- */
-function normalizeSkinLayout(raw={}) {
-  const out={}; const validScreens=new Set(SKIN_LAYOUT_SCREENS.map(x=>x.id));
-  for(const [screen,entries] of Object.entries(raw||{})) {
-    if(!validScreens.has(screen)||!entries||typeof entries!=='object')continue;
-    const safe={};
-    for(const key of Object.keys(SKIN_LAYOUT_ELEMENTS)) {
-      const v=entries[key]; if(!v||typeof v!=='object')continue;
-      safe[key]={x:Math.max(-100,Math.min(100,Math.round(Number(v.x)||0))),y:Math.max(-120,Math.min(120,Math.round(Number(v.y)||0))),width:Math.max(60,Math.min(140,Math.round(Number(v.width)||100)))};
-    }
-    if(Object.keys(safe).length)out[screen]=safe;
-  }
-  return out;
-}
-function normalizeSkinPreset(src={}) {
-  const d=SKIN_DEFAULT_PRESET, color=(v,f)=>/^#[0-9a-f]{6}$/i.test(String(v||''))?String(v):f;
-  return {
-    name:String(src.name||d.name).trim().slice(0,48)||d.name,
-    bg:color(src.bg,d.bg), bg2:color(src.bg2,d.bg2), card:color(src.card,d.card), surface:color(src.surface,d.surface),
-    text:color(src.text,d.text), muted:color(src.muted,d.muted), line:color(src.line,d.line), accent:color(src.accent,d.accent), accentText:color(src.accentText,d.accentText),
-    radius:Math.max(6,Math.min(28,Math.round(Number(src.radius)||d.radius))),
-    backgroundMode:src.backgroundMode==='gradient'?'gradient':'solid',
-    gradientAngle:Math.max(0,Math.min(360,Math.round(Number.isFinite(Number(src.gradientAngle))?Number(src.gradientAngle):d.gradientAngle))),
-    fontFamily:['system','rounded','mono'].includes(src.fontFamily)?src.fontFamily:'system',
-    layout:normalizeSkinLayout(src.layout||{})
-  };
-}
-function normalizeSkinConfig(raw={}) {
-  const presets={default:{...SKIN_DEFAULT_PRESET}};
-  for(const [id,value] of Object.entries(raw?.presets||{})) {
-    if(!/^[A-Za-z0-9_-]{1,100}$/.test(id)) continue;
-    presets[id]=normalizeSkinPreset(value||{});
-  }
-  const activeId=presets[String(raw?.activeId||'default')]?String(raw.activeId||'default'):'default';
-  return {activeId,presets,updatedAt:Number(raw?.updatedAt)||0};
-}
-function skinFontValue(font) {
-  return font==='mono'?"'SFMono-Regular',Consolas,monospace":font==='rounded'?"'Trebuchet MS','Segoe UI',sans-serif":"-apple-system,'Segoe UI',Roboto,sans-serif";
-}
-function personalSkinStorageKey() { return CURRENT_ID ? `zombixup_personal_skin_${String(CURRENT_ID).replace(/[^0-9A-Za-z_-]/g,'')}` : ''; }
-function readPersonalSkin() {
-  const key=personalSkinStorageKey(); if(!key)return null;
-  try { const raw=localStorage.getItem(key); return raw?normalizeSkinPreset(JSON.parse(raw)):null; } catch(_) { return null; }
-}
-function buildSkinLayoutCSS(k) {
-  let css='';
-  for(const [screen,entries] of Object.entries(k.layout||{})) {
-    for(const [elementKey,values] of Object.entries(entries||{})) {
-      const target=SKIN_LAYOUT_ELEMENTS[elementKey]; if(!target)continue;
-      if(target.screens && !target.screens.includes(screen))continue;
-      const x=Math.max(-100,Math.min(100,Number(values.x)||0)),y=Math.max(-120,Math.min(120,Number(values.y)||0)),width=Math.max(60,Math.min(140,Number(values.width)||100));
-      const selectors=target.selectors.map(sel=>target.outsideApp?`body[data-skin-screen="${screen}"] ${sel}`:`.app[data-skin-screen="${screen}"] ${sel}`).join(',');
-      css+=`${selectors}{translate:${x}px ${y}px!important;${width!==100?`width:${width}%!important;max-width:calc(100% + 40px)!important;`:''}}\n`;
-    }
-  }
-  return css;
-}
-function applySkinPreset(preset) {
-  const k=normalizeSkinPreset(preset||SKIN_DEFAULT_PRESET), styleId='zombix-active-skin-style';
-  let style=document.getElementById(styleId); if(!style) { style=document.createElement('style'); style.id=styleId; document.head.appendChild(style); }
-  const bgPaint=k.backgroundMode==='gradient'?`linear-gradient(${k.gradientAngle}deg,${k.bg} 0%,${k.bg2} 100%)`:k.bg;
-  style.textContent=`
-    :root{--bg:${k.bg};--card:${k.card};--text:${k.text};--muted:${k.muted};--line:${k.line};--accent:${k.accent};--skin-bg2:${k.bg2};--skin-surface:${k.surface};--skin-accent-text:${k.accentText};--skin-radius:${k.radius}px;--skin-font:${skinFontValue(k.fontFamily)};--skin-bg-paint:${bgPaint};--skin-gradient-angle:${k.gradientAngle}deg;}
-    html,body,#app,#auth-screen{background:${bgPaint}!important;color:${k.text}!important;font-family:${skinFontValue(k.fontFamily)}!important;}
-    #app{background:${bgPaint}!important;}
-    main,#content{background:transparent!important;color:${k.text}!important;}
-    header,.menu-panel,.menu-inner,.card,.ann-wrap,.ticket-row,.case-result-card,.picker-box,.cm-box,.player-info-cell,.balance,.burger,.nav-item:not(.active),.case-prize-row,.case-counts button,.subtabs button,.feature-disabled-message,.ticket-chat,.ticket-message,.role-modal .card,.role-box,.blocked-box,.maintenance-box,.startup-error-box,.ticket-confirm-box,.reward-picker-box,.upg-panel,.upg-stage,.upg-entry,.case-detail-img,.case-counts,.case-prize-list,.case-open-btn,.player-info-cell,.profile-stat,.ticket-chat-input,.ticket-message-input,.ticket-search-row,.admin-tabs,.admin-search-row,.admin-stat-card{background:${k.card}!important;color:${k.text}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
-    .card,.ann-wrap,.ticket-row,.case-result-card,.picker-box,.cm-box,.upg-panel,.upg-stage,.case-prize-row,.case-detail-img{box-shadow:0 8px 28px ${k.bg}66!important;}
-    p,.muted,.chips,.upg-meta,.case-prize-info span,label,small{color:${k.muted};}
-    h1,h2,h3,h4,b,strong,.logo{color:${k.text};}
-    input,select,textarea,button{font-family:${skinFontValue(k.fontFamily)}!important;}
-    input,select,textarea{background:${k.surface}!important;color:${k.text}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
-    .btn:not(.sec):not(.danger),.nav-item.active,.ann-btn,.badge:not(.mod),.case-counts button.on{background:${k.accent}!important;color:${k.accentText}!important;border-color:${k.accent}!important;border-radius:${k.radius}px!important;}
-    .btn.sec,.nav-item:not(.active),.case-counts button,.burger,.subtabs button,.ann-nav,.ann-dot{background:${k.surface}!important;color:${k.text}!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;}
-    .item-card{background:linear-gradient(${Math.max(0,Math.min(360,k.gradientAngle))}deg,${k.card},${k.bg})!important;border-color:${k.line}!important;border-radius:${k.radius}px!important;color:${k.text}!important;}
-    .item-card .nm,.item-card .price-tag,.case-prize-info b,.case-prize-info span{color:${k.text}!important;}
-    .ann-wrap.no-frame{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
-    .ann-track,.ann-slide,.ann-whole-link{color:${k.text};}
-    .ann-dot.on{background:${k.accent}!important;}
-    .case-detail-img,.case-result-card,.case-prize-row,.case-counts button,.upg-entry,.upg-meter{border-radius:${k.radius}px!important;}
-    .case-open-btn{background:${k.accent}!important;color:${k.accentText}!important;border-color:${k.accent}!important;}
-    .divider,hr{border-color:${k.line}!important;}
-    #case-modal .cm-box,#ticket-close-modal .ticket-confirm-box,#role-modal .role-box,#player-admin-modal .role-box,#case-item-picker .picker-box,#ann-reward-picker .reward-picker-box{background:${k.card}!important;color:${k.text}!important;border-color:${k.line}!important;}
-    .ann-reward-chip,.ticket-chat,.ticket-message,.upg-scroll,.item-grid,.case-result-list{color:${k.text};}
-    .price-tag,.upg-name,.ticket-row b,.player-info-cell b{color:${k.text};}
-    .btn:disabled,.case-open-btn:disabled{opacity:.48!important;}
-    #toast{font-family:${skinFontValue(k.fontFamily)}!important;}
-    ${buildSkinLayoutCSS(k)}
-  `;
-}
-function applyActiveSkin() {
-  const cfg=normalizeSkinConfig(SKIN_CONFIG); SKIN_CONFIG=cfg;
-  const personal=readPersonalSkin();
-  applySkinPreset(personal || cfg.presets[cfg.activeId] || SKIN_DEFAULT_PRESET);
-}
-function skinFieldColor(key,label,help='') { const value=normalizeSkinPreset(SKIN_DRAFT||SKIN_DEFAULT_PRESET)[key]; return `<div style="min-width:0"><label>${label}</label><div class="row" style="align-items:center;gap:8px"><input aria-label="${label}" type="color" value="${value}" oninput="skinDraftInput('${key}',this.value)" style="flex:0 0 52px;width:52px;height:42px;padding:3px"><input aria-label="HEX ${label}" type="text" value="${value}" maxlength="7" onchange="skinDraftInput('${key}',this.value)" style="flex:1;min-width:0;text-transform:uppercase"></div>${help?`<small class="muted">${help}</small>`:''}</div>`; }
-function currentSkinLayoutValue() {
-  const d=normalizeSkinPreset(SKIN_DRAFT||SKIN_DEFAULT_PRESET);
-  return d.layout?.[SKIN_LAYOUT_SCREEN]?.[SKIN_LAYOUT_ELEMENT] || {x:0,y:0,width:100};
-}
-function skinLayoutEditorHTML(d) {
-  const screenOptions=SKIN_LAYOUT_SCREENS.map(x=>`<option value="${x.id}" ${SKIN_LAYOUT_SCREEN===x.id?'selected':''}>${x.label}</option>`).join('');
-  const elOptions=Object.entries(SKIN_LAYOUT_ELEMENTS).filter(([key,v])=>!v.screens||v.screens.includes(SKIN_LAYOUT_SCREEN)).map(([key,v])=>`<option value="${key}" ${SKIN_LAYOUT_ELEMENT===key?'selected':''}>${v.label}</option>`).join('');
-  const v=d.layout?.[SKIN_LAYOUT_SCREEN]?.[SKIN_LAYOUT_ELEMENT] || {x:0,y:0,width:100};
-  const label=SKIN_LAYOUT_ELEMENTS[SKIN_LAYOUT_ELEMENT]?.label||'Выбранный объект';
-  return `<div class="card skin-layout-editor"><h3>🧩 Подробный редактор окон</h3><p class="muted">Выбери пользовательский экран и группу элементов. Изменения двигают настоящие элементы, не заменяя их и не удаляя обработчики кликов. Настройки сохраняются внутри выбранного скина.</p>
-    <div class="row" style="gap:10px;flex-wrap:wrap"><div style="flex:1;min-width:150px"><label>Экран</label><select id="skin-layout-screen" onchange="selectSkinLayoutScreen(this.value)">${screenOptions}</select></div><div style="flex:1;min-width:170px"><label>Элемент / окно</label><select id="skin-layout-element" onchange="selectSkinLayoutElement(this.value)">${elOptions}</select></div></div>
-    <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:10px"><div style="flex:1;min-width:130px"><label>Смещение по X: <b id="skin-layout-x-label">${v.x}px</b></label><input id="skin-layout-x" type="range" min="-100" max="100" step="1" value="${v.x}" oninput="skinLayoutDraftInput('x',this.value)"></div><div style="flex:1;min-width:130px"><label>Смещение по Y: <b id="skin-layout-y-label">${v.y}px</b></label><input id="skin-layout-y" type="range" min="-120" max="120" step="1" value="${v.y}" oninput="skinLayoutDraftInput('y',this.value)"></div></div>
-    <label>Ширина объекта: <b id="skin-layout-width-label">${v.width}%</b></label><input id="skin-layout-width" type="range" min="60" max="140" step="1" value="${v.width}" oninput="skinLayoutDraftInput('width',this.value)">
-    <div class="skin-layout-preview" style="position:relative;min-height:106px;overflow:hidden;border:1px dashed ${d.line};border-radius:${d.radius}px;background:${d.backgroundMode==='gradient'?`linear-gradient(${d.gradientAngle}deg,${d.bg},${d.bg2})`:d.bg};padding:12px;margin-top:8px"><div class="muted" style="font-size:11px;margin-bottom:9px">Пример расположения: ${esc(label)}</div><div id="skin-layout-preview-object" style="position:relative;left:${v.x}px;top:${v.y}px;width:${v.width}%;max-width:100%;padding:10px;border:1px solid ${d.line};border-radius:${d.radius}px;background:${d.card};color:${d.text};font-size:12px;font-weight:700;box-sizing:border-box">${esc(label)}<span style="display:block;color:${d.muted};font-size:10px;font-weight:400;margin-top:3px">Предпросмотр</span></div></div>
-    <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button type="button" class="btn sec" onclick="resetSkinLayoutTarget()">Сбросить положение</button><button type="button" class="btn sec" onclick="previewSkinLayoutScreen()">Открыть этот экран</button></div>
-    <p class="muted" style="font-size:11px;margin-top:8px">Редактор меняет выбранную группу элементов на выбранном экране. После смещения проверь вид на телефоне: при больших значениях объекты могут перекрываться. Функции кнопок и полей остаются прежними.</p></div>`;
-}
-function selectSkinLayoutScreen(value) {
-  if(!SKIN_LAYOUT_SCREENS.some(x=>x.id===value))return;
-  SKIN_LAYOUT_SCREEN=value;
-  const allowed=Object.entries(SKIN_LAYOUT_ELEMENTS).filter(([key,v])=>!v.screens||v.screens.includes(value));
-  if(!allowed.some(([key])=>key===SKIN_LAYOUT_ELEMENT))SKIN_LAYOUT_ELEMENT=allowed[0]?.[0]||'cards';
-  FORM_STATE_SCOPE=''; drawAdminBody();
-}
-function selectSkinLayoutElement(value) {
-  if(!SKIN_LAYOUT_ELEMENTS[value])return;
-  SKIN_LAYOUT_ELEMENT=value;
-  FORM_STATE_SCOPE=''; drawAdminBody();
-}
-function skinLayoutDraftInput(key,value) {
-  if(!SKIN_DRAFT)SKIN_DRAFT={...SKIN_DEFAULT_PRESET};
-  const number=Number(value);
-  const bounds=key==='x'?[-100,100]:key==='y'?[-120,120]:[60,140];
-  if(!['x','y','width'].includes(key)||!Number.isFinite(number))return;
-  const v=Math.max(bounds[0],Math.min(bounds[1],Math.round(number)));
-  if(!SKIN_DRAFT.layout||typeof SKIN_DRAFT.layout!=='object')SKIN_DRAFT.layout={};
-  if(!SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN])SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN]={};
-  const current=SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN][SKIN_LAYOUT_ELEMENT]||{x:0,y:0,width:100};
-  SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN][SKIN_LAYOUT_ELEMENT]={...current,[key]:v};
-  SKIN_PREVIEWING=true; applySkinPreset(SKIN_DRAFT);
-  const label=document.getElementById(`skin-layout-${key}-label`); if(label)label.textContent=key==='width'?`${v}%`:`${v}px`;
-  const preview=document.getElementById('skin-layout-preview-object'); if(preview){const pv=SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN][SKIN_LAYOUT_ELEMENT];preview.style.left=pv.x+'px';preview.style.top=pv.y+'px';preview.style.width=pv.width+'%';}
-}
-function resetSkinLayoutTarget() {
-  if(!SKIN_DRAFT)SKIN_DRAFT={...SKIN_DEFAULT_PRESET};
-  if(!SKIN_DRAFT.layout)SKIN_DRAFT.layout={};
-  if(!SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN])SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN]={};
-  delete SKIN_DRAFT.layout[SKIN_LAYOUT_SCREEN][SKIN_LAYOUT_ELEMENT];
-  SKIN_PREVIEWING=true;applySkinPreset(SKIN_DRAFT);FORM_STATE_SCOPE='';drawAdminBody();
-}
-function previewSkinLayoutScreen() {
-  const target=SKIN_LAYOUT_SCREEN;
-  if(!SKIN_LAYOUT_SCREENS.some(x=>x.id===target))return;
-  FORM_STATE_SCOPE=''; SKIN_LAYOUT_PREVIEW_NAV=true;
-  try { go(target); } finally { SKIN_LAYOUT_PREVIEW_NAV=false; }
-  toast('Предпросмотр экрана открыт. Вернись через кнопку админ-панели, чтобы продолжить редактирование.');
-}
-async function saveSkinPreset(target='preset') {
-  const name=String(document.getElementById('skin-name')?.value||SKIN_DRAFT?.name||'').trim(); if(!name) return toast('Введи название скина');
-  const next=normalizeSkinConfig(SKIN_CONFIG), selected=String(SKIN_SELECTED_ID||'');
-  // Не перезаписываем встроенный или активный глобальный скин, когда администратор
-  // выбирает обычное сохранение/личное применение: в таком случае создаём отдельный пресет.
-  const fork = !selected || selected==='default' || (target!=='all' && next.activeId===selected);
-  const id = fork ? ('skin_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7)) : selected;
-  const preset=normalizeSkinPreset({...SKIN_DRAFT,name}); next.presets[id]=preset;
-  if(target==='all') next.activeId=id;
-  next.updatedAt=Date.now();
-  try {
-    await db.ref('config/skins').set(next);
-    SKIN_CONFIG=normalizeSkinConfig(next); SKIN_SELECTED_ID=id; SKIN_DRAFT=normalizeSkinPreset(preset); SKIN_PREVIEWING=false;
-    if(target==='self') {
-      const key=personalSkinStorageKey(); if(!key)throw new Error('Не определён ID аккаунта');
-      localStorage.setItem(key,JSON.stringify(preset)); applySkinPreset(preset);
-    } else if(target==='all') { try{localStorage.removeItem(personalSkinStorageKey());}catch(_){} applyActiveSkin(); }
-    else applyActiveSkin();
-    FORM_STATE_SCOPE=''; drawAdminBody();
-    toast(target==='all'?'Скин сохранён и применён всем игрокам':target==='self'?'Скин сохранён и применён только на этом устройстве':'Скин сохранён как пресет');
-  } catch(e) { toast(e?.message||'Не удалось сохранить скин'); }
-}
-function applySkinToSelf(id) {
-  const preset=SKIN_CONFIG.presets[id]; if(!preset)return toast('Скин не найден');
-  const key=personalSkinStorageKey(); if(!key)return toast('Не определён ID аккаунта');
-  try { localStorage.setItem(key,JSON.stringify(normalizeSkinPreset(preset))); SKIN_SELECTED_ID=id;SKIN_DRAFT={...normalizeSkinPreset(preset)};SKIN_PREVIEWING=false;applySkinPreset(preset);FORM_STATE_SCOPE='';drawAdminBody();toast('Скин применён только к этому аккаунту на этом устройстве'); }
-  catch(e) { toast(e?.message||'Не удалось применить скин к себе'); }
-}
-function clearPersonalSkin() {
-  const key=personalSkinStorageKey(); if(!key)return;
-  try { localStorage.removeItem(key); SKIN_PREVIEWING=false;applyActiveSkin();drawAdminBody();toast('Личный скин отключён; применяется глобальное оформление'); }
-  catch(_) { toast('Не удалось отключить личный скин'); }
-}
-function adminSkinsHTML() {
-  if(!SKIN_DRAFT) SKIN_DRAFT={...(SKIN_CONFIG.presets[SKIN_SELECTED_ID]||SKIN_DEFAULT_PRESET)};
-  const d=normalizeSkinPreset(SKIN_DRAFT), active=SKIN_CONFIG.activeId===SKIN_SELECTED_ID;
-  const saved=SKIN_CONFIG.presets[SKIN_SELECTED_ID];
-  const list=Object.entries(SKIN_CONFIG.presets).map(([id,k])=>`<div class="ticket-row" style="padding:10px;margin:7px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)"><div class="row" style="align-items:center;gap:8px"><div style="display:flex;gap:3px;flex:0 0 auto"><i style="display:block;width:13px;height:28px;border-radius:4px;background:${normalizeSkinPreset(k).bg}"></i><i style="display:block;width:13px;height:28px;border-radius:4px;background:${normalizeSkinPreset(k).card}"></i><i style="display:block;width:13px;height:28px;border-radius:4px;background:${normalizeSkinPreset(k).accent}"></i></div><div style="flex:1;min-width:0"><b>${esc(k.name||'Скин')}</b><div class="muted">${id==='default'?'Встроенный пресет':`ID: ${esc(id)}`}${SKIN_CONFIG.activeId===id?' · активен у игроков':''}</div></div></div><div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn sec small" type="button" onclick="selectSkinPreset('${id}')">Редактировать</button><button class="btn sec small" type="button" onclick="activateSkin('${id}')">Всем</button><button class="btn sec small" type="button" onclick="applySkinToSelf('${id}')">Себе</button><button class="btn sec small" type="button" onclick="duplicateSkin('${id}')">Копия</button>${id!=='default'?`<button class="del" type="button" onclick="deleteSkin('${id}')">Удалить</button>`:''}</div></div>`).join('');
-  return `<div class="card"><h2>🎨 Редактор оформления и скинов</h2><p class="muted">Редактор охватывает все пользовательские экраны, карточки, поля, кнопки и модальные окна. Скин можно сохранить пресетом, применить всем игрокам или только себе. Личное применение хранится локально в этом браузере и не меняет оформление остальных.</p>
-    <div class="row" style="margin-top:12px;flex-wrap:wrap"><button class="btn" type="button" onclick="newSkinPreset()">＋ Новый скин</button><button class="btn sec" type="button" onclick="resetSkinPreview()">↺ Сбросить предпросмотр</button></div>
-    <hr class="divider"><h3 style="font-size:14px;margin-bottom:10px">${saved?'Редактирование пресета':'Новый пресет'}</h3>
-    <label>Название скина</label><input id="skin-name" maxlength="48" value="${esc(d.name)}" oninput="skinDraftInput('name',this.value)" placeholder="Например, Neon Purple">
-    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('bg','Основной фон')}${skinFieldColor('bg2','Второй цвет фона')}</div>
-    <div style="margin:8px 0"><label>Фон экранов</label><select id="skin-backgroundMode" onchange="skinDraftInput('backgroundMode',this.value)"><option value="solid" ${d.backgroundMode==='solid'?'selected':''}>Однотонный</option><option value="gradient" ${d.backgroundMode==='gradient'?'selected':''}>Градиент</option></select><label>Угол градиента: <b id="skin-gradientAngle-label">${d.gradientAngle}°</b></label><input id="skin-gradientAngle" type="range" min="0" max="360" step="1" value="${d.gradientAngle}" oninput="skinDraftInput('gradientAngle',this.value)"><div class="muted" style="font-size:11px">0° — горизонтально, 90° — вертикально, 180° — в обратном направлении.</div></div>
-    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('card','Карточки и окна')}${skinFieldColor('surface','Поля и вторичные кнопки')}</div>
-    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('text','Основной текст')}${skinFieldColor('muted','Вторичный текст')}</div>
-    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('line','Границы')}${skinFieldColor('accent','Акцент / основные кнопки')}</div>
-    <div class="row" style="gap:10px;flex-wrap:wrap">${skinFieldColor('accentText','Текст на акцентных кнопках')}<div style="flex:1;min-width:0"><label>Скругление интерфейса: <b id="skin-radius-label">${d.radius}px</b></label><input id="skin-radius" type="range" min="6" max="28" step="1" value="${d.radius}" oninput="skinDraftInput('radius',this.value)"></div></div>
-    <label>Шрифт</label><select id="skin-fontFamily" onchange="skinDraftInput('fontFamily',this.value)"><option value="system" ${d.fontFamily==='system'?'selected':''}>Системный — нейтральный</option><option value="rounded" ${d.fontFamily==='rounded'?'selected':''}>Округлый</option><option value="mono" ${d.fontFamily==='mono'?'selected':''}>Моноширинный</option></select>
-    <div class="skin-preview-card" style="padding:14px;border:1px solid ${d.line};border-radius:${d.radius}px;background:${d.backgroundMode==='gradient'?`linear-gradient(${d.gradientAngle}deg,${d.bg},${d.bg2})`:d.bg};margin:8px 0 12px"><div class="skin-preview-inner" style="padding:12px;border-radius:${d.radius}px;background:${d.card};color:${d.text};border:1px solid ${d.line}"><b style="display:block;margin-bottom:5px">Предпросмотр скина</b><p class="skin-preview-muted" style="font-size:12px;color:${d.muted};margin-bottom:10px">Текст и карточки · кнопки · общий фон</p><button class="skin-preview-button" type="button" style="border:0;padding:9px 13px;border-radius:${d.radius}px;background:${d.accent};color:${d.accentText};font-weight:700">Пример кнопки</button></div></div>
-    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn sec" type="button" onclick="saveSkinPreset('preset')">💾 Сохранить пресет</button><button class="btn" type="button" onclick="saveSkinPreset('self')">🎯 Сохранить и применить себе</button><button class="btn" type="button" onclick="saveSkinPreset('all')">🌐 Сохранить и применить всем</button></div>
-  </div>${skinLayoutEditorHTML(d)}<div class="card" id="skin-preset-list-card"><div class="row" style="align-items:center;gap:8px;flex-wrap:wrap"><h2 style="flex:1">🗂 Сохранённые скины (${Object.keys(SKIN_CONFIG.presets).length})</h2><button class="btn sec small" type="button" onclick="clearPersonalSkin()">Отключить мой скин</button></div>${list}</div>`;
-}
-function skinDraftInput(key,value) {
-  if(!SKIN_DRAFT) SKIN_DRAFT={...SKIN_DEFAULT_PRESET};
-  if(['bg','bg2','card','surface','text','muted','line','accent','accentText'].includes(key) && !/^#[0-9a-f]{6}$/i.test(String(value||''))) return;
-  if(key==='radius') value=Math.max(6,Math.min(28,Math.round(Number(value)||14)));
-  if(key==='gradientAngle') value=Math.max(0,Math.min(360,Math.round(Number(value)||0))); 
-  if(key==='name') value=String(value||'').slice(0,48);
-  if(key==='backgroundMode' && !['solid','gradient'].includes(value)) return;
-  if(key==='fontFamily' && !['system','rounded','mono'].includes(value)) return;
-  SKIN_DRAFT[key]=value; SKIN_PREVIEWING=true; applySkinPreset(SKIN_DRAFT);
-  const trigger=document.activeElement; if(trigger?.parentElement?.classList?.contains('row')) trigger.parentElement.querySelectorAll('input').forEach(el=>{if(el!==trigger) el.value=String(value);});
-  const radiusLabel=document.getElementById('skin-radius-label'); if(radiusLabel) radiusLabel.textContent=`${SKIN_DRAFT.radius||14}px`;
-  const angleLabel=document.getElementById('skin-gradientAngle-label'); if(angleLabel)angleLabel.textContent=`${SKIN_DRAFT.gradientAngle||0}°`;
-  const previewHost=document.querySelector('#admin-body .skin-preview-card');
-  if(previewHost){ const d=normalizeSkinPreset(SKIN_DRAFT); previewHost.style.background=d.backgroundMode==='gradient'?`linear-gradient(${d.gradientAngle}deg,${d.bg},${d.bg2})`:d.bg; previewHost.style.borderColor=d.line; previewHost.style.borderRadius=d.radius+'px'; const inner=previewHost.querySelector('.skin-preview-inner'); if(inner){inner.style.background=d.card;inner.style.color=d.text;inner.style.borderColor=d.line;inner.style.borderRadius=d.radius+'px';} const sub=previewHost.querySelector('.skin-preview-muted'); if(sub) sub.style.color=d.muted; const btn=previewHost.querySelector('.skin-preview-button'); if(btn){btn.style.background=d.accent;btn.style.color=d.accentText;btn.style.borderRadius=d.radius+'px';} }
-}
-function selectSkinPreset(id) { const value=SKIN_CONFIG.presets[id]; if(!value) return; SKIN_SELECTED_ID=id; SKIN_DRAFT=normalizeSkinPreset(value); SKIN_PREVIEWING=true; FORM_STATE_SCOPE=''; applySkinPreset(SKIN_DRAFT); drawAdminBody(); }
-function newSkinPreset() { SKIN_SELECTED_ID=''; SKIN_DRAFT=normalizeSkinPreset({...SKIN_DEFAULT_PRESET,name:'Новый скин',layout:{}}); SKIN_PREVIEWING=true; FORM_STATE_SCOPE=''; applySkinPreset(SKIN_DRAFT); drawAdminBody(); }
-function resetSkinPreview() { SKIN_PREVIEWING=false; SKIN_DRAFT=normalizeSkinPreset(SKIN_CONFIG.presets[SKIN_SELECTED_ID]||SKIN_DEFAULT_PRESET); applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); }
-function updateSkinPresetListOnly() { const b=document.getElementById('admin-body'); if(!b||CURRENT_TAB!=='admin'||adminSub!=='skins') return; const fresh=adminSkinsHTML(); const temp=document.createElement('div'); temp.innerHTML=fresh; const incoming=temp.querySelector('#skin-preset-list-card'), current=b.querySelector('#skin-preset-list-card'); if(incoming&&current) current.innerHTML=incoming.innerHTML; }
-async function activateSkin(id) {
-  if(!SKIN_CONFIG.presets[id]) return toast('Скин не найден');
-  const next={...normalizeSkinConfig(SKIN_CONFIG),activeId:id,updatedAt:Date.now()};
-  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); try { localStorage.removeItem(personalSkinStorageKey()); } catch(_) {} SKIN_PREVIEWING=false; SKIN_SELECTED_ID=id; SKIN_DRAFT=normalizeSkinPreset(next.presets[id]); applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); toast('Скин применён всем игрокам'); }
-  catch(e) { toast(e?.message||'Не удалось применить скин'); }
-}
-async function duplicateSkin(id) {
-  const source=SKIN_CONFIG.presets[id]; if(!source) return;
-  const next=normalizeSkinConfig(SKIN_CONFIG), newId='skin_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
-  next.presets[newId]={...source,name:(String(source.name||'Скин')+' — копия').slice(0,48)}; next.updatedAt=Date.now();
-  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); SKIN_SELECTED_ID=newId; SKIN_DRAFT=normalizeSkinPreset(next.presets[newId]); SKIN_PREVIEWING=true; applySkinPreset(SKIN_DRAFT); FORM_STATE_SCOPE=''; drawAdminBody(); toast('Копия скина создана'); }
-  catch(e) { toast(e?.message||'Не удалось скопировать скин'); }
-}
-async function deleteSkin(id) {
-  if(id==='default') return toast('Встроенный скин нельзя удалить');
-  if(!SKIN_CONFIG.presets[id]||!confirm('Удалить сохранённый скин?')) return;
-  const next=normalizeSkinConfig(SKIN_CONFIG); delete next.presets[id]; if(next.activeId===id) next.activeId='default'; next.updatedAt=Date.now();
-  try { await db.ref('config/skins').set(next); SKIN_CONFIG=normalizeSkinConfig(next); if(SKIN_SELECTED_ID===id){SKIN_SELECTED_ID='default';SKIN_DRAFT=normalizeSkinPreset(SKIN_CONFIG.presets.default);} SKIN_PREVIEWING=false; applyActiveSkin(); FORM_STATE_SCOPE=''; drawAdminBody(); toast('Скин удалён'); }
-  catch(e) { toast(e?.message||'Не удалось удалить скин'); }
-}
 
 /* --- Игроки и роли --- */
 function adminUsersHTML() {
@@ -2620,10 +2343,13 @@ async function loadAdminNotificationConfig() { try { const r=await workerRequest
 /* --- Технический перерыв --- */
 function adminSystemHTML() {
   const enabled = !!MAINTENANCE?.enabled;
-  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением.</p>
+  const updatedBy = MAINTENANCE?.updatedBy ? `Администратор ID: ${esc(MAINTENANCE.updatedBy)}` : '';
+  const updatedAt = Number(MAINTENANCE?.updatedAt) > 0 ? new Date(Number(MAINTENANCE.updatedAt)).toLocaleString('ru-RU') : '';
+  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
     <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
     <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
-    <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p></div>`;
+    <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p>
+    ${enabled && updatedBy ? `<p class="muted">Включил: ${updatedBy}${updatedAt ? ` · ${updatedAt}` : ''}</p>` : ''}</div>`;
 }
 async function saveMaintenance(enabled) {
   const message = document.getElementById('maintenance-text')?.value.trim() || 'Ведутся технические работы. Попробуйте зайти позже.';
