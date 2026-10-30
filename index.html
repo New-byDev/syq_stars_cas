@@ -317,6 +317,9 @@
     .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
   .nav-item { padding:8px; font-size:11px; }
   }
+
+  .home-game-section{margin:14px 0 100px}.home-section-title{font-size:19px;margin:14px 0}.home-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-game-card{min-width:0;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:16px 12px;text-align:center;box-shadow:0 8px 24px #0002}.home-game-icon{font-size:36px;line-height:1.2;margin-bottom:10px}.home-game-name{font-weight:800;margin-bottom:12px}.home-play-btn{width:100%;min-height:38px}.home-placeholder-card{opacity:.72}.home-bottom-nav{position:fixed;z-index:40;bottom:calc(10px + env(safe-area-inset-bottom));left:12px;right:12px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;padding:9px 8px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 8px 30px #0004}.home-bottom-nav button{border:0;background:transparent;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:12px;cursor:pointer;padding:2px}.home-bottom-icon{font-size:20px;line-height:1.1}.home-bottom-nav small{font-size:10px;color:var(--muted)}.home-bottom-center{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:800;color:var(--accent)}@media(min-width:700px){.home-game-grid{grid-template-columns:repeat(2,minmax(0,220px))}.home-bottom-nav{left:calc(50% - 260px);right:calc(50% - 260px)}}
+
 </style>
 </head>
 <body>
@@ -354,8 +357,8 @@
   <nav class="menu-panel" id="menu-panel">
     <div class="menu-inner">
       <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
+      <a class="nav-item" data-tab="games" onclick="go('games')">🎮 Игры</a>
       <a class="nav-item" data-tab="inventory" onclick="go('inventory')">🎒 Инвентарь</a>
-      <a class="nav-item" data-tab="mines" onclick="go('mines')">💣 Мины</a>
       <a class="nav-item" data-tab="profile"   onclick="go('profile')">👤 Профиль</a>
       <a class="nav-item" data-tab="settings"  onclick="go('settings')">⚙️ Настройки</a>
       <a class="nav-item" id="staff-btn" style="display:none" onclick="go('tickets')">🎫 Тикеты</a>
@@ -607,7 +610,7 @@ function refreshBanCountdowns() {
   }
 }
 setInterval(refreshBanCountdowns, 1000);
-const TITLES = { home:'Главная', inventory:'Инвентарь', mines:'Мины', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+const TITLES = { home:'Главная', games:'Игры', inventory:'Инвентарь', mines:'Мины', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
 let inventoryCleanupCheckedFor = null;
 const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, itemSold:true, reward:true, announcements:true, maintenanceStart:true, maintenanceEnd:true };
 
@@ -996,6 +999,7 @@ function rerender() {
   const scope = currentFormScope();
   const snapshot = FORM_STATE_SCOPE === scope ? captureFormState(c) : [];
   if (CURRENT_TAB === 'home') renderHome(c);
+  if (CURRENT_TAB === 'games') renderGames(c);
   if (CURRENT_TAB === 'settings') renderSettings(c);
   if (CURRENT_TAB === 'inventory') renderInventory(c);
   if (CURRENT_TAB === 'mines') renderMines(c);
@@ -1038,7 +1042,7 @@ function renderMines(c) {
 async function minesRefresh(silent=false){try{const r=await workerRequest('/api/mines/state',{});MINES_VIEW.game=r.game||null;if(!silent&&CURRENT_TAB==='mines')rerender();}catch(e){if(!silent){MINES_VIEW.status=e.message;MINES_VIEW.tone='bad';rerender();}}}
 function minesBetAdjust(factor){const el=document.getElementById('mines-bet');if(el)el.value=Math.max(1,Math.floor((Number(el.value)||1)*factor));}
 function minesBetMax(){const el=document.getElementById('mines-bet');if(el)el.value=Math.max(0,Math.floor(Number(profile?.balance)||0));}
-async function minesAction(path,payload={}){if(MINES_VIEW.busy)return;MINES_VIEW.busy=true;MINES_VIEW.status='';MINES_VIEW.tone='';document.querySelectorAll('.mine-cell,.mines-action').forEach(el=>el.disabled=true);try{const r=await workerRequest(path,payload);MINES_VIEW.game=r.game||null;MINES_VIEW.status=r.message||'';MINES_VIEW.tone=r.game?.status==='lost'?'bad':(r.game?.status==='won'?'good':'');}catch(e){MINES_VIEW.status=e.message;MINES_VIEW.tone='bad';}finally{MINES_VIEW.busy=false;rerender();}}
+async function minesAction(path,payload={}){if(MINES_VIEW.busy)return;MINES_VIEW.busy=true;MINES_VIEW.status='';MINES_VIEW.tone='';document.querySelectorAll('.mine-cell,.mines-action').forEach(el=>el.disabled=true);try{const r=await workerRequest(path,payload);MINES_VIEW.game=r.game||null;MINES_VIEW.status=r.message||'';MINES_VIEW.tone=r.game?.status==='lost'?'bad':(r.game?.status==='won'?'good':'');if(path==='/api/mines/start'){toast('Игра началась');} }catch(e){MINES_VIEW.status=e.message;MINES_VIEW.tone='bad';if(path==='/api/mines/start'&&/недостаточно|баланс/i.test(String(e.message||''))){toast('Недостаточно баланса для старта');}else if(path==='/api/mines/start'){toast(e.message||'Не удалось начать игру');}}finally{MINES_VIEW.busy=false;rerender();}}
 function minesStart(){const bet=Number(document.getElementById('mines-bet')?.value),mineCount=Number(document.getElementById('mines-count')?.value);return minesAction('/api/mines/start',{bet,mineCount});}
 function minesClick(index){return minesAction('/api/mines/click',{index});}
 function minesCashout(){return minesAction('/api/mines/cashout',{});}
@@ -1129,11 +1133,16 @@ function updateHomeWelcome() {
   const host=document.getElementById('home-welcome-host'); if(host)host.innerHTML=buildHomeWelcomeHTML();
 }
 function renderHome(c) {
-  c.innerHTML=`<div id="home-announcements-host"></div><div id="home-welcome-host"></div><div id="home-top-host"></div>`;
-  HOME_ANNS_RENDER_SIGNATURE='';
-  updateHomeAnnouncements(true);
-  updateHomeWelcome();
-  updateHomeTopSpenders();
+  c.innerHTML=`<div id="home-announcements-host"></div><div id="home-welcome-host"></div>
+    <div class="home-bottom-nav"><button onclick="toast('Маркет скоро появится')"><span class="home-bottom-icon">🛒</span><span>Маркет</span><small>Заготовка</small></button><button class="home-bottom-center" onclick="go('games')"><span class="home-bottom-icon">🎮</span><span>Игры</span></button><button onclick="go('inventory')"><span class="home-bottom-icon">🎒</span><span>Инвентарь</span></button></div><div id="home-top-host"></div>`;
+  HOME_ANNS_RENDER_SIGNATURE=''; updateHomeAnnouncements(true); updateHomeWelcome(); updateHomeTopSpenders();
+}
+function renderGames(c) {
+  c.innerHTML=`<section class="home-game-section"><h2 class="home-section-title">🎮 Игры</h2><div class="home-game-grid">
+    <article class="home-game-card"><div class="home-game-icon" id="games-mines-icon">💣</div><div class="home-game-name">Мины</div><button class="btn home-play-btn" onclick="go('mines')">Играть</button></article>
+    <article class="home-game-card home-placeholder-card"><div class="home-game-icon">🕹️</div><div class="home-game-name">Скоро</div><button class="btn sec home-play-btn" disabled>Скоро</button></article>
+  </div></section>`;
+  loadHomeGameSettings();
 }
 function annUpdate() {
   const track = document.getElementById('ann-track');
@@ -1751,15 +1760,18 @@ function adminUsersHTML() {
   const all = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
   const q = adminUserSearch.trim().toLowerCase();
   const entries = q ? all.filter(([id,u]) => id.toLowerCase().includes(q) || String(u.name||'').toLowerCase().includes(q) || String(u.username||'').toLowerCase().replace(/^@/,'').includes(q.replace(/^@/,''))) : all;
-  return `<div class="card"><h2>👥 Игроки (${all.length})</h2>
+  return `<div class="card"><h2>🧹 Инвентарь всех игроков</h2><p class="muted">Продаваемые предметы будут проданы по цене каталога, непродаваемые удалены.</p><button class="btn danger" style="background:var(--red);color:#fff" onclick="adminSellAllPlayersInventory()">Продать/удалить предметы у всех игроков</button></div><div class="card"><h2>👥 Игроки (${all.length})</h2>
     <p class="muted">Ищи по Telegram ID или имени. «Подробно» открывает статистику и управление балансом; «Настроить» меняет роль.</p>
     <form class="admin-search-row" onsubmit="event.preventDefault();applyAdminUserSearch()"><input id="admin-user-search" inputmode="search" placeholder="ID, имя или @ник" value="${esc(adminUserSearchDraft || adminUserSearch)}" oninput="adminUserSearchDraft=this.value"><button class="btn" type="submit">Найти</button><button class="btn sec" type="button" onclick="showAllAdminUsers()">Показать всех</button></form>
     <p class="muted" style="font-size:12px">Показано: ${entries.length} из ${all.length} игроков</p>
     ${entries.map(([id, u]) => {
       const role = id === ADMIN_ID || u.is_admin ? 'admin' : (ROLES[id] || 'player');
       const label = role === 'admin' ? 'АДМИНИСТРАТОР' : role === 'moderator' ? 'МОДЕРАТОР' : 'ИГРОК';
+      const moneyRows=Object.values(TICKETS||{}).filter(t=>t&&String(t.owner)===String(id)&&t.status==='closed'&&t.transactionApplied===true&&['deposit','withdraw'].includes(t.type));
+      const deposits=moneyRows.filter(t=>t.type==='deposit').reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
+      const withdrawals=moneyRows.filter(t=>t.type==='withdraw').reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
       return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
-        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''} · баланс: ${u.balance ?? 0}</div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''}</div><div style="font-size:12px;margin-top:4px;line-height:1.5"><span>Баланс: <b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></span><br><span style="color:var(--green)">Пополнения: +${deposits.toLocaleString('ru-RU')}</span><span style="color:var(--muted)"> · </span><span style="color:var(--red)">Выводы: −${withdrawals.toLocaleString('ru-RU')}</span></div></div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
       </div>`;
     }).join('') || '<p class="muted">Игроки не найдены.</p>'}
@@ -1788,7 +1800,7 @@ function openPlayerAdminModal(id) {
   const playerMoneyTickets=Object.entries(TICKETS||{}).filter(([,t])=>t&&String(t.owner)===String(id)&&['deposit','withdraw'].includes(t.type)).map(([key,t])=>({id:key,...t})).sort((a,b)=>(Number(b.createdAt||b.at||b.closedAt)||0)-(Number(a.createdAt||a.at||a.closedAt)||0));
   const moneyTicketsHtml=`<div style="margin-top:12px"><h3 style="font-size:13px;margin-bottom:7px">💳 История пополнений и выводов (${playerMoneyTickets.length})</h3>${playerMoneyTickets.length?playerMoneyTickets.map(t=>{const isDep=t.type==='deposit';const status=t.status==='closed'?(t.transactionApplied?'Выполнено':'Закрыто без выполнения'):t.status==='taken'?'В работе':'Ожидает';const at=Number(t.createdAt||t.at||t.openedAt||t.closedAt)||0;return `<div class="ticket-row" style="padding:7px;margin-bottom:5px;font-size:11px"><div class="row" style="align-items:center;gap:6px"><b style="color:${isDep?'var(--green)':'var(--red)'}">${isDep?'Пополнение':'Вывод'} · ${Number(t.amount||0).toLocaleString('ru-RU')} зол.</b><span style="margin-left:auto;color:var(--muted)">${esc(status)}</span></div><div class="chips" style="font-size:10px">${at?esc(fmtTime(at)):'Время не указано'} · тикет #${esc(t.num||t.id||t.key||'—')}${t.closedAt?' · закрыт '+esc(fmtTime(t.closedAt)):''}</div>${t.reason?`<div style="color:var(--muted);margin-top:3px">${esc(t.reason)}</div>`:''}</div>`}).join(''):'<p class="muted" style="font-size:11px">Заявок на пополнение или вывод пока нет.</p>'}</div>`;
   const inventoryEntries=Object.entries(u.inventory||{}).sort((a,b)=>(Number(b[1]?.at)||0)-(Number(a[1]?.at)||0));
-  const inventoryEditorHtml=`<div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px"><h3 style="font-size:14px;margin-bottom:8px">🎒 Редактирование инвентаря (${inventoryEntries.length})</h3><p class="muted" style="font-size:12px">Можно удалить предмет из инвентаря. Записи в базе не удаляются автоматически.</p>${inventoryEntries.map(([key,e])=>{const meta=getInventoryItemMeta(e)||{};return `<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>${esc(meta.name||e.name||'Предмет')}</b><div class="chips">${esc(meta.price||e.price||0)} · ${esc(e.source||'инвентарь')}</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('${key}')">Удалить</button></div></div>`;}).join('')||'<p class="muted">Предметов нет.</p>'}</div>`;
+  const inventoryEditorHtml=`<div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px"><div class="row" style="align-items:center;gap:8px;flex-wrap:wrap"><h3 style="font-size:14px;margin:0;flex:1">🎒 Редактирование инвентаря (${inventoryEntries.length})</h3><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminSellAllInventory()">Продать все предметы</button></div><p class="muted" style="font-size:12px">Продаваемые предметы будут проданы, остальные удалены.</p>${inventoryEntries.map(([key,e])=>{const meta=getInventoryItemMeta(e)||{};return `<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>${esc(meta.name||e.name||'Предмет')}</b><div class="chips">${esc(meta.price||e.price||0)} · ${esc(e.source||'инвентарь')}</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('${key}')">Удалить</button></div></div>`;}).join('')||'<p class="muted">Предметов нет.</p>'}</div>`;
   const banBox = `<div style="margin-top:14px;padding:12px;border:1px solid ${banActive?'var(--red)':'var(--line)'};border-radius:12px"><h3 style="font-size:14px;margin-bottom:7px">${banActive?'⛔ Игрок заблокирован':'🛡️ Блокировка игрока'}</h3>${banActive?`<p style="font-size:13px;margin-bottom:5px">Причина: ${esc(u.ban.reason||'не указана')}</p><p data-ban-countdown data-expires-at="${Number(u.ban.expiresAt)||0}" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px">${Number(u.ban.expiresAt)>Date.now()?'Осталось: '+formatRemainingTime(Number(u.ban.expiresAt)-Date.now()):Number(u.ban.expiresAt)>0?'Срок блокировки истёк':'Срок блокировки: бессрочно'}</p>`:`<label for="player-ban-duration">Срок блокировки</label><select id="player-ban-duration"><option value="15m">15 минут</option><option value="1h">1 час</option><option value="6h">6 часов</option><option value="24h">24 часа</option><option value="7d">7 дней</option><option value="30d">30 дней</option><option value="permanent" selected>Бессрочно</option></select>`}<label for="player-ban-reason">${banActive?'Причина снятия (необязательно)':'Причина блокировки (обязательно)'}</label><textarea id="player-ban-reason" rows="2" maxlength="500" placeholder="${banActive?'Комментарий к снятию блокировки':'Укажи причину блокировки'}"></textarea><button class="btn ${banActive?'':'danger'}" style="margin-top:4px" onclick="setPlayerBan('${banActive?'unban':'ban'}')">${banActive?'Снять блокировку':'Заблокировать игрока'}</button></div>`
   document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${moneyTicketsHtml}${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
   if(!samePlayerAlreadyOpen) { document.getElementById('player-balance-amount').value = ''; document.getElementById('player-balance-reason').value = ''; }
@@ -1796,6 +1808,20 @@ function openPlayerAdminModal(id) {
   document.getElementById('player-admin-modal').classList.add('show');
   if(focusInfo) { const el=document.getElementById(focusInfo.id); if(el){el.focus({preventScroll:true});if(focusInfo.start!==null&&typeof el.setSelectionRange==='function'){try{el.setSelectionRange(focusInfo.start,focusInfo.end)}catch(_){}}} }
 }
+async function adminSellAllPlayersInventory(){if(!isAdmin())return toast('Недостаточно прав');if(!confirm('Обработать инвентари ВСЕХ игроков? Продаваемые предметы будут начислены на баланс, остальные удалены. Это нельзя отменить.'))return;try{const r=await workerRequest('/api/admin/inventory/sell-all-players',{});await refreshAdminData();toast(`Готово: продано ${r.soldCount||0}, удалено ${r.deletedCount||0}, начислено ${Number(r.amount||0).toLocaleString('ru-RU')}`);}catch(e){toast(e.message||'Не удалось обработать инвентари');}}
+async function adminSellAllInventory() {
+  const targetId=PLAYER_ADMIN_ID;
+  if(!targetId) return toast('Игрок не выбран');
+  if(!confirm(`Обработать весь инвентарь игрока ${targetId}? Продаваемые предметы будут проданы, непродаваемые удалены.`)) return;
+  try {
+    const result=await workerRequest('/api/admin/inventory/sell-all',{targetId});
+    const snap=await db.ref('users/'+targetId).get();
+    if(snap.exists()) USERS[targetId]=snap.val();
+    toast(`Продано: ${result.soldCount||0}, удалено: ${result.deletedCount||0}, начислено: ${Number(result.amount||0).toLocaleString('ru-RU')}`);
+    openPlayerAdminModal(targetId); drawAdminBody();
+  } catch(e) { toast(e.message||'Не удалось обработать инвентарь'); }
+}
+
 async function adminRemoveInventoryEntry(entryKey) {
   const targetId=PLAYER_ADMIN_ID;
   if(!targetId||!entryKey) return toast('Игрок или предмет не выбран');
@@ -2032,11 +2058,13 @@ async function saveAdminNotificationConfig() {
 async function loadAdminNotificationConfig() { try { const r=await workerRequest('/api/admin/notifications/get',{}); window._adminNotificationConfig=r.config||{}; if(CURRENT_TAB==='admin'&&adminSub==='notifications') drawAdminBody(); } catch(e) {} }
 
 /* --- Технический перерыв --- */
+async function loadHomeGameSettings(){try{const snap=await db.ref('config/gameCards').get();const cfg=snap.val()||{};const el=document.getElementById('home-mines-icon');if(el&&typeof cfg.minesIcon==='string'&&cfg.minesIcon.trim())el.textContent=cfg.minesIcon.trim().slice(0,12);}catch(e){}}
+async function saveHomeGameSettings(){if(!isAdmin())return toast('Недостаточно прав');const icon=(document.getElementById('admin-mines-icon')?.value||'💣').trim().slice(0,12)||'💣';try{await db.ref('config/gameCards').set({minesIcon:icon,updatedAt:Date.now(),updatedBy:CURRENT_ID});toast('Иконка игры сохранена');if(CURRENT_TAB==='home')loadHomeGameSettings();}catch(e){toast('Не удалось сохранить иконку. Проверь правила Firebase.');}}
 function adminSystemHTML() {
   const enabled = !!MAINTENANCE?.enabled;
   const updatedBy = MAINTENANCE?.updatedBy ? `Администратор ID: ${esc(MAINTENANCE.updatedBy)}` : '';
   const updatedAt = Number(MAINTENANCE?.updatedAt) > 0 ? new Date(Number(MAINTENANCE.updatedAt)).toLocaleString('ru-RU') : '';
-  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
+  return `<div class="card"><h2>🎮 Карточки игр</h2><p class="muted">Иконка карточки «Мины» на главной.</p><label>Иконка игры</label><input id="admin-mines-icon" maxlength="12" value="💣" style="max-width:160px"><button class="btn" style="margin-top:8px" onclick="saveHomeGameSettings()">Сохранить иконку</button></div><div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
     <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
     <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
     <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p>
