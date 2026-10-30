@@ -93,7 +93,6 @@
   .cmini { width:12px; height:12px; border-radius:50%; object-fit:cover; vertical-align:middle; }
   .price-tag { font-weight:700; font-size:13px; margin-top:2px; }
   .free { color:var(--green); font-weight:700; }
-  .cat-title { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:18px 0 8px; }
   .preview { width:64px; height:64px; border-radius:12px; border:1px solid var(--line); object-fit:cover; margin-top:8px; }
 
   /* ---------- ОБЪЯВЛЕНИЯ ---------- */
@@ -121,31 +120,6 @@
   .ann-dot.on { background:var(--accent); width:20px; border-radius:6px; }
 
   /* ---------- ПРОКРУТКА КЕЙСА ---------- */
-  #case-modal { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:400; display:none; align-items:center; justify-content:center; flex-direction:column; padding:14px; backdrop-filter:blur(9px); }
-  #case-modal.show { display:flex; }
-  .cm-box { display:flex; flex-direction:column; align-items:stretch; text-align:center; width:100%; max-width:560px; max-height:92vh; background:linear-gradient(160deg,#1a1a1d,#0d0d0f); border:1px solid #333; border-radius:20px; padding:16px; box-shadow:0 25px 90px #000b; overflow:hidden; animation:rise .3s ease; }
-  .case-detail-top { flex:0 0 auto; display:flex; align-items:center; gap:12px; text-align:left; padding-bottom:12px; border-bottom:1px solid var(--line); }
-  .case-detail-img { width:64px; height:64px; flex:0 0 64px; display:flex; align-items:center; justify-content:center; border-radius:14px; background:#111; border:1px solid #353535; overflow:hidden; font-size:30px; }
-  .case-detail-img img { width:100%; height:100%; object-fit:contain; }
-  .case-detail-title { flex:1; min-width:0; }
-  .case-detail-title h2 { font-size:18px; margin:0 0 5px; }
-  .case-open-btn { flex:0 0 auto; border:0; border-radius:12px; padding:11px 14px; font-weight:800; background:linear-gradient(135deg,#fff,#bfc4cc); color:#111; cursor:pointer; transition:transform .2s,opacity .2s; }
-  .case-open-btn:active { transform:scale(.96); }
-  .case-open-btn:disabled { opacity:.45; cursor:wait; }
-  .case-counts { display:flex; gap:7px; margin:12px 0; }
-  .case-counts button { flex:1; background:#111; border:1px solid #383838; border-radius:10px; color:var(--text); padding:9px 5px; font-weight:700; cursor:pointer; transition:.2s; }
-  .case-counts button.on { background:#f0f0f0; color:#111; border-color:#fff; box-shadow:0 0 15px #ffffff22; }
-  .case-prize-list { overflow-y:auto; min-height:100px; max-height:42vh; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:2px 3px 8px 0; text-align:left; overscroll-behavior:contain; }
-  .case-prize-row { display:flex; align-items:center; gap:9px; min-width:0; background:#101012; border:1px solid color-mix(in srgb,var(--rarity,#777) 60%,#222); border-radius:12px; padding:8px; box-shadow:inset 0 0 14px var(--rarity-glow,#7772); }
-  .case-prize-row img,.case-prize-placeholder { width:42px; height:42px; flex:0 0 42px; object-fit:contain; display:flex; align-items:center; justify-content:center; font-size:23px; }
-  .case-prize-info { min-width:0; flex:1; }
-  .case-prize-info b { display:block; font-size:11px; overflow-wrap:anywhere; }
-  .case-prize-info span { display:block; color:var(--muted); font-size:10px; margin-top:4px; }
-  .case-result-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; margin:14px 0; overflow:auto; }
-  .case-result-card { background:#101012; border:1px solid #555; border-radius:12px; padding:10px 6px; animation:prizeIn .45s ease both; }
-  .case-result-card img { width:58px; height:58px; object-fit:contain; }
-  .case-result-card b { display:block; font-size:11px; overflow-wrap:anywhere; margin-top:5px; }
-  @media(max-width:420px) { .case-detail-top { gap:8px; } .case-detail-img { width:48px;height:48px;flex-basis:48px; } .case-detail-title h2 {font-size:15px;} .case-open-btn {padding:10px 9px;font-size:11px;} .case-prize-list {grid-template-columns:1fr;} .case-prize-row {padding:7px;} }
   .rl-window { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:#0f0f0f; position:relative; height:130px; width:100%; }
   .rl-window::before, .rl-window::after { content:''; position:absolute; top:0; bottom:0; width:18%; z-index:5; pointer-events:none; }
   .rl-window::before { left:0; background:linear-gradient(90deg, #0f0f0f, transparent); }
@@ -189,8 +163,6 @@
   .player-info-cell { padding:10px; border:1px solid var(--line); border-radius:10px; background:#101010; min-width:0; }
   .player-info-cell span { display:block; color:var(--muted); font-size:11px; margin-bottom:4px; }
   .player-info-cell b { overflow-wrap:anywhere; }
-  #case-item-picker { position:fixed; inset:0; z-index:720; display:none; align-items:center; justify-content:center; padding:14px; background:#000d; backdrop-filter:blur(7px); }
-  #case-item-picker.show { display:flex; }
   .picker-box { width:100%; max-width:620px; max-height:88vh; display:flex; flex-direction:column; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; }
   .picker-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(125px,1fr)); gap:8px; overflow:auto; padding:4px; min-height:120px; overscroll-behavior:contain; }
   .picker-item { background:#101010; border:1px solid var(--line); border-radius:12px; padding:10px; color:var(--text); text-align:center; cursor:pointer; min-width:0; }
@@ -233,6 +205,8 @@
   .subtabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
   .subtabs button { background:#111; border:1px solid var(--line); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
   .subtabs button.on { background:var(--accent); color:#000; font-weight:700; }
+  /* ---------- МИНЫ ---------- */
+  .mines-wrap{max-width:560px;margin:0 auto}.mines-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.mines-title{font-size:22px;font-weight:900;letter-spacing:.5px}.mines-sub{color:var(--muted);font-size:12px;margin-top:4px}.mines-pill{padding:8px 11px;border:1px solid #393b59;border-radius:12px;background:#202238;font-weight:800;white-space:nowrap}.mines-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mines-controls label{display:block}.mines-controls input,.mines-controls select{margin-top:6px}.mines-shortcuts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}.mines-shortcuts button{background:#24263d;border:1px solid #383b5a;color:#eee;border-radius:10px;padding:10px 4px;font-weight:800}.mines-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:14px 0;padding:9px;background:#121421;border:1px solid #25283d;border-radius:17px;box-shadow:0 12px 28px #0005}.mine-cell{aspect-ratio:1;border:1px solid #424966;border-radius:10px;background:linear-gradient(145deg,#363b57,#22263b 72%);box-shadow:inset 0 1px #ffffff12,0 3px 5px #0005;color:white;font-size:clamp(17px,5vw,26px);font-weight:900;cursor:pointer;min-width:0;padding:0;transition:transform .12s,border-color .12s}.mine-cell:active{transform:scale(.96)}.mine-cell:disabled{cursor:default}.mine-cell.safe{background:linear-gradient(145deg,#174d4a,#123632);border-color:#2b8177}.mine-cell.bomb{background:linear-gradient(145deg,#752f47,#3a1e31);border-color:#b94e70}.mine-cell.reveal-safe{background:linear-gradient(145deg,#30354a,#24283a);border-color:#515875}.mines-mult{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#202238;border:1px solid #383b5a;border-radius:13px;margin:10px 0}.mines-mult strong{font-size:22px;color:#c5c8ff}.mines-action{background:linear-gradient(110deg,#5b6df8,#8755ed)!important;color:white!important;border:0!important;border-radius:13px!important;min-height:48px;font-size:15px!important;box-shadow:0 5px 16px #6655f633}.mines-status{font-size:13px;line-height:1.45;text-align:center;color:#b9bdd5;min-height:20px;margin:8px 0}.mines-status.good{color:#77e0bc}.mines-status.bad{color:#ff8da5}@media(max-width:380px){.mines-board{gap:5px;padding:6px}.mine-cell{border-radius:8px}.mines-controls{gap:7px}}
   /* ---------- СТАРТОВАЯ ЗАГРУЗКА ---------- */
   #app-loader { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; background:radial-gradient(ellipse at 50% 35%,#242424 0%,#111 42%,#070707 100%); opacity:1; visibility:visible; transition:opacity .55s ease,visibility .55s ease; }
   #app-loader.is-hidden { opacity:0; visibility:hidden; pointer-events:none; }
@@ -307,11 +281,8 @@
   .row > * { min-width:0; }
   img, video, canvas, iframe { max-width:100%; }
   .item-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  #case-modal, #ticket-close-modal, .role-modal { padding:10px; }
+  #ticket-close-modal, .role-modal { padding:10px; }
   .cm-box, .reward-picker-box, .picker-box, .ticket-confirm-box, .role-box { width:100%; max-width:100%; min-width:0; }
-  .case-prize-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .case-result-list { width:100%; min-width:0; }
-  .case-result-card { min-width:0; overflow-wrap:anywhere; }
   .admin-tabs { max-width:100%; min-width:0; }
   .upg-layout { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   @media (max-width:560px) {
@@ -383,9 +354,8 @@
   <nav class="menu-panel" id="menu-panel">
     <div class="menu-inner">
       <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
-      <a class="nav-item" data-tab="cases"     onclick="go('cases')">📦 Кейсы</a>
       <a class="nav-item" data-tab="inventory" onclick="go('inventory')">🎒 Инвентарь</a>
-      <a class="nav-item" data-tab="upgrader" onclick="go('upgrader')">⚡ Апгрейдер</a>
+      <a class="nav-item" data-tab="mines" onclick="go('mines')">💣 Мины</a>
       <a class="nav-item" data-tab="profile"   onclick="go('profile')">👤 Профиль</a>
       <a class="nav-item" data-tab="settings"  onclick="go('settings')">⚙️ Настройки</a>
       <a class="nav-item" id="staff-btn" style="display:none" onclick="go('tickets')">🎫 Тикеты</a>
@@ -402,7 +372,6 @@
   </main>
 </div>
 
-<div id="case-modal"><div class="cm-box" id="cm-box"></div></div>
 <div id="ticket-close-modal" role="dialog" aria-modal="true" aria-labelledby="ticket-close-title" onclick="if(event.target===this)cancelTicketClose()">
   <div class="ticket-confirm-box">
     <h2 id="ticket-close-title">Закрытие тикета</h2>
@@ -418,8 +387,7 @@
   </div>
 </div>
 <div id="role-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeRoleModal()"><div class="role-box"><h2 style="margin-bottom:8px">Настройка прав игрока</h2><p id="role-player-label" class="muted"></p><label for="role-choice">Роль</label><select id="role-choice"><option value="player">Игрок</option><option value="moderator">Модератор</option><option value="admin">Администратор</option></select><div class="row"><button class="btn sec" onclick="closeRoleModal()">Отмена</button><button class="btn" onclick="savePlayerRole()">Сохранить</button></div></div></div>
-<div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">🎁 Подарить кейс</h3><label for="player-gift-case">Кейс</label><select id="player-gift-case"></select><label for="player-gift-count">Количество (1–100)</label><input id="player-gift-count" type="number" min="1" max="100" step="1" value="1" inputmode="numeric"><label style="display:flex;align-items:center;gap:9px;margin:10px 0 12px"><input id="player-gift-no-sell" type="checkbox" style="width:auto;min-width:18px;min-height:18px"> Запретить продажу предметов, выпавших из этих кейсов</label><p class="muted" style="font-size:12px;margin-top:-6px">Если включено, предметы можно будет удалить из инвентаря, но продать их нельзя.</p><button class="btn" style="width:100%;margin:6px 0 12px" onclick="giftCaseToPlayer()">Выдать кейс в инвентарь</button><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn danger" id="delete-player-button" style="margin-top:10px;width:100%;background:var(--red);color:#fff" onclick="deletePlayerFromDatabase()">🗑 Удалить игрока из базы данных</button><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
-<div id="case-item-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeCaseItemPicker()"><div class="picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">База предметов</h2><button class="btn sec small" onclick="closeCaseItemPicker()">Закрыть</button></div><input id="case-item-search" placeholder="Название предмета…" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCaseItemSearch()}"><button class="btn sec" style="margin-top:6px" onclick="applyCaseItemSearch()">Найти</button><div id="case-item-picker-list" class="picker-list" style="margin-top:10px"></div></div></div>
+<div id="player-admin-modal" class="role-modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closePlayerAdminModal()"><div class="role-box" style="max-height:90vh;overflow:auto;max-width:520px"><h2>Информация об игроке</h2><p id="player-admin-name" class="muted"></p><div id="player-admin-details"></div><hr class="divider"><h3 style="font-size:14px;margin-bottom:8px">Изменить баланс</h3><label for="player-balance-amount">Сумма</label><input id="player-balance-amount" type="number" min="1" step="1" placeholder="Введите сумму"><label for="player-balance-reason">Причина</label><input id="player-balance-reason" maxlength="200" placeholder="Например: компенсация"><div class="row" style="margin-top:10px"><button class="btn" onclick="adjustPlayerBalance('add')">＋ Начислить</button><button class="btn" style="background:var(--red);color:white" onclick="adjustPlayerBalance('subtract')">− Списать</button></div><button class="btn danger" id="delete-player-button" style="margin-top:10px;width:100%;background:var(--red);color:#fff" onclick="deletePlayerFromDatabase()">🗑 Удалить игрока из базы данных</button><button class="btn sec" style="margin-top:8px;width:100%" onclick="closePlayerAdminModal()">Закрыть</button></div></div>
 <div id="ann-reward-picker" role="dialog" aria-modal="true" onclick="if(event.target===this)closeAnnouncementRewardPicker()"><div class="reward-picker-box"><div class="row" style="align-items:center"><h2 style="flex:1">Награды объявления</h2><button type="button" class="btn sec small" onclick="closeAnnouncementRewardPicker()">Готово</button></div><p class="muted">Отметь один или несколько предметов. Игрок сможет получить их только один раз.</p><input id="ann-reward-search" placeholder="Название предмета или ID" oninput="renderAnnouncementRewardPicker()"><div id="ann-reward-picker-list" class="picker-list" style="margin-top:10px"></div><button type="button" class="btn" style="margin-top:10px" onclick="closeAnnouncementRewardPicker()">Сохранить выбор (<span id="ann-reward-count">0</span>)</button></div></div>
 <div id="maintenance-screen"><div class="maintenance-box"><div class="maintenance-icon">🛠️</div><h1 style="font-size:23px;margin-bottom:10px">Технический перерыв</h1><p id="maintenance-message" class="muted" style="font-size:14px;line-height:1.6">Ведутся технические работы. Попробуйте зайти позже.</p></div></div>
 <div id="startup-error" role="alert" aria-live="assertive"><div class="startup-error-box"><h2>Не удалось запустить ZombixUP</h2><p id="startup-error-message">Произошла ошибка при загрузке приложения.</p><button class="btn" type="button" onclick="location.reload()">Перезагрузить</button></div></div>
@@ -539,28 +507,26 @@ function syncReferralInfoFromLocalData() {
   const pendingHundredths = Math.max(0, Number(profile?.referralPendingHundredths ?? REFERRAL_INFO.pendingHundredths) || 0);
   REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:wholeEarned + pendingHundredths / 100};
 }
-let ITEMS = {}, CATS = {}, CASES = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
-let CASE_EDIT_ID = null;
+let ITEMS = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
 let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
-let ACTIVE_GIFT_TOKEN = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
-let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null, CASE_ITEM_SELECTED_ID = '', caseItemSearchDraft = '';
-let ADMIN_LOG_ITEMS = [], ADMIN_LOG_OFFSET = 0, ADMIN_LOG_HAS_MORE = false, ADMIN_LOG_LOADING = false, ADMIN_LOG_REFRESH_TIMER = null, ADMIN_LOG_REFRESH_BUSY = false; 
+let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null;
+let ADMIN_LOG_ITEMS = [], ADMIN_LOG_OFFSET = 0, ADMIN_LOG_HAS_MORE = false, ADMIN_LOG_LOADING = false, ADMIN_LOG_REFRESH_TIMER = null, ADMIN_LOG_REFRESH_BUSY = false;
+const getAdminLogToday = () => new Date(Date.now()+3*60*60*1000).toISOString().slice(0,10);
+let ADMIN_LOG_DATE = getAdminLogToday(), ADMIN_LOG_DATE_DRAFT = ADMIN_LOG_DATE; 
 let PENDING_CLOSE_TICKET_ID = null, TICKET_CLOSE_BUSY = false;
 let TICKET_COOLDOWN_UNTIL = 0, TICKET_COOLDOWN_TIMER = null, TICKET_CREATE_BUSY = false;
 let ANN_EDIT = null, ANN_DRAFT = null, ANN_REWARD_IDS = [];
 let ANN_NOTIF_READY = false, TICKET_NOTIF_READY = false, MAINTENANCE_NOTIF_READY = false;
 let LIVE_REFRESH_TIMER = null, LIVE_REFRESH_BUSY = false;
-const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, cases:true, inventory:true, upgrader:true, profile:true, settings:true, tickets:true, caseOpen:true, multiCaseOpen:true, casePrizeList:true, caseOddsInfo:true, inventorySell:true, upgraderSpin:true, upgraderSourceList:true, upgraderTargetList:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, referrals:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true, caseFastSpin:true, profileReferralStats:true };
+const UI_VISIBILITY_DEFAULTS = { homeAnnouncements:true, homeWelcome:true, topSpenders:true, inventory:true, profile:true, settings:true, tickets:true, inventorySell:true, profileInfo:true, profileTickets:true, profileCreateTicket:true, referrals:true, settingsNotifications:true, settingsSupport:true, settingsLogout:true, announcementRewards:true, profileReferralStats:true };
 let UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS};
 let UI_VISIBILITY_MESSAGES = {};
 let MAINTENANCE = { enabled:false, message:'Ведутся технические работы. Попробуйте зайти позже.' };
-let GLOBAL_LUCK = { luckPercent:100 };
-let ROLE_EDIT_ID = null, UPG_BASE_KEY = null, UPG_TARGET_ID = null, UPG_FILTER = 'all', UPG_BUSY = false;
+let ROLE_EDIT_ID = null;
 let annIndex = 0, annTimer = null, annCount = 0;
 let HOME_ANNS_RENDER_SIGNATURE = '';
-let CASE_DETAIL_ID = null, CASE_OPEN_COUNT = 1, CASE_OPEN_BUSY = false, CASE_LAST_OPEN_AT = 0, CASE_DYNAMIC_ODDS = null, CASE_ODDS_LOADING = false, CASE_FAST_SPIN = false;
 const IMG_SIZE = 128;
 const DAY = 24 * 3600 * 1000;
 
@@ -641,9 +607,9 @@ function refreshBanCountdowns() {
   }
 }
 setInterval(refreshBanCountdowns, 1000);
-const TITLES = { home:'Главная', cases:'Кейсы', inventory:'Инвентарь', upgrader:'Апгрейдер', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+const TITLES = { home:'Главная', inventory:'Инвентарь', mines:'Мины', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
 let inventoryCleanupCheckedFor = null;
-const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, caseOpen:true, itemSold:true, upgrade:true, reward:true, announcements:true, maintenanceStart:true, maintenanceEnd:true };
+const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, itemSold:true, reward:true, announcements:true, maintenanceStart:true, maintenanceEnd:true };
 
 function fileToDataUrl(file, cb) {
   const r = new FileReader();
@@ -773,8 +739,6 @@ async function enterApp(id) {
   });
 
   db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
-  db.ref('categories').on('value', s => { CATS = s.val() || {}; rerenderIfDepends(); });
-  db.ref('cases').on('value', s => { CASES = s.val() || {}; if (CURRENT_TAB === 'admin' && adminSub === 'cases') updateAdminCaseListOnly(); else rerenderIfDepends(); });
   // Большой раздел users не загружаем в критическом пути запуска.
   // Он нужен для рейтинга и админской статистики, поэтому подписываемся после показа основного интерфейса.
   const usersLoadFor = id;
@@ -799,6 +763,7 @@ async function enterApp(id) {
       }
     }
     TICKETS = nextTickets; TICKET_NOTIF_READY = true; sweepExpired();
+    if (CURRENT_TAB === 'home') updateHomeTopSpenders();
     const activeTicket = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
     const previousTicket = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
     if (activeTicket && previousTicket && ['tickets','profile'].includes(CURRENT_TAB)) {
@@ -829,17 +794,13 @@ async function enterApp(id) {
     // Синхронизируем экран системы у всех администраторов, когда другой админ меняет режим.
     if (CURRENT_TAB === 'admin' && adminSub === 'system') drawAdminBody();
   });
-  db.ref('config/globalLuck').on('value', s => {
-    GLOBAL_LUCK = s.val() || {luckPercent:100};
-    if (CURRENT_TAB === 'admin' && adminSub === 'system') drawAdminBody();
-  });
   db.ref('config/uiVisibility').on('value', s => {
     UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(s.val() || {})};
     UI_VISIBILITY_MESSAGES = {...((s.val() || {}).messages || {})};
     applyUIVisibility();
     if (CURRENT_TAB === 'home') { updateHomeAnnouncements(); updateHomeWelcome(); updateHomeTopSpenders(); }
     // Не перерисовываем форму видимости на фоне: сохраняем ввод и фокус.
-    if (CURRENT_TAB === 'cases' || CURRENT_TAB === 'inventory' || CURRENT_TAB === 'upgrader' || CURRENT_TAB === 'profile') rerender();
+    if (CURRENT_TAB === 'inventory' || CURRENT_TAB === 'profile') rerender();
   });
   db.ref('config/currency').on('value', s => {
     CUR_ICON = s.val()?.icon || '';
@@ -921,7 +882,7 @@ function rerenderIfDepends() {
     const t = TICKETS[OPEN_TICKET_ID]; if (t) updateTicketChat(OPEN_TICKET_ID, t);
     return;
   }
-  if (['admin', 'tickets', 'profile', 'cases', 'inventory'].includes(CURRENT_TAB) || (CURRENT_TAB === 'upgrader' && !UPG_BUSY)) rerender();
+  if (['admin', 'tickets', 'profile', 'inventory'].includes(CURRENT_TAB)) rerender();
 }
 function updateStaffBtn() {
   const staffBtn=document.getElementById('staff-btn');
@@ -934,7 +895,7 @@ function featureDisplayVisible(key) { return featureVisible(key) || isAdmin(); }
 function hiddenAdminBadge(key) { return isAdmin() && !featureVisible(key) ? '<small class="feature-hidden-admin">(скрыто)</small>' : ''; }
 function featurePlaceholder(key, extraClass='') { const message=String(UI_VISIBILITY_MESSAGES?.[key]||'').trim(); if (isAdmin()) return `<div class="feature-disabled-message ${extraClass}"><small class="feature-hidden-admin">(скрыто)</small>${message ? `<div>${esc(message)}</div>` : ''}</div>`; return message ? `<div class="feature-disabled-message ${extraClass}">${esc(message)}</div>` : ''; }
 function applyUIVisibility() {
-  const map = {cases:'cases', inventory:'inventory', upgrader:'upgrader', profile:'profile', settings:'settings'};
+  const map = { inventory:'inventory', profile:'profile', settings:'settings' };
   document.querySelectorAll('.nav-item[data-tab]').forEach(el => {
     const key = map[el.dataset.tab];
     if (!key) return;
@@ -988,7 +949,7 @@ function showAuth() {
 /* ---------- НАВИГАЦИЯ ---------- */
 function go(tab) {
   if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
-  const visibilityKey = ({cases:'cases',inventory:'inventory',upgrader:'upgrader',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
+  const visibilityKey = ({inventory:'inventory',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
   if (visibilityKey && !featureVisible(visibilityKey) && !isAdmin()) { toast('Этот раздел временно скрыт'); tab='home'; }
   if(tab!=='admin') stopAdminLogAutoRefresh();
   CURRENT_TAB = tab;
@@ -1037,8 +998,7 @@ function rerender() {
   if (CURRENT_TAB === 'home') renderHome(c);
   if (CURRENT_TAB === 'settings') renderSettings(c);
   if (CURRENT_TAB === 'inventory') renderInventory(c);
-  if (CURRENT_TAB === 'upgrader') renderUpgrader(c);
-  if (CURRENT_TAB === 'cases') renderCasesShop(c);
+  if (CURRENT_TAB === 'mines') renderMines(c);
   if (CURRENT_TAB === 'profile') renderProfile(c);
   if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
   if (CURRENT_TAB === 'admin') { if(isAdmin()) { renderAdmin(c); loadAdminNotificationConfig(); } else c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>'; }
@@ -1047,20 +1007,58 @@ function rerender() {
 }
 function logout() { auth.signOut().then(() => location.reload()); }
 
+let MINES_VIEW = {game:null, busy:false, status:'', tone:''}, MINES_STATE_LOADED_FOR = null;
+function minesMultiplier(count, mines){ return count * (mines / 20); }
+function renderMines(c) {
+  if (MINES_STATE_LOADED_FOR !== CURRENT_ID) { MINES_STATE_LOADED_FOR = CURRENT_ID; workerRequest('/api/mines/state',{}).then(r=>{ MINES_VIEW.game=r.game||null; if(CURRENT_TAB==='mines') rerender(); }).catch(e=>{ MINES_VIEW.status=e.message; MINES_VIEW.tone='bad'; if(CURRENT_TAB==='mines') rerender(); }); }
+  const game=MINES_VIEW.game;
+  const active=game?.status==='active';
+  const ended=game && game.status!=='active';
+  const mines=Number(game?.mineCount||document.getElementById('mines-count')?.value||10);
+  const opened=game?.opened||[];
+  const multiplier=active ? (Number(game.multiplier)||0) : (ended ? Number(game.multiplier)||0 : 0);
+  const board=Array.from({length:36},(_,i)=>{
+    const isOpen=opened.includes(i), isMine=game?.mines?.includes(i);
+    let cls='mine-cell',label='';
+    if(isOpen && !isMine){cls+=' safe';label='✓';}
+    else if(ended && isMine){cls+=' bomb';label='💣';}
+    else if(ended && !isMine){cls+=' reveal-safe';label='·';}
+    return `<button class="${cls}" ${!active||isOpen||MINES_VIEW.busy?'disabled':''} aria-label="Клетка ${i+1}" onclick="minesClick(${i})">${label}</button>`;
+  }).join('');
+  c.innerHTML=`<div class="mines-wrap">
+    <div class="mines-head"><div><div class="mines-title">💣 МИНЫ</div><div class="mines-sub">Открывай клетки и забирай выигрыш вовремя</div></div><div class="mines-pill">🪙 ${Number(profile?.balance||0).toLocaleString('ru-RU')}</div></div>
+    <div class="card" style="background:linear-gradient(145deg,#1a1d31,#151621);border-color:#2b2f4a">
+      <div class="mines-controls"><div><label for="mines-bet">Ставка золотом</label><input id="mines-bet" type="number" min="1" step="1" value="${game?.bet||1}" ${active?'disabled':''}></div><div><label for="mines-count">Количество мин</label><select id="mines-count" ${active?'disabled':''}>${Array.from({length:35},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===(game?.mineCount||10)?'selected':''}>${n} мин${n===10?' · пример':''}</option>`).join('')}</select></div></div>
+      <div class="mines-shortcuts" style="margin-top:2px"><button onclick="minesBetAdjust(.5)" ${active?'disabled':''}>½</button><button onclick="minesBetAdjust(2)" ${active?'disabled':''}>2×</button><button onclick="minesBetMax()" ${active?'disabled':''}>МАКС</button></div>
+      <div class="mines-mult"><span>Множитель</span><strong>×${multiplier.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}</strong><span>${opened.length}/36</span></div>
+      <div class="mines-board">${board}</div>
+      <div class="mines-status ${MINES_VIEW.tone}">${MINES_VIEW.status || (active?'Раунд начат. Не попадись на мину.':ended?(game.status==='won'?'Выигрыш забран.':'Мина! Раунд проигран.'):'Выбери ставку и количество мин.')}</div>
+      ${active?`<button class="btn mines-action" onclick="minesCashout()" ${MINES_VIEW.busy||!opened.length?'disabled':''}>Забрать ${Math.floor(Number(game.bet||0)*multiplier).toLocaleString('ru-RU')} золота</button><p class="muted" style="text-align:center;margin-top:8px">Ставка: ${Number(game.bet||0).toLocaleString('ru-RU')} золота</p>`:ended?`<button class="btn mines-action" onclick="minesReset()">Новая игра</button><p class="muted" style="text-align:center;margin-top:8px">${game.status==='won'?'Начислено':'Ставка потеряна'}: ${Number(game.payout||0).toLocaleString('ru-RU')} золота</p>`:`<button class="btn mines-action" onclick="minesStart()" ${MINES_VIEW.busy?'disabled':''}>Начать игру</button>`}
+    </div><p class="muted" style="text-align:center">Чем больше мин, тем выше множитель за безопасную клетку. При попадании на мину ставка сгорает.</p></div>`;
+}
+async function minesRefresh(silent=false){try{const r=await workerRequest('/api/mines/state',{});MINES_VIEW.game=r.game||null;if(!silent&&CURRENT_TAB==='mines')rerender();}catch(e){if(!silent){MINES_VIEW.status=e.message;MINES_VIEW.tone='bad';rerender();}}}
+function minesBetAdjust(factor){const el=document.getElementById('mines-bet');if(el)el.value=Math.max(1,Math.floor((Number(el.value)||1)*factor));}
+function minesBetMax(){const el=document.getElementById('mines-bet');if(el)el.value=Math.max(0,Math.floor(Number(profile?.balance)||0));}
+async function minesAction(path,payload={}){if(MINES_VIEW.busy)return;MINES_VIEW.busy=true;MINES_VIEW.status='Обрабатываем ход…';MINES_VIEW.tone='';rerender();try{const r=await workerRequest(path,payload);MINES_VIEW.game=r.game||null;MINES_VIEW.status=r.message||'';MINES_VIEW.tone=r.game?.status==='lost'?'bad':(r.game?.status==='won'?'good':'');}catch(e){MINES_VIEW.status=e.message;MINES_VIEW.tone='bad';}finally{MINES_VIEW.busy=false;rerender();}}
+function minesStart(){const bet=Number(document.getElementById('mines-bet')?.value),mineCount=Number(document.getElementById('mines-count')?.value);return minesAction('/api/mines/start',{bet,mineCount});}
+function minesClick(index){return minesAction('/api/mines/click',{index});}
+function minesCashout(){return minesAction('/api/mines/cashout',{});}
+function minesReset(){MINES_VIEW.game=null;MINES_VIEW.status='';MINES_VIEW.tone='';rerender();}
+
 function renderSettings(c) {
   const prefs = {...DEFAULT_NOTIFICATION_SETTINGS, ...(profile?.notificationSettings || {})};
   c.innerHTML = `<div class="card"><h2>⚙️ Настройки ${hiddenAdminBadge('settings')}</h2>
     ${featureDisplayVisible('settingsNotifications') ? `<p class="muted">${hiddenAdminBadge('settingsNotifications')} Управляй уведомлениями. Сообщения в Telegram придут, если ты уже запускал бота и он может отправлять тебе сообщения.</p>
     <label style="display:flex;align-items:center;gap:10px;margin:12px 0"><input id="notif-telegram" type="checkbox" ${prefs.telegram?'checked':''} style="width:auto"> Отправлять уведомления в Telegram-бот</label>
     <div style="border-top:1px solid var(--line);padding-top:10px"><p style="font-weight:700;margin-bottom:6px">События</p>
-      ${[['caseOpen','Открытие кейса'],['itemSold','Продажа предмета'],['upgrade','Результат апгрейда'],['reward','Получение награды'],['announcements','Новые объявления'],['maintenanceStart','Начало технического перерыва'],['maintenanceEnd','Окончание технического перерыва']].map(([key,label])=>`<label style="display:flex;align-items:center;gap:10px;margin:10px 0"><input id="notif-${key}" type="checkbox" ${prefs[key]?'checked':''} style="width:auto"> ${label}</label>`).join('')}
+      ${[['itemSold','Продажа предмета'],['reward','Получение награды'],['announcements','Новые объявления'],['maintenanceStart','Начало технического перерыва'],['maintenanceEnd','Окончание технического перерыва']].map(([key,label])=>`<label style="display:flex;align-items:center;gap:10px;margin:10px 0"><input id="notif-${key}" type="checkbox" ${prefs[key]?'checked':''} style="width:auto"> ${label}</label>`).join('')}
     </div>
     <button class="btn" style="margin-top:8px" onclick="saveNotificationSettings()">Сохранить уведомления</button>` : featurePlaceholder('settingsNotifications')}
     ${featureDisplayVisible('settingsSupport') ? `<a class="btn sec" href="https://t.me/Siqyal" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:10px">💬 Поддержка @Siqyal ${hiddenAdminBadge('settingsSupport')}</a>` : featurePlaceholder('settingsSupport')}
     ${featureDisplayVisible('settingsLogout') ? `<button class="btn sec" style="margin-top:10px" onclick="logout()">Выйти из аккаунта ${hiddenAdminBadge('settingsLogout')}</button>` : featurePlaceholder('settingsLogout')}</div>`;
 }
 async function saveNotificationSettings() {
-  const settings={telegram:document.getElementById('notif-telegram').checked,caseOpen:document.getElementById('notif-caseOpen').checked,itemSold:document.getElementById('notif-itemSold').checked,upgrade:document.getElementById('notif-upgrade').checked,reward:document.getElementById('notif-reward').checked,announcements:document.getElementById('notif-announcements').checked,maintenanceStart:document.getElementById('notif-maintenanceStart').checked,maintenanceEnd:document.getElementById('notif-maintenanceEnd').checked};
+  const settings={telegram:document.getElementById('notif-telegram').checked,itemSold:document.getElementById('notif-itemSold').checked,reward:document.getElementById('notif-reward').checked,announcements:document.getElementById('notif-announcements').checked,maintenanceStart:document.getElementById('notif-maintenanceStart').checked,maintenanceEnd:document.getElementById('notif-maintenanceEnd').checked};
   try { await workerRequest('/api/settings/notifications',{settings}); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast('Настройки уведомлений сохранены'); rerender(); }
   catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
 }
@@ -1109,15 +1107,23 @@ function updateHomeAnnouncements(force=false) {
   else if(annTimer){clearInterval(annTimer);annTimer=null;}
 }
 function buildHomeTopSpendersHTML() {
-  const top=Object.entries(USERS).map(([id,u])=>({id,u,spent:Number(u?.spentCurrency||0)})).filter(x=>x.spent>0&&x.id!==ADMIN_ID&&x.u?.is_admin!==true&&ROLES[x.id]!=='admin'&&ROLES[x.id]!=='moderator').sort((a,b)=>b.spent-a.spent).slice(0,5);
-  return featureDisplayVisible('topSpenders')?`<div class="card"><h2>🏆 Топ трат ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшими расходами игровой валюты. Учёт начинается после обновления.</p>${top.length?top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.spent.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join(''):'<p class="muted">Пока нет данных о тратах.</p>'}</div>`:featurePlaceholder('topSpenders');
+  const depositsByUser = {};
+  for (const t of Object.values(TICKETS || {})) {
+    if (!t || t.type !== 'deposit' || t.status !== 'closed' || t.transactionApplied !== true) continue;
+    const id = String(t.owner || '');
+    if (!id || id === ADMIN_ID || USERS[id]?.is_admin === true || USERS[id]?.role === 'admin' || USERS[id]?.role === 'moderator' || ROLES[id] === 'admin' || ROLES[id] === 'moderator') continue;
+    depositsByUser[id] = (depositsByUser[id] || 0) + Math.max(0, Number(t.amount) || 0);
+  }
+  const top = Object.entries(depositsByUser).map(([id, deposited]) => ({id, u:USERS[id] || {}, deposited}))
+    .filter(x => x.deposited > 0).sort((a,b) => b.deposited-a.deposited).slice(0,5);
+  return featureDisplayVisible('topSpenders')?`<div class="card"><h2>🏆 Топ пополнений ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшей суммой подтверждённых пополнений.</p>${top.length?top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b><div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${esc(x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.deposited.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join(''):'<p class="muted">Пока нет подтверждённых пополнений.</p>'}</div>`:featurePlaceholder('topSpenders');
 }
 function updateHomeTopSpenders() {
   if(CURRENT_TAB!=='home')return;
   const host=document.getElementById('home-top-host'); if(host)host.innerHTML=buildHomeTopSpendersHTML();
 }
 function buildHomeWelcomeHTML() {
-  return featureDisplayVisible('homeWelcome')?`<div class="card" id="home-welcome-card"><h2>${hiddenAdminBadge('homeWelcome')} Добро пожаловать${TG_USER?', '+esc(TG_USER.first_name):''}!</h2><p class="muted">Открывай кейсы во вкладке «Кейсы», выигрыш падает в инвентарь. Пополнение и вывод — через тикеты в профиле.</p></div>`:featurePlaceholder('homeWelcome');
+  return featureDisplayVisible('homeWelcome')?`<div class="card" id="home-welcome-card"><h2>${hiddenAdminBadge('homeWelcome')} Добро пожаловать${TG_USER?', '+esc(TG_USER.first_name):''}!</h2><p class="muted">Предметы хранятся в инвентаре. Пополнение и вывод — через тикеты в профиле.</p></div>`:featurePlaceholder('homeWelcome');
 }
 function updateHomeWelcome() {
   if(CURRENT_TAB!=='home')return;
@@ -1175,36 +1181,36 @@ function getInventoryItemMeta(entry) {
 }
 function renderInventory(c) {
   const inv = profile?.inventory || {};
-  const gifted = Object.entries(profile?.giftedCases || {}).filter(([,gift]) => gift && gift.status === 'available' && CASES[gift.caseId]);
-  if (inventoryCleanupCheckedFor !== CURRENT_ID && CURRENT_ID) { inventoryCleanupCheckedFor = CURRENT_ID; workerRequest('/api/inventory/cleanup', {}).then(async result => { if (result.removed > 0) { const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Удалено фантомных предметов: ${result.removed}`); if(CURRENT_TAB==='inventory') rerender(); } }).catch(()=>{}); }
-  const keys = Object.keys(inv).filter(k => getInventoryItemMeta(inv[k]).valid).sort((a, b) => (inv[b].at || 0) - (inv[a].at || 0));
-  c.innerHTML = `<div class="card"><h2>🎒 Инвентарь (${keys.length + gifted.length}) ${hiddenAdminBadge('inventory')}</h2>` +
-    (gifted.length ? `<h3 style="font-size:14px;margin:12px 0 8px">🎁 Подаренные кейсы (${gifted.length})</h3><div class="item-grid">${gifted.map(([tokenId,gift])=>{const k=CASES[gift.caseId]||{};return `<div class="item-card" style="border-color:var(--gold,#d5a83b)">${gift.img||k.img?`<img src="${esc(gift.img||k.img)}" alt="">`:'<div style="font-size:38px">🎁</div>'}<div class="nm">${esc(gift.name||k.name||'Подаренный кейс')}</div><div class="chips">Бесплатное открытие · подарок</div><button class="btn" style="margin-top:10px" onclick="openGiftedCase('${tokenId}')">Открыть кейс</button></div>`;}).join('')}</div>` : '') +
-    (keys.length === 0 ? (gifted.length ? '' : '<p class="muted">Пусто. Открой кейс!</p>') :
-      '<h3 style="font-size:14px;margin:14px 0 8px">Предметы</h3><div class="item-grid">' + keys.map(k => {
+  if (inventoryCleanupCheckedFor !== CURRENT_ID && CURRENT_ID) {
+    inventoryCleanupCheckedFor = CURRENT_ID;
+    workerRequest('/api/inventory/cleanup', {}).then(async result => {
+      if (result.removed > 0) {
+        const snap=await db.ref('users/'+CURRENT_ID).get();
+        if(snap.exists()) profile=snap.val();
+        toast(`Удалено фантомных предметов: ${result.removed}`);
+        if(CURRENT_TAB==='inventory') rerender();
+      }
+    }).catch(()=>{});
+  }
+  const keys = Object.keys(inv).filter(k => getInventoryItemMeta(inv[k]).valid).sort((a,b)=>(Number(inv[b]?.at)||0)-(Number(inv[a]?.at)||0));
+  c.innerHTML = `<div class="card"><h2>🎒 Инвентарь (${keys.length}) ${hiddenAdminBadge('inventory')}</h2>` +
+    (keys.length === 0 ? '<p class="muted">Пока нет предметов.</p>' :
+      '<div class="item-grid">' + keys.map(k => {
         const it = getInventoryItemMeta(inv[k]);
-        const caseDrop = ['case','gifted-case'].includes(String(inv[k]?.source||'')) || !!inv[k]?.caseId;
-        const noProfitDrop = caseDrop && (inv[k]?.noProfit === true || CASES[inv[k]?.caseId]?.noProfit === true);
-        const giftNoSellDrop = caseDrop && inv[k]?.noSellDrop === true;
-        const canSell = !noProfitDrop && (it.sellable === true || Number(it.sellable) === 1);
+        const noProfitDrop = inv[k]?.noProfit === true;
+        const giftNoSellDrop = inv[k]?.noSellDrop === true;
+        const sellBlocked = inv[k]?.sellBlocked === true;
+        const legacyUpgrade = !inv[k]?.source && !!(inv[k]?.upgradedFrom || inv[k]?.consolationFrom);
+        const canSell = !noProfitDrop && !giftNoSellDrop && !sellBlocked && !legacyUpgrade && (it.sellable === true || Number(it.sellable) === 1);
         const saleAmount = Math.floor(it.price);
         return `<div class="item-card price-tier-${priceTier(it.price)}">
           ${it.img ? `<img src="${esc(it.img)}" alt="">` : '<div style="font-size:32px">📦</div>'}
           <div class="nm">${esc(it.name)}</div>
           <div class="price-tag">${pcur(it.price)}</div>
-          ${(noProfitDrop || giftNoSellDrop) ? `<div class="chips" style="margin-top:7px">${noProfitDrop ? 'Кейс «Без заработка»' : 'Подаренный кейс · продажа запрещена'} · предмет нельзя продать</div><button class="btn danger" style="margin-top:10px;background:var(--red);color:#fff" onclick="deleteOwnInventoryItem('${k}')">🗑 Удалить</button>` : (featureDisplayVisible('inventorySell') && canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')" ${!featureVisible('inventorySell')&&!isAdmin()?'disabled':''}>Продать за ${saleAmount} ${hiddenAdminBadge('inventorySell')}</button>` : (!featureDisplayVisible('inventorySell') ? featurePlaceholder('inventorySell') : ''))}
+          ${(noProfitDrop || giftNoSellDrop || sellBlocked || legacyUpgrade) ? `<div class="chips" style="margin-top:7px">${noProfitDrop ? 'Предмет без заработка' : giftNoSellDrop ? 'Подарочный предмет · продажа запрещена' : legacyUpgrade ? 'Старый предмет · продажа временно запрещена' : 'Продажа предмета запрещена'} · предмет нельзя продать</div><button class="btn danger" style="margin-top:10px;background:var(--red);color:#fff" onclick="deleteOwnInventoryItem('${k}')">🗑 Удалить</button>` : (featureDisplayVisible('inventorySell') && canSell && saleAmount > 0 ? `<button class="btn sec" style="margin-top:10px" onclick="sellItem('${k}')" ${!featureVisible('inventorySell')&&!isAdmin()?'disabled':''}>Продать за ${saleAmount} ${hiddenAdminBadge('inventorySell')}</button>` : (!featureDisplayVisible('inventorySell') ? featurePlaceholder('inventorySell') : ''))}
         </div>`;
       }).join('') + '</div>') + '</div>';
 }
-async function openGiftedCase(tokenId) {
-  const gift=profile?.giftedCases?.[tokenId];
-  if(!gift||gift.status!=='available'||!CASES[gift.caseId]) return toast('Подаренный кейс не найден. Обнови инвентарь.');
-  ACTIVE_GIFT_TOKEN=tokenId; CASE_DETAIL_ID=gift.caseId; CASE_OPEN_COUNT=1; CASE_OPEN_BUSY=false; CASE_DYNAMIC_ODDS=null; CASE_ODDS_LOADING=true;
-  renderCaseDetails(CASES[gift.caseId]);
-  document.getElementById('case-modal').classList.add('show');
-  workerRequest('/api/case/odds',{caseId:gift.caseId}).then(result=>{if(ACTIVE_GIFT_TOKEN===tokenId&&result.odds) CASE_DYNAMIC_ODDS=result;}).catch(()=>{}).finally(()=>{if(ACTIVE_GIFT_TOKEN===tokenId&&CASE_DETAIL_ID===gift.caseId){CASE_ODDS_LOADING=false;renderCaseDetails(CASES[gift.caseId]||{});}});
-}
-
 async function deleteOwnInventoryItem(entryKey) {
   const entry=profile?.inventory?.[entryKey];
   if(!entry) return toast('Предмет не найден');
@@ -1217,227 +1223,6 @@ async function sellItem(entryKey) {
   if (!featureVisible('inventorySell') && !isAdmin()) return toast('Продажа предметов временно отключена');
   try { const result = await workerRequest('/api/item/sell', { entryKey }); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast(`Продано: ${result.itemName || 'предмет'} · +${result.amount}`); rerender(); }
   catch (e) { toast(e.message || 'Не удалось продать предмет'); }
-}
-
-/* ---------- АПГРЕЙДЕР ---------- */
-function upgradeChance(basePrice, targetPrice) {
-  const b = Number(basePrice), t = Number(targetPrice);
-  if (!(b > 0) || !(t > b)) return 0;
-  // Дорогие цели получают дополнительный штраф; формула совпадает с серверной.
-  const pricePenalty = Math.max(1, Math.log10(t + 1));
-  return Math.max(0, Math.min(100, 100 * Math.pow(b / t, 1.5) / 1.5 / pricePenalty));
-}
-function formatChance(value) {
-  const n = Number(value) || 0;
-  return n < 0.1 ? n.toFixed(3) : n < 1 ? n.toFixed(2) : n.toFixed(1);
-}
-function chanceColor(value) {
-  const t = Math.max(0, Math.min(1, (Number(value) - 0.001) / 99.999));
-  const from = [255, 59, 48], to = [46, 204, 113];
-  const rgb = from.map((v,i)=>Math.round(v+(to[i]-v)*t));
-  return `rgb(${rgb.join(',')})`;
-}
-function renderUpgrader(c) {
-  const inv = profile?.inventory || {};
-  const invEntries = Object.entries(inv).sort((a,b)=>(b[1].at||0)-(a[1].at||0));
-  const baseEntry = UPG_BASE_KEY && inv[UPG_BASE_KEY] ? inv[UPG_BASE_KEY] : null;
-  if (!baseEntry) UPG_BASE_KEY = null;
-  const baseItem = baseEntry ? getInventoryItemMeta(baseEntry) : null;
-  const targets = Object.entries(ITEMS).filter(([id,it]) => Number(it.price||0) > Number(baseItem?.price||0) && Number(it.price||0)>0)
-    .map(([id,it]) => ({id,it,chance:upgradeChance(baseItem?.price,it.price)}));
-  const filtered = UPG_FILTER === 'all' ? targets : targets.filter(x => x.chance <= Number(UPG_FILTER) + 0.0001);
-  filtered.sort((a,b) => UPG_FILTER === 'all' ? Number(a.it.price)-Number(b.it.price) : Math.abs(a.chance-Number(UPG_FILTER))-Math.abs(b.chance-Number(UPG_FILTER)));
-  if (UPG_TARGET_ID && !filtered.some(x=>x.id===UPG_TARGET_ID)) UPG_TARGET_ID = null;
-  if (!UPG_TARGET_ID && filtered.length) UPG_TARGET_ID = filtered[0].id;
-  const target = filtered.find(x=>x.id===UPG_TARGET_ID);
-  c.innerHTML = `<div class="card"><h2>⚡ Апгрейдер ${hiddenAdminBadge('upgrader')}</h2><p class="muted">Выбери предмет из инвентаря. Шанс зависит от отношения цен и дополнительно уменьшается для дорогих целей: чем дороже предмет, тем ниже вероятность успеха. Точный шанс показан у каждой цели и рассчитывается сервером по той же формуле. При неудаче исходный предмет расходуется.</p></div>
-  <div class="upg-layout">${!featureDisplayVisible('upgraderSourceList')?featurePlaceholder('upgraderSourceList'):''}${!featureDisplayVisible('upgraderTargetList')?featurePlaceholder('upgraderTargetList'):''}<section class="upg-panel" style="${featureDisplayVisible('upgraderSourceList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎒 Твой предмет ${hiddenAdminBadge('upgraderSourceList')}</h3><div class="upg-scroll">${invEntries.map(([key,entry])=>{const it=getInventoryItemMeta(entry)||{};return `<button class="upg-entry price-tier-${priceTier(it.price)} ${UPG_BASE_KEY===key?'selected':''}" onclick="selectUpgradeBase('${key}')">${it.img?`<img src="${esc(it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div><div class="upg-name">${esc(it.name||'Неизвестный предмет')}</div><div class="upg-meta">Цена: ${Number(it.price||0)}</div></div></button>`;}).join('')||'<p class="muted">Инвентарь пуст. Сначала получи предмет.</p>'}</div></section>
-  <section class="upg-panel" style="${featureDisplayVisible('upgraderTargetList')?'':'display:none'}"><h3 style="margin-bottom:8px">🎯 Предмет для апгрейда ${hiddenAdminBadge('upgraderTargetList')}</h3><div class="upg-filter">${[['15','15%'],['50','50%'],['80','80%'],['90','90%'],['all','Все']].map(([v,label])=>`<button class="${UPG_FILTER===v?'on':''}" onclick="setUpgradeFilter('${v}')">${label}</button>`).join('')}</div><div class="upg-scroll">${Object.keys(ITEMS).length===0 ? '<p class="muted">Предметов пока нет. Администратор может добавить их в админ-панели.</p>' : baseItem ? (filtered.map(x=>`<button class="upg-entry price-tier-${priceTier(x.it.price)} ${UPG_TARGET_ID===x.id?'selected':''}" onclick="selectUpgradeTarget('${x.id}')">${x.it.img?`<img src="${esc(x.it.img)}">`:'<div style="width:44px;flex:0 0 44px;font-size:24px;text-align:center">📦</div>'}<div style="min-width:0"><div class="upg-name">${esc(x.it.name||'Предмет')}</div><div class="upg-meta">${Number(x.it.price||0)} · шанс ${x.chance.toFixed(2)}%</div></div></button>`).join('')||'<p class="muted">Нет предметов, подходящих под выбранный шанс. Попробуй другой фильтр или добавь предметы в админ-панели.</p>'):'<p class="muted">Сначала выбери свой предмет слева.</p>'}</div></section></div>
-  <div class="upg-stage"><div class="muted" style="margin-bottom:8px">${baseItem?`${esc(baseItem.name||'Предмет')} → ${target?esc(target.it.name||'Предмет'):'выбери цель'}`:'Выбери предмет слева'}</div><div class="upg-meter-wrap"><div class="upg-meter-labels"><span>УДАЧА · ${target?formatChance(target.chance):'0'}%</span><span>НЕУДАЧА · ${target?formatChance(100-target.chance):'100'}%</span></div><div class="upg-meter"><div class="upg-meter-success" style="width:${target?Math.max(0,Math.min(100,target.chance)):0}%"></div><div id="upg-pointer" class="upg-meter-marker" style="left:0%"></div></div><div class="upg-meter-scale"><span>0%</span><span id="upg-percent">${target?formatChance(target.chance)+'%':'—'}</span><span>100%</span></div></div><div id="upg-result" class="upg-result">${UPG_BUSY?'Прокрутка выполняется…':(target?'Светлая зона — удача, тёмная — неудача':'Выбери подходящий предмет')}</div>${featureDisplayVisible('upgraderSpin') ? `${hiddenAdminBadge('upgraderSpin')}<button class="btn" onclick="runUpgrade()" ${(!featureVisible('upgraderSpin')&&!isAdmin())||!baseEntry||!target||UPG_BUSY?'disabled':''}>${UPG_BUSY?'Крутим…':'⚡ Крутить'}</button>` : featurePlaceholder('upgraderSpin')}</div>`;
-}
-function selectUpgradeBase(key) { if (UPG_BUSY) return; UPG_BASE_KEY=key; UPG_TARGET_ID=null; rerender(); }
-function selectUpgradeTarget(id) { if (UPG_BUSY) return; UPG_TARGET_ID=id; rerender(); }
-function setUpgradeFilter(value) { if (UPG_BUSY) return; UPG_FILTER=value; UPG_TARGET_ID=null; rerender(); }
-async function runUpgrade() {
-  if (!featureVisible('upgraderSpin') && !isAdmin()) return toast('Апгрейд временно отключён');
-  if (UPG_BUSY) return;
-  if (!UPG_BASE_KEY || !UPG_TARGET_ID) return toast('Выбери исходный предмет и цель');
-  UPG_BUSY=true; rerender();
-  try {
-    const result = await workerRequest('/api/upgrade', { entryKey:UPG_BASE_KEY, targetItemId:UPG_TARGET_ID });
-    const pointer = document.getElementById('upg-pointer');
-    const pct = document.getElementById('upg-percent');
-    const label = document.getElementById('upg-result');
-    // Результат и граница зон должны использовать исключительно серверные значения.
-    // Локальные цены в интерфейсе могут устареть, из-за чего указатель визуально попадал в одну зону, а текст показывал другую.
-    const serverChance = Math.max(0, Math.min(100, Number(result.chance) || 0));
-    const roll = Math.max(0, Math.min(100, Number(result.rollPercent ?? (result.success ? serverChance / 2 : serverChance + (100 - serverChance) / 2))));
-    const successZone = document.querySelector('.upg-meter-success');
-    const meterLabels = document.querySelectorAll('.upg-meter-labels span');
-    if (successZone) successZone.style.width = `${serverChance}%`;
-    if (meterLabels[0]) meterLabels[0].textContent = `УДАЧА · ${formatChance(serverChance)}%`;
-    if (meterLabels[1]) meterLabels[1].textContent = `НЕУДАЧА · ${formatChance(100 - serverChance)}%`;
-    if (pct) { pct.textContent = `${formatChance(serverChance)}% шанс`; pct.style.color = '#f5f5f5'; pct.style.textShadow = 'none'; }
-    if (pointer) { pointer.style.transition = 'left 1.15s cubic-bezier(.12,.72,.12,1)'; requestAnimationFrame(()=>{ pointer.style.left = `${roll}%`; }); }
-    if (label) label.textContent = 'Определяем результат…';
-    await new Promise(resolve=>setTimeout(resolve,1200));
-    if (label) label.textContent = result.success ? 'УДАЧА — светлая зона' : 'НЕУДАЧА — тёмная зона';
-    toast(result.success ? `Успех! Получен предмет: ${result.itemName}` : (result.consolationItemName ? `Неудача. Получен утешительный предмет: ${result.consolationItemName}` : 'Неудача. Исходный предмет уничтожен.'));
-    UPG_BASE_KEY=null; UPG_TARGET_ID=null;
-    rerender();
-  } catch(e) { UPG_BUSY=false; rerender(); toast(e.message || 'Не удалось выполнить апгрейд'); return; }
-  UPG_BUSY=false; rerender();
-}
-
-/* ---------- МАГАЗИН КЕЙСОВ ---------- */
-function renderCasesShop(c) {
-  const ids = Object.keys(CASES);
-  if (ids.length === 0) return c.innerHTML = `<div class="card"><h2>📦 Кейсы ${hiddenAdminBadge('cases')}</h2><p class="muted">Кейсов пока нет.</p></div>`;
-  const groups = {};
-  ids.forEach(id => {
-    const g = CATS[CASES[id].category]?.name || 'Общая';
-    (groups[g] = groups[g] || []).push(id);
-  });
-  c.innerHTML = `${hiddenAdminBadge('cases')}` + Object.entries(groups).map(([g, list]) =>
-    `<div class="cat-title">📂 ${esc(g)}</div><div class="item-grid">` +
-    list.map(id => {
-      const k = CASES[id];
-      const openedByMe = profile?.openedCases?.[id] || 0;
-      const expired = k.expiresAt && Date.now() > k.expiresAt;
-      const totalLeft = k.totalLimit ? k.totalLimit - (k.opened || 0) : Infinity;
-      const userLeft = k.perUserLimit ? k.perUserLimit - openedByMe : Infinity;
-      let state = null;
-      if (expired) state = 'Истёк';
-      else if (totalLeft <= 0) state = 'Закончился';
-      else if (userLeft <= 0) state = 'Лимит исчерпан';
-      return `<div class="item-card price-tier-${priceTier(k.price)}">
-        ${k.img ? `<img src="${esc(k.img)}">` : '<div style="font-size:44px; line-height:56px">📦</div>'}
-        <div class="nm">${esc(k.name)}</div>
-        <div class="chips">Предметов: ${Object.keys(k.items || {}).length}
-          ${k.totalLimit ? ` · ${k.opened || 0}/${k.totalLimit}` : ''}${k.perUserLimit ? ` · твоё: ${openedByMe}/${k.perUserLimit}` : ''}</div>
-        <button class="btn" style="margin-top:10px" ${state ? 'disabled' : ''} onclick="openCase('${id}')">
-          ${state ? state : (k.price > 0 ? `Открыть за ${k.price}` : 'Открыть бесплатно')}</button>
-      </div>`;
-    }).join('') + '</div>').join('');
-}
-function openCase(caseId) {
-  const k = CASES[caseId]; if (!k) return;
-  ACTIVE_GIFT_TOKEN = null;
-  CASE_DETAIL_ID = caseId; CASE_OPEN_COUNT = 1; CASE_OPEN_BUSY = false; CASE_DYNAMIC_ODDS = null; CASE_ODDS_LOADING = true;
-  renderCaseDetails(k);
-  document.getElementById('case-modal').classList.add('show');
-  // Рассчитываем динамические шансы до активации кнопки, чтобы ожидание не начиналось после нажатия.
-  workerRequest('/api/case/odds', {caseId}).then(result => {
-    if (CASE_DETAIL_ID === caseId && result.odds) CASE_DYNAMIC_ODDS = result;
-  }).catch(() => {}).finally(() => {
-    if (CASE_DETAIL_ID === caseId && !ACTIVE_GIFT_TOKEN) { CASE_ODDS_LOADING = false; renderCaseDetails(CASES[caseId] || k); }
-  });
-}
-function toggleCaseFastSpin() { if (!featureVisible('caseFastSpin') && !isAdmin()) return toast('Быстрая прокрутка временно отключена'); if (CASE_OPEN_BUSY) return; CASE_FAST_SPIN=!CASE_FAST_SPIN; const k=CASES[CASE_DETAIL_ID]; if(k) renderCaseDetails(k); }
-function setCaseOpenCount(count) {
-  if (CASE_OPEN_BUSY) return;
-  CASE_OPEN_COUNT = [1,3,5].includes(Number(count)) ? Number(count) : 1;
-  const k = CASES[CASE_DETAIL_ID]; if (k) renderCaseDetails(k);
-}
-function renderCaseDetails(k) {
-  const box = document.getElementById('cm-box');
-  const entries = Object.entries(k.items || {}).filter(([id,ch]) => ITEMS[id] && Number(ch)>0);
-  const totalWeight = entries.reduce((sum,[,ch])=>sum+Number(ch),0);
-  const count = CASE_OPEN_COUNT;
-  const isGiftOpen = !!ACTIVE_GIFT_TOKEN;
-  const totalPrice = isGiftOpen ? 0 : Math.max(0, Number(k.price)||0) * count;
-  const remainingTotal = isGiftOpen ? Infinity : (k.totalLimit ? Math.max(0,Number(k.totalLimit)-Number(k.opened||0)) : Infinity);
-  const remainingUser = isGiftOpen ? Infinity : (k.perUserLimit ? Math.max(0,Number(k.perUserLimit)-Number(profile?.openedCases?.[CASE_DETAIL_ID]||0)) : Infinity);
-  const canOpen = (featureVisible('caseOpen') || isAdmin()) && !CASE_OPEN_BUSY && !CASE_ODDS_LOADING && count<=remainingTotal && count<=remainingUser && (isGiftOpen || Number(profile?.balance||0)>=totalPrice);
-  box.innerHTML = `
-    <div class="case-detail-top">
-      <div class="case-detail-img">${k.img?`<img src="${esc(k.img)}" alt="">`:'📦'}</div>
-      <div class="case-detail-title"><h2>${esc(k.name||'Кейс')} ${hiddenAdminBadge('cases')}</h2><div class="muted" style="font-size:11px">${entries.length} предметов · ${k.price>0?`Цена за кейс: ${Number(k.price)}`:'Бесплатный кейс'}</div></div>
-      ${featureDisplayVisible('caseOpen') ? `${hiddenAdminBadge('caseOpen')}<button class="case-open-btn" id="case-open-action" onclick="performCaseOpen()" ${canOpen?'':'disabled'}>${CASE_OPEN_BUSY?'Открываем…':(CASE_ODDS_LOADING?'⏳ Подготавливаем шансы…':(isGiftOpen?'🎁 Открыть подаренный кейс':`Открыть · ${totalPrice}`))}</button>` : featurePlaceholder('caseOpen')}
-    </div>
-    ${!isGiftOpen ? `<div class="case-counts" aria-label="Количество кейсов">
-      ${featureDisplayVisible('multiCaseOpen')?[1,3,5].map(n=>`<button class="${count===n?'on':''}" onclick="setCaseOpenCount(${n})" ${CASE_OPEN_BUSY || (!featureVisible('multiCaseOpen') && !isAdmin())?'disabled':''}>${n} ${n===1?'кейс':'кейса'}</button>`).join(''):featurePlaceholder('multiCaseOpen')}
-    </div>` : '<p class="muted" style="margin:8px 0">Этот кейс подарен: открытие бесплатно, баланс не изменится.</p>'}
-    ${featureDisplayVisible('caseFastSpin') ? `<button class="btn sec" type="button" style="width:100%;margin:0 0 10px" onclick="toggleCaseFastSpin()" ${CASE_OPEN_BUSY || (!featureVisible('caseFastSpin')&&!isAdmin())?'disabled':''}>${hiddenAdminBadge('caseFastSpin')} ${CASE_FAST_SPIN?'⚡ Быстрая прокрутка: ВКЛ':'⚡ Быстрая прокрутка: ВЫКЛ'}</button>` : featurePlaceholder('caseFastSpin')}
-    <div style="display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-size:11px;color:var(--muted)"><span>Баланс: ${Number(profile?.balance||0)}</span><span>${isGiftOpen?'К оплате: 0 (подарок)':`Итого: ${totalPrice}`}</span></div>
-    ${featureDisplayVisible('caseOddsInfo') ? `<div style="font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 8px">${hiddenAdminBadge('caseOddsInfo')} Динамические шансы: если экономика проекта уходит в минус, дорогие предметы становятся реже, но кейсы продолжают открываться. Текущие вероятности показаны ниже.</div>` : featurePlaceholder('caseOddsInfo')}
-    ${featureDisplayVisible('casePrizeList') ? `${hiddenAdminBadge('casePrizeList')}<div class="case-prize-list">${entries.length ? entries.sort((a,b)=>Number(ITEMS[b[0]]?.price||0)-Number(ITEMS[a[0]]?.price||0)).map(([id,weight])=>{const it=ITEMS[id]||{};const chance=CASE_DYNAMIC_ODDS?.odds?.[id]!==undefined?Number(CASE_DYNAMIC_ODDS.odds[id]):(totalWeight>0?Number(weight)/totalWeight*100:0);return `<div class="case-prize-row price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}" alt="">`:'<div class="case-prize-placeholder">🎁</div>'}<div class="case-prize-info"><b>${esc(it.name||'Предмет')}</b><span>Цена: ${Number(it.price||0)}</span><span>Шанс: ${chance.toFixed(2)}%${CASE_DYNAMIC_ODDS?'':' · загрузка…'}</span></div></div>`;}).join(''):'<p class="muted" style="grid-column:1/-1;text-align:center;padding:22px">В этом кейсе пока нет предметов.</p>'}</div>` : featurePlaceholder('casePrizeList')}
-    <button class="btn sec" style="margin-top:8px;flex:0 0 auto" onclick="closeCaseModal()">Закрыть</button>`;
-  const btn = document.getElementById('case-open-action');
-  if (!canOpen && btn) {
-    if (count>remainingTotal || count>remainingUser) btn.title='Недостаточно доступных открытий';
-    else if (Number(profile?.balance||0)<totalPrice) btn.title='Недостаточно средств';
-  }
-}
-async function performCaseOpen() {
-  if (!featureVisible('caseOpen') && !isAdmin()) return toast('Открытие кейсов временно отключено');
-  const caseId = CASE_DETAIL_ID, k = CASES[caseId];
-  if (!k || CASE_OPEN_BUSY) return;
-  if (Date.now()-CASE_LAST_OPEN_AT < 1000) return toast('Подожди секунду между открытиями кейсов');
-  CASE_OPEN_BUSY = true; CASE_LAST_OPEN_AT = Date.now(); renderCaseDetails(k);
-  try {
-    const giftTokenId = ACTIVE_GIFT_TOKEN;
-    const result = giftTokenId ? await workerRequest('/api/case/open-gift',{tokenId:giftTokenId}) : await workerRequest('/api/case/open',{caseId,count:CASE_OPEN_COUNT});
-    const winners = Array.isArray(result.winnerIds) ? result.winnerIds : [result.winnerId];
-    const detailsById = Object.fromEntries((result.winnerItems || []).map(it=>[it.id,it]));
-    // Worker response contains the committed winner IDs and inventory keys; avoid a second full profile read before the roulette starts.
-    profile = profile || {};
-    profile.balance = Math.max(0, Number(profile.balance || 0) - Number(result.totalPrice || 0));
-    if (!result.gifted) profile.spentCurrency = Math.max(0, Number(profile.spentCurrency || 0)) + Number(result.totalPrice || 0);
-    profile.openedCases = {...(profile.openedCases || {}), [caseId]: Number(profile.openedCases?.[caseId] || 0) + winners.length};
-    if (giftTokenId && profile.giftedCases?.[giftTokenId]) profile.giftedCases = {...profile.giftedCases,[giftTokenId]:{...profile.giftedCases[giftTokenId],status:'opened',openedAt:Date.now()}};
-    profile.inventory = {...(profile.inventory || {})};
-    const keys = Array.isArray(result.inventoryKeys) ? result.inventoryKeys : [];
-    winners.forEach((id, i) => {
-      const meta = {...(ITEMS[id] || {}), ...(detailsById[id] || {})};
-      if (keys[i]) profile.inventory[keys[i]] = {itemId:id,name:meta.name||meta.title||'Предмет',price:Number(meta.price||meta.cost||0),img:meta.img||meta.image||meta.icon||'',at:Date.now(),source:result.gifted?'gifted-case':'case',caseId};
-    });
-    const winnerDetails = winners.map(id=>({id,...(ITEMS[id]||{}),...(detailsById[id]||{}),img:ITEMS[id]?.img||ITEMS[id]?.image||ITEMS[id]?.icon||''}));
-    showCaseRoulette(k, winners.filter(Boolean), winnerDetails);
-  } catch (e) {
-    CASE_OPEN_BUSY = false; renderCaseDetails(k); toast(e.message || 'Не удалось открыть кейс');
-  }
-}
-/* ---------- ПРОКРУТКА ---------- */
-const STEP = 110, ITEM_W = 100;
-function showCaseRoulette(k, winnerIds, winnerItems = null) {
-  const modal = document.getElementById('case-modal');
-  const box = document.getElementById('cm-box');
-  const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
-  const winnerDetails = Array.isArray(winnerItems) ? winnerItems : winners.map(id=>({id,...(ITEMS[id]||{})}));
-  const resultItems = Object.fromEntries(winnerDetails.map(x=>[x.id,x]));
-  box.innerHTML = `<div style="font-weight:800;font-size:18px;margin-bottom:14px">${esc(k.name)} · открытие ${winners.length} ${winners.length===1?'кейса':'кейсов'}</div><div id="case-roulette-rows" style="display:grid;gap:10px;width:100%;overflow:auto;max-height:68vh"></div><p class="muted" style="margin-top:12px">Рулетка останавливается на выигранном предмете</p>`;
-  modal.classList.add('show');
-  const rows = document.getElementById('case-roulette-rows');
-  const pool = Object.keys(k.items || {}).filter(id => ITEMS[id]);
-  const ids = pool.length ? pool : Object.keys(ITEMS).length ? Object.keys(ITEMS) : winners;
-  const duration = (CASE_FAST_SPIN && (featureVisible('caseFastSpin') || isAdmin())) ? 650 : 5000;
-  const animations = winners.map((winnerId, rowIndex) => new Promise(resolve => {
-    const row = document.createElement('div');
-    row.className = 'rl-window'; row.style.height='104px'; row.innerHTML='<div class="rl-marker"></div><div class="rl-strip"></div>';
-    rows.appendChild(row);
-    const strip = row.querySelector('.rl-strip');
-    const seq=[]; for(let i=0;i<24;i++) seq.push(ids[Math.floor(Math.random()*ids.length)]);
-    seq[19]=winnerId;
-    strip.innerHTML=seq.map(id=>{const it=resultItems[id]||ITEMS[id]||{};return `<div class="rl-item price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}">`:'<span>🎁</span>'}<span>${esc(it.name||id)}</span></div>`;}).join('');
-    const winW=row.clientWidth, step=110, itemW=100;
-    const targetX=19*step-winW/2+itemW/2;
-    let start=null;
-    function frame(now){if(!start)start=now;const t=Math.min(1,(now-start)/duration);const ease=1-Math.pow(1-t,5);const x=-targetX*ease;strip.style.transform=`translateX(${x}px)`;if(t<1)requestAnimationFrame(frame);else setTimeout(resolve,40+rowIndex*35);}
-    requestAnimationFrame(frame);
-  }));
-  Promise.all(animations).then(()=>showPrize(k,winners,resultItems));
-}
-function showPrize(k, winnerIds, winnerItems = {}) {
-  const winners = Array.isArray(winnerIds) ? winnerIds : [winnerIds];
-  const box = document.getElementById('cm-box');
-  box.innerHTML = `<p style="font-size:18px;font-weight:800;margin-bottom:4px">${winners.length===1?'Вам выпало':'Результаты открытия'}</p><p class="muted" style="font-size:11px">${esc(k.name)}</p><div class="case-result-list">${winners.map((id,i)=>{const win=winnerItems[id]||ITEMS[id]||{};return `<div class="case-result-card price-tier-${priceTier(win.price)}" style="animation-delay:${i*70}ms">${win.img?`<img src="${esc(win.img)}">`:'<div style="font-size:40px">🎁</div>'}<b>${esc(win.name||'Предмет')}</b><div class="muted" style="font-size:10px;margin-top:4px">Цена: ${Number(win.price||0)}</div></div>`;}).join('')}</div><button class="btn" style="max-width:260px;margin:8px auto 0" onclick="closeCaseModal()">Забрать в инвентарь</button>`;
-  CASE_OPEN_BUSY = false;
-}
-function closeCaseModal() {
-  document.getElementById('case-modal').classList.remove('show');
-  CASE_OPEN_BUSY = false; CASE_DETAIL_ID = null; ACTIVE_GIFT_TOKEN = null;
-  rerender();
 }
 
 /* ---------- ТИКЕТЫ ---------- */
@@ -1641,9 +1426,10 @@ function renderProfile(c) {
   const closed = my.filter(([, t]) => t.status === 'closed');
   const list = profileTicketTab === 'open' ? open : closed;
 
-  c.innerHTML = `${featureDisplayVisible('profileInfo') ? `<div class="card"><h2>👤 Профиль ${hiddenAdminBadge('profileInfo')}</h2>
-      <p class="muted">Telegram ID: <b>${esc(CURRENT_ID)}</b></p>
-      <p class="muted">Имя: <b>${esc(profile?.name || '—')}</b></p>
+  const telegramAvatar = String(TG_USER?.photo_url || profile?.photoUrl || '');
+  const avatarHTML = telegramAvatar && /^https:\/\//i.test(telegramAvatar) ? `<img src="${esc(telegramAvatar)}" alt="Аватар Telegram" referrerpolicy="no-referrer" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);box-shadow:0 0 22px rgba(126,231,135,.14)">` : `<div aria-label="Нет аватарки Telegram" style="width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);font-size:30px">👤</div>`;
+  c.innerHTML = `${featureDisplayVisible('profileInfo') ? `<div class="card"><div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">${avatarHTML}<div style="min-width:0"><h2 style="margin:0 0 5px">👤 ${esc(TG_USER?.first_name || profile?.name || 'Профиль')} ${hiddenAdminBadge('profileInfo')}</h2><div class="muted" style="overflow-wrap:anywhere">Telegram ID: <b>${esc(CURRENT_ID)}</b></div></div></div>
+      <p class="muted">Имя: <b>${esc([TG_USER?.first_name,TG_USER?.last_name].filter(Boolean).join(' ') || profile?.name || '—')}</b></p>
       <p class="muted">Баланс: <b>${profile?.balance ?? 0}</b></p>
       ${isAdmin() ? '<span class="badge">АДМИНИСТРАТОР</span>' : ROLES[CURRENT_ID] === 'moderator' ? '<span class="badge mod">МОДЕРАТОР</span>' : ''}</div>` : featurePlaceholder('profileInfo')}
     ${referralCardHTML()}
@@ -1770,8 +1556,6 @@ function renderAdmin(c) {
     <div class="card">
       <div class="admin-tabs">
         <button class="btn sec ${adminSub==='items'?'on':''}" onclick="setSub('items')">📚 Предметы</button>
-        <button class="btn sec ${adminSub==='cats'?'on':''}" onclick="setSub('cats')">🗂 Категории</button>
-        <button class="btn sec ${adminSub==='cases'?'on':''}" onclick="setSub('cases')">📦 Кейсы</button>
         <button class="btn sec ${adminSub==='users'?'on':''}" onclick="setSub('users')">👥 Игроки</button>
         <button class="btn sec ${adminSub==='anns'?'on':''}" onclick="setSub('anns')">📢 Объявления</button>
         <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
@@ -1799,13 +1583,11 @@ async function refreshAdminData() {
   try {
     const reads = {
       items: [['items', v => ITEMS = v]],
-      cats: [['categories', v => CATS = v]],
-      cases: [['cases', v => CASES = v]],
       users: [['users', v => USERS = v], ['roles', v => ROLES = v]],
       anns: [['anns', v => ANNS = v]],
       cur: [['config/currency', v => CUR_ICON = v?.icon || '']],
       system: [['config/maintenance', v => MAINTENANCE = v || {enabled:false,message:''}]],
-      stats: [['users', v => USERS = v], ['tickets', v => TICKETS = v], ['roles', v => ROLES = v], ['items', v => ITEMS = v], ['cases', v => CASES = v], ['anns', v => ANNS = v]],
+      stats: [['users', v => USERS = v], ['tickets', v => TICKETS = v], ['roles', v => ROLES = v], ['items', v => ITEMS = v], ['anns', v => ANNS = v]],
       notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]]
     };
     const targets = reads[adminSub] || [];
@@ -1831,8 +1613,6 @@ function drawAdminBody() {
   const scope = `admin:${adminSub}`;
   const snapshot = FORM_STATE_SCOPE === scope ? captureFormState(b) : [];
   if (adminSub === 'items') b.innerHTML = adminItemsHTML();
-  if (adminSub === 'cats')  b.innerHTML = adminCatsHTML();
-  if (adminSub === 'cases') b.innerHTML = adminCasesHTML();
   if (adminSub === 'users') b.innerHTML = adminUsersHTML();
   if (adminSub === 'anns')  b.innerHTML = adminAnnsHTML();
   if (adminSub === 'cur')   b.innerHTML = adminCurHTML();
@@ -1845,60 +1625,64 @@ function drawAdminBody() {
   FORM_STATE_SCOPE = scope;
 }
 
+function adminLogRowsHTML(rows) {
+  return `<div style="min-width:680px">${rows.map(x=>`<div style="display:grid;grid-template-columns:118px 150px minmax(100px,1fr) minmax(100px,1fr);gap:8px;align-items:start;padding:5px 0;border-bottom:1px solid var(--line);white-space:nowrap"><span>${esc(fmtTime(x.at))}${new Date(x.at).getFullYear()!==new Date().getFullYear()?' '+new Date(x.at).getFullYear():''}</span><b style="color:var(--accent);overflow:hidden;text-overflow:ellipsis">${esc(x.action||x.endpoint||'Действие')}</b><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.actorName||'')}">${esc(x.actorName||'Игрок')} · ${esc(x.actorId||'—')}</span><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.details&&Object.keys(x.details).length?Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · '):'')}">${x.targetId?'Цель: '+esc(x.targetId)+' · ':''}${x.details&&Object.keys(x.details).length?esc(Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · ')):''}</span></div>`).join('')||'<p class="muted">За выбранную дату записей нет.</p>'}</div>`;
+}
 function adminLogsHTML() {
   const rows=ADMIN_LOG_ITEMS||[];
-  return `<div class="card"><h2>📜 Логи действий игроков</h2><p class="muted" style="font-size:11px">Загружается по 100 записей. Каждое действие появляется сверху автоматически; остальные разделы админ-панели не перерисовываются.</p><div style="display:flex;gap:8px;margin-bottom:10px;align-items:center"><button class="btn sec small" onclick="loadAdminLogs(true)">↻ Обновить</button><span id="admin-log-count" class="muted" style="font-size:11px">Записей: ${rows.length}</span><span id="admin-log-live" class="muted" style="font-size:10px;margin-left:auto">Автообновление включено</span></div><div id="admin-log-rows" style="font-size:10px;line-height:1.25;overflow-x:auto;max-width:100%"><div style="min-width:680px">${rows.map(x=>`<div style="display:grid;grid-template-columns:118px 150px minmax(100px,1fr) minmax(100px,1fr);gap:8px;align-items:start;padding:5px 0;border-bottom:1px solid var(--line);white-space:nowrap"><span>${esc(fmtTime(x.at))}${new Date(x.at).getFullYear()!==new Date().getFullYear()?' '+new Date(x.at).getFullYear():''}</span><b style="color:var(--accent);overflow:hidden;text-overflow:ellipsis">${esc(x.action||x.endpoint||'Действие')}</b><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.actorName||'')}">${esc(x.actorName||'Игрок')} · ${esc(x.actorId||'—')}</span><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.details&&Object.keys(x.details).length?Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · '):'')}">${x.targetId?'Цель: '+esc(x.targetId)+' · ':''}${x.details&&Object.keys(x.details).length?esc(Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · ')):''}</span></div>`).join('')||'<p class="muted">Логов пока нет. Новые действия начнут записываться после обновления Worker.</p>'}</div></div><div class="row" style="margin-top:10px;gap:8px"><button class="btn" ${ADMIN_LOG_HAS_MORE?'':'disabled'} onclick="loadAdminLogs(false)">${ADMIN_LOG_LOADING?'Загрузка…':'Загрузить ещё 100'}</button><span class="muted" style="font-size:11px">${ADMIN_LOG_HAS_MORE?'Есть следующие записи':'Конец списка'}</span></div></div>`;
+  return `<div class="card"><h2>📜 Архив логов по датам</h2><p class="muted" style="font-size:11px;margin-bottom:10px">Выбери дату — покажутся записи за весь день с 00:00 до 23:59 (время UTC+3). Загружается по 100 строк; остальные страницы доступны кнопкой ниже. Архив пополняется автоматически после действий.</p><form onsubmit="event.preventDefault();loadAdminLogs(true,document.getElementById('admin-log-date')?.value||ADMIN_LOG_DATE_DRAFT)" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><input id="admin-log-date" type="date" value="${esc(ADMIN_LOG_DATE_DRAFT)}" max="${getAdminLogToday()}" style="width:auto;min-width:150px;flex:1"><button class="btn" type="submit">Показать день</button></form><div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap"><button class="btn sec small" onclick="loadAdminLogs(true,ADMIN_LOG_DATE)">↻ Обновить</button><span id="admin-log-count" class="muted" style="font-size:11px">Загружено: ${rows.length} / ${ADMIN_LOG_TOTAL||0}</span><span id="admin-log-live" class="muted" style="font-size:10px;margin-left:auto">Дата: ${esc(ADMIN_LOG_DATE)}</span></div><div id="admin-log-rows" style="font-size:10px;line-height:1.25;overflow-x:auto;max-width:100%">${adminLogRowsHTML(rows)}</div><div class="row" style="margin-top:10px;gap:8px"><button class="btn" ${ADMIN_LOG_HAS_MORE?'':'disabled'} onclick="loadAdminLogs(false,ADMIN_LOG_DATE)">${ADMIN_LOG_LOADING?'Загрузка…':'Загрузить ещё 100'}</button><span class="muted" style="font-size:11px">${ADMIN_LOG_HAS_MORE?'Есть следующие записи':'Конец списка за день'}</span></div></div>`;
 }
+let ADMIN_LOG_TOTAL = 0;
 function stopAdminLogAutoRefresh() { if(ADMIN_LOG_REFRESH_TIMER) clearInterval(ADMIN_LOG_REFRESH_TIMER); ADMIN_LOG_REFRESH_TIMER=null; }
 function startAdminLogAutoRefresh() {
   stopAdminLogAutoRefresh();
   if(CURRENT_TAB==='admin'&&adminSub==='logs') ADMIN_LOG_REFRESH_TIMER=setInterval(refreshAdminLogsOnly,3000);
 }
 async function refreshAdminLogsOnly() {
-  if(ADMIN_LOG_REFRESH_BUSY || CURRENT_TAB!=='admin' || adminSub!=='logs' || document.visibilityState==='hidden') return;
+  if(ADMIN_LOG_REFRESH_BUSY || CURRENT_TAB!=='admin' || adminSub!=='logs' || document.visibilityState==='hidden' || ADMIN_LOG_DATE!==getAdminLogToday()) return;
   ADMIN_LOG_REFRESH_BUSY=true;
   try {
-    const r=await workerRequest('/api/admin/logs',{offset:0,limit:100});
+    const r=await workerRequest('/api/admin/logs',{date:ADMIN_LOG_DATE,offset:0,limit:100});
     const got=Array.isArray(r.items)?r.items:[];
-    const oldTop=ADMIN_LOG_ITEMS[0]?.id || '';
     const oldIds=new Set(ADMIN_LOG_ITEMS.map(x=>x.id));
     const fresh=got.filter(x=>!oldIds.has(x.id));
+    ADMIN_LOG_TOTAL=Number(r.total)||0;
     if(fresh.length) {
       const seen=new Set();
       ADMIN_LOG_ITEMS=[...fresh,...ADMIN_LOG_ITEMS].filter(x=>{if(seen.has(x.id))return false;seen.add(x.id);return true;});
       ADMIN_LOG_OFFSET=ADMIN_LOG_ITEMS.length;
-      ADMIN_LOG_HAS_MORE=!!r.hasMore;
-      const rowsEl=document.getElementById('admin-log-rows');
-      if(rowsEl) rowsEl.innerHTML=`<div style="min-width:680px">${ADMIN_LOG_ITEMS.map(x=>`<div style="display:grid;grid-template-columns:118px 150px minmax(100px,1fr) minmax(100px,1fr);gap:8px;align-items:start;padding:5px 0;border-bottom:1px solid var(--line);white-space:nowrap"><span>${esc(fmtTime(x.at))}${new Date(x.at).getFullYear()!==new Date().getFullYear()?' '+new Date(x.at).getFullYear():''}</span><b style="color:var(--accent);overflow:hidden;text-overflow:ellipsis">${esc(x.action||x.endpoint||'Действие')}</b><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.actorName||'')}">${esc(x.actorName||'Игрок')} · ${esc(x.actorId||'—')}</span><span style="overflow:hidden;text-overflow:ellipsis;color:var(--muted)" title="${esc(x.details&&Object.keys(x.details).length?Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · '):'')}">${x.targetId?'Цель: '+esc(x.targetId)+' · ':''}${x.details&&Object.keys(x.details).length?esc(Object.entries(x.details).map(([k,v])=>`${k}: ${v}`).join(' · ')):''}</span></div>`).join('')}</div>`;
-      const countEl=document.getElementById('admin-log-count'); if(countEl) countEl.textContent=`Записей: ${ADMIN_LOG_ITEMS.length}`;
-      const liveEl=document.getElementById('admin-log-live'); if(liveEl) liveEl.textContent=`Обновлено: ${new Date().toLocaleTimeString('ru-RU')}`;
+      ADMIN_LOG_HAS_MORE=!!r.hasMore || ADMIN_LOG_ITEMS.length<ADMIN_LOG_TOTAL;
+      const rowsEl=document.getElementById('admin-log-rows'); if(rowsEl) rowsEl.innerHTML=adminLogRowsHTML(ADMIN_LOG_ITEMS);
     }
-  } catch(_) { /* Не перерисовываем панель и не мешаем вводу при временной ошибке сети. */ }
+    const countEl=document.getElementById('admin-log-count'); if(countEl) countEl.textContent=`Загружено: ${ADMIN_LOG_ITEMS.length} / ${ADMIN_LOG_TOTAL}`;
+    const liveEl=document.getElementById('admin-log-live'); if(liveEl) liveEl.textContent=`Дата: ${ADMIN_LOG_DATE} · обновлено ${new Date().toLocaleTimeString('ru-RU')}`;
+  } catch(_) { /* Автообновление не перерисовывает форму выбора даты. */ }
   finally { ADMIN_LOG_REFRESH_BUSY=false; }
 }
-async function loadAdminLogs(reset=true) {
+async function loadAdminLogs(reset=true, date=ADMIN_LOG_DATE) {
   if(ADMIN_LOG_LOADING) return;
+  const selected=String(date||getAdminLogToday());
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(selected)) { toast('Выбери корректную дату'); return; }
   ADMIN_LOG_LOADING=true;
-  if(reset){ADMIN_LOG_ITEMS=[];ADMIN_LOG_OFFSET=0;ADMIN_LOG_HAS_MORE=false;drawAdminBody();}
+  if(reset){ADMIN_LOG_DATE=selected;ADMIN_LOG_DATE_DRAFT=selected;ADMIN_LOG_ITEMS=[];ADMIN_LOG_OFFSET=0;ADMIN_LOG_HAS_MORE=false;ADMIN_LOG_TOTAL=0;drawAdminBody();}
   try {
-    const r=await workerRequest('/api/admin/logs',{offset:reset?0:ADMIN_LOG_OFFSET,limit:100});
-    const got=Array.isArray(r.items)?r.items:[ ];
+    const r=await workerRequest('/api/admin/logs',{date:ADMIN_LOG_DATE,offset:reset?0:ADMIN_LOG_OFFSET,limit:100});
+    const got=Array.isArray(r.items)?r.items:[];
     ADMIN_LOG_ITEMS=reset?got:ADMIN_LOG_ITEMS.concat(got);
     ADMIN_LOG_OFFSET=ADMIN_LOG_ITEMS.length;
     ADMIN_LOG_HAS_MORE=!!r.hasMore;
+    ADMIN_LOG_TOTAL=Number(r.total)||0;
   } catch(e) { toast(e.message||'Не удалось загрузить логи'); }
   finally { ADMIN_LOG_LOADING=false; if(CURRENT_TAB==='admin'&&adminSub==='logs') { drawAdminBody(); startAdminLogAutoRefresh(); } }
 }
 
 const UI_VISIBILITY_LABELS = {
   homeAnnouncements:'Главная: блок объявлений', homeWelcome:'Главная: приветствие и описание', topSpenders:'Главная: рейтинг топа трат',
-  cases:'Кнопка меню «Кейсы»', caseOpen:'Открытие кейсов', multiCaseOpen:'Выбор открытия 3 и 5 кейсов', casePrizeList:'Список предметов внутри кейса', caseOddsInfo:'Информация о шансах и динамической экономике',
   inventory:'Кнопка меню «Инвентарь»', inventorySell:'Продажа предметов из инвентаря',
-  upgrader:'Кнопка меню «Апгрейдер»', upgraderSourceList:'Список предметов для ставки в апгрейдере', upgraderTargetList:'Список целей и фильтры апгрейдера', upgraderSpin:'Запуск апгрейда',
   profile:'Кнопка меню «Профиль»', profileInfo:'Профиль: ID, имя, баланс и роль', profileTickets:'Профиль: список моих тикетов', profileCreateTicket:'Профиль: создание тикетов пополнения/вывода', referrals:'Профиль: реферальная ссылка и бонусы',
   settings:'Кнопка меню «Настройки»', settingsNotifications:'Настройки уведомлений Telegram (временно можно скрыть)', settingsSupport:'Ссылка на поддержку', settingsLogout:'Кнопка выхода из аккаунта',
   tickets:'Кнопка меню «Тикеты» для стаффа', announcementRewards:'Получение наград из объявлений',
-  caseFastSpin:'Кейсы: быстрая прокрутка', profileReferralStats:'Профиль: статистика рефералов (приглашено и общий доход)'
+profileReferralStats:'Профиль: статистика рефералов (приглашено и общий доход)'
 };
 function adminVisibilityHTML() {
   return `<div class="card"><h2>👁 Видимость функций игры</h2><p class="muted">Снимите галочку, чтобы скрыть функцию. В поле под ней можно указать текст, который будет показан вместо скрытого элемента. Оставьте поле пустым, чтобы ничего не показывать.</p>
@@ -1964,160 +1748,6 @@ async function addItem() {
 async function delItem(id) { if (confirm('Удалить предмет?')) { await db.ref('items/' + id).remove(); drawAdminBody(); } }
 
 /* --- Категории --- */
-function adminCatsHTML() {
-  return `<div class="card"><h2>➕ Новая категория</h2>
-    <label>Название</label><input id="cat-name">
-    <button class="btn" onclick="addCat()">Создать категорию</button></div>
-  <div class="card"><h2>🗂 Категории (${Object.keys(CATS).length})</h2>
-    ${Object.entries(CATS).map(([id, c]) =>
-      `<div class="row" style="align-items:center; margin-bottom:6px">
-        <p style="flex:1">${esc(c.name)}</p><button class="del" onclick="delCat('${id}')">Удалить</button></div>`).join('') || '<p class="muted">Пока нет.</p>'}
-    <hr class="divider"><p class="muted">Кейсы без категории автоматически попадают в раздел «Общая» в магазине.</p>
-  </div>`;
-}
-async function addCat() {
-  const name = document.getElementById('cat-name').value.trim();
-  if (!name) return toast('Введи название');
-  await db.ref('categories').push().set({ name });
-  toast('Категория создана');
-  drawAdminBody();
-}
-async function delCat(id) { if (confirm('Удалить категорию?')) { await db.ref('categories/' + id).remove(); drawAdminBody(); } }
-
-/* --- Кейсы: создание и полноценное редактирование --- */
-function adminCasesHTML() {
-  if (!draft) draft = { name:'', img:'', price:0, category:'', totalLimit:0, perUserLimit:0, hours:0, noProfit:false, items:[] };
-  const editing = !!CASE_EDIT_ID;
-  return `<div class="card"><h2>${editing?'📝 Редактирование кейса':'➕ Новый кейс'}</h2>
-    ${editing?`<p class="muted" style="margin-bottom:10px">Редактируется «${esc(CASES[CASE_EDIT_ID]?.name||'Кейс')}». Счётчик уже выполненных открытий сохранится.</p>`:''}
-    <label>Название</label><input id="cs-name" value="${esc(draft.name)}" maxlength="100">
-    <label>Иконка кейса (файл или ссылка)</label>
-    <input type="file" accept="image/*" onchange="onCaseFile(event)">
-    <p class="muted" style="text-align:center; margin:4px 0">или</p>
-    <input id="cs-img" value="${esc(draft.img)}" placeholder="https://...">
-    <img id="cs-prev" class="preview" style="${draft.img ? '' : 'display:none'}" src="${esc(draft.img)}">
-    <label>Стоимость (0 = бесплатный кейс)</label><input id="cs-price" type="number" min="0" step="1" value="${Number(draft.price)||0}">
-    <label>Категория (необязательно — иначе «Общая»)</label><select id="cs-cat">
-      <option value="">— Общая —</option>
-      ${Object.entries(CATS).map(([id, c]) => `<option value="${id}" ${draft.category === id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}
-    </select>
-    <div class="row">
-      <div><label>Всего открытий (0 = ∞)</label><input id="cs-total" type="number" min="0" step="1" value="${Number(draft.totalLimit)||0}"></div>
-      <div><label>Лимит на игрока (0 = ∞)</label><input id="cs-per" type="number" min="0" step="1" value="${Number(draft.perUserLimit)||0}"></div>
-    </div>
-    <label>Исчезнет через (часов, 0 = никогда)</label><input id="cs-hours" type="number" min="0" step="1" value="${Number(draft.hours)||0}" oninput="if(draft)draft.hoursChanged=true">
-    <label style="display:flex;align-items:center;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:10px;cursor:pointer"><input id="cs-no-profit" type="checkbox" ${draft.noProfit===true?'checked':''} style="width:18px;height:18px;flex:0 0 auto"> <span><b>Без заработка</b><small class="muted" style="display:block">Предметы из этого кейса нельзя продавать — их можно только удалить из инвентаря.</small></span></label>
-    <hr class="divider"><label>Состав кейса — веса/шансы предметов</label>
-    <div class="row" style="align-items:center">
-      <button class="btn sec" type="button" style="flex:1;min-width:0" onclick="openCaseItemPicker()">${CASE_ITEM_SELECTED_ID && ITEMS[CASE_ITEM_SELECTED_ID] ? `📦 ${esc(ITEMS[CASE_ITEM_SELECTED_ID].name)} · ${Number(ITEMS[CASE_ITEM_SELECTED_ID].price||0)}` : '📚 Выбрать предмет из базы'}</button>
-      <input id="cs-chance" type="number" min="0.0001" step="any" placeholder="Вес" value="10" style="flex:0 0 90px">
-      <button class="btn sec" type="button" style="flex:0 0 auto;padding:10px" onclick="draftAddItem()">Добавить</button>
-    </div>
-    <p class="muted" style="margin:2px 0 8px">Вес — относительная вероятность. Например, вес 20 примерно вдвое чаще веса 10 до поправки динамической экономики.</p>
-    ${draft.items.map((d, i) => { const it=ITEMS[d.id]||{}; return `<div class="row case-edit-item-row" style="align-items:center;gap:8px;margin:7px 0;padding:8px;border:1px solid var(--line);border-radius:10px">
-      <div style="width:34px;flex:0 0 34px;text-align:center">${it.img?`<img src="${esc(it.img)}" alt="" style="width:30px;height:30px;object-fit:contain">`:'📦'}</div>
-      <p style="flex:1;min-width:0;font-size:12px;overflow-wrap:anywhere">${esc(it.name||d.id)}<small class="muted" style="display:block">Цена: ${Number(it.price||0)}</small></p>
-      <div style="flex:0 0 86px"><label>Вес</label><input class="case-item-chance" data-index="${i}" type="number" min="0.0001" step="any" value="${esc(d.chance)}" style="margin:3px 0 0;padding:8px 5px"></div>
-      <button type="button" class="del" onclick="draftRemove(${i})">✕</button></div>`; }).join('') || '<p class="muted" style="padding:8px 0">Добавь хотя бы один предмет.</p>'}
-    <div class="row" style="margin-top:10px"><button class="btn" type="button" onclick="saveCase()">${editing?'Сохранить изменения':'Создать кейс'}</button>${editing?'<button class="btn sec" type="button" onclick="cancelCaseEdit()">Отмена</button>':''}</div>
-  </div>
-  <div class="card"><h2>📦 Кейсы (${Object.keys(CASES).length})</h2>
-    ${Object.entries(CASES).map(([id, k]) => `<div class="ticket-row" style="padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:12px;background:var(--card)">
-      <div class="row" style="align-items:center;gap:10px">
-        <div style="flex:0 0 40px">${k.img?`<img src="${esc(k.img)}" alt="" style="width:36px;height:36px;object-fit:contain">`:'📦'}</div>
-        <div style="flex:1;min-width:0"><b>${esc(k.name||'Кейс')}</b><div class="muted" style="margin-top:4px">${Number(k.price)>0?`${Number(k.price)} золота`:'Бесплатно'} · открыто: ${Number(k.opened)||0} · предметов: ${Object.keys(k.items||{}).length}</div></div>
-      </div>
-      <div class="row" style="margin-top:8px"><button class="btn sec" type="button" onclick="editCase('${id}')">✏️ Изменить кейс и содержимое</button><button class="btn danger" type="button" style="max-width:90px" onclick="delCase('${id}')">Удалить</button></div>
-    </div>`).join('') || '<p class="muted">Пока нет.</p>'}
-  </div>`;
-}
-function updateAdminCaseListOnly() {
-  const b=document.getElementById('admin-body'); if(!b||CURRENT_TAB!=='admin'||adminSub!=='cases') return;
-  const temp=document.createElement('div'); temp.innerHTML=adminCasesHTML();
-  const cards=temp.querySelectorAll('.card'), current=b.querySelectorAll('.card');
-  if(cards[1]&&current[1]) current[1].innerHTML=cards[1].innerHTML;
-}
-function readDraft() {
-  if (document.getElementById('cs-name')) {
-    draft.name = document.getElementById('cs-name').value;
-    draft.img = document.getElementById('cs-img').value.trim();
-    draft.price = Number(document.getElementById('cs-price').value);
-    draft.category = document.getElementById('cs-cat').value;
-    draft.totalLimit = Number(document.getElementById('cs-total').value);
-    draft.perUserLimit = Number(document.getElementById('cs-per').value);
-    draft.hours = Number(document.getElementById('cs-hours').value);
-    draft.noProfit = document.getElementById('cs-no-profit')?.checked === true;
-  }
-  document.querySelectorAll('#admin-body .case-item-chance').forEach(el => {
-    const i=Number(el.dataset.index); if (draft.items[i]) draft.items[i].chance=Number(el.value);
-  });
-}
-function onCaseFile(e) {
-  const f = e.target.files[0]; if (!f) return;
-  readDraft();
-  fileToDataUrl(f, url => { draft.img=url; FORM_STATE_SCOPE=''; drawAdminBody(); toast('Картинка загружена'); });
-}
-function openCaseItemPicker() {
-  readDraft(); caseItemSearchDraft='';
-  const input=document.getElementById('case-item-search'); if(input) input.value='';
-  document.getElementById('case-item-picker').classList.add('show'); renderCaseItemPicker();
-}
-function closeCaseItemPicker() { document.getElementById('case-item-picker').classList.remove('show'); }
-function applyCaseItemSearch() { caseItemSearchDraft=(document.getElementById('case-item-search')?.value||'').trim().toLowerCase(); renderCaseItemPicker(); }
-function renderCaseItemPicker() {
-  const host=document.getElementById('case-item-picker-list'); if(!host) return;
-  const existing=new Set((draft?.items||[]).map(x=>x.id));
-  const entries=Object.entries(ITEMS).filter(([id,it])=>String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0&&(!caseItemSearchDraft||String(it.name||'').toLowerCase().includes(caseItemSearchDraft)||id.toLowerCase().includes(caseItemSearchDraft))).sort((a,b)=>Number(b[1].price||0)-Number(a[1].price||0));
-  host.innerHTML=entries.map(([id,it])=>`<button type="button" class="picker-item price-tier-${priceTier(it.price)}" onclick="chooseCaseItem('${id}')" ${existing.has(id)?'disabled':''}>${it.img?`<img src="${esc(it.img)}" alt="">`:'<div style="font-size:38px;margin:8px">📦</div>'}<b>${esc(it.name||'Предмет')}${existing.has(id)?' · уже добавлен':''}</b><span>Цена: ${Number(it.price||0)}</span></button>`).join('')||'<p class="muted" style="grid-column:1/-1;text-align:center">Предметы не найдены.</p>';
-}
-function chooseCaseItem(id) {
-  CASE_ITEM_SELECTED_ID=id; closeCaseItemPicker();
-  const btn=document.querySelector('#admin-body button[onclick="openCaseItemPicker()"]'); const it=ITEMS[id];
-  if(btn) btn.textContent=it?`📦 ${it.name} · ${Number(it.price||0)}`:'📚 Выбрать предмет из базы';
-}
-function draftAddItem() {
-  const id=CASE_ITEM_SELECTED_ID; const chance=Number(document.getElementById('cs-chance')?.value)||0;
-  if(!id||!ITEMS[id]) return toast('Сначала выбери предмет');
-  if(!Number.isFinite(chance)||chance<=0) return toast('Вес предмета должен быть больше нуля');
-  readDraft();
-  if(draft.items.some(x=>x.id===id)) return toast('Этот предмет уже добавлен в кейс');
-  draft.items.push({id,chance}); CASE_ITEM_SELECTED_ID=''; FORM_STATE_SCOPE=''; drawAdminBody();
-}
-function draftRemove(i) { readDraft(); draft.items.splice(i,1); FORM_STATE_SCOPE=''; drawAdminBody(); }
-function editCase(id) {
-  const k=CASES[id]; if(!k) return toast('Кейс не найден');
-  CASE_EDIT_ID=id; CASE_ITEM_SELECTED_ID='';
-  const initialHours=k.expiresAt?Math.max(0,Math.ceil((Number(k.expiresAt)-Date.now())/3600000)):0;
-  draft={name:String(k.name||''),img:String(k.img||''),price:Number(k.price)||0,category:String(k.category||''),totalLimit:Number(k.totalLimit)||0,perUserLimit:Number(k.perUserLimit)||0,hours:initialHours,noProfit:k.noProfit===true,hoursChanged:false,originalExpiresAt:Number(k.expiresAt)||0,items:Object.entries(k.items||{}).map(([itemId,chance])=>({id:itemId,chance:Number(chance)}))};
-  FORM_STATE_SCOPE=''; drawAdminBody();
-  document.getElementById('admin-body')?.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function cancelCaseEdit() { CASE_EDIT_ID=null; draft=null; CASE_ITEM_SELECTED_ID=''; FORM_STATE_SCOPE=''; drawAdminBody(); }
-async function saveCase() {
-  readDraft();
-  const name=String(draft.name||'').trim();
-  const price=Number(draft.price), totalLimit=Number(draft.totalLimit), perUserLimit=Number(draft.perUserLimit), hours=Number(draft.hours);
-  if(!name) return toast('Введи название кейса');
-  if(!Number.isSafeInteger(price)||price<0) return toast('Цена должна быть целым числом от 0');
-  if(!Number.isSafeInteger(totalLimit)||totalLimit<0||!Number.isSafeInteger(perUserLimit)||perUserLimit<0||!Number.isSafeInteger(hours)||hours<0) return toast('Лимиты и срок должны быть целыми числами от 0');
-  if(!draft.items.length) return toast('Добавь хотя бы один предмет в кейс');
-  if(draft.items.some(x=>!ITEMS[x.id]||!Number.isFinite(Number(x.chance))||Number(x.chance)<=0)) return toast('Проверь предметы и веса: каждый вес должен быть больше нуля');
-  const items={}; for(const d of draft.items) items[d.id]=Number(d.chance);
-  if(Object.keys(items).length!==draft.items.length) return toast('В кейсе не должно быть одинаковых предметов дважды');
-  const existing=CASE_EDIT_ID?CASES[CASE_EDIT_ID]:null;
-  const expiresAt=existing && draft.hoursChanged!==true ? (Number(draft.originalExpiresAt)||0) : (hours?Date.now()+hours*3600000:0);
-  const payload={name,img:String(draft.img||'').trim(),category:String(draft.category||''),price,totalLimit,perUserLimit,noProfit:draft.noProfit===true,expiresAt,opened:Math.max(0,Number(existing?.opened)||0),items,createdAt:Number(existing?.createdAt)||Date.now(),updatedAt:Date.now()};
-  try {
-    if(CASE_EDIT_ID) { const id=CASE_EDIT_ID; await db.ref('cases/'+id).set(payload); CASES={...CASES,[id]:payload}; }
-    else { const ref=db.ref('cases').push(); await ref.set(payload); CASES={...CASES,[ref.key]:payload}; }
-    CASE_EDIT_ID=null; draft=null; CASE_ITEM_SELECTED_ID=''; FORM_STATE_SCOPE='';
-    toast(existing?'Изменения кейса сохранены':'Кейс создан'); drawAdminBody();
-    if(CASE_DETAIL_ID && (existing || CASE_DETAIL_ID)) { CASE_DYNAMIC_ODDS=null; }
-  } catch(e) { toast(e?.message||'Не удалось сохранить кейс'); }
-}
-async function delCase(id) { if(confirm('Удалить кейс?')) { try { await db.ref('cases/'+id).remove(); const next={...CASES}; delete next[id]; CASES=next; if(CASE_EDIT_ID===id) {CASE_EDIT_ID=null;draft=null;} FORM_STATE_SCOPE=''; drawAdminBody(); } catch(e) { toast(e?.message||'Не удалось удалить кейс'); } } }
-
-/* --- Игроки и роли --- */
 function adminUsersHTML() {
   const all = Object.entries(USERS).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
   const q = adminUserSearch.trim().toLowerCase();
@@ -2143,14 +1773,13 @@ function openPlayerAdminModal(id) {
   const samePlayerAlreadyOpen=PLAYER_ADMIN_ID===id && modal?.classList.contains('show');
   const focusedBefore=samePlayerAlreadyOpen?document.activeElement:null;
   const focusInfo=samePlayerAlreadyOpen&&focusedBefore&&focusedBefore.id?{id:focusedBefore.id,start:typeof focusedBefore.selectionStart==='number'?focusedBefore.selectionStart:null,end:typeof focusedBefore.selectionEnd==='number'?focusedBefore.selectionEnd:null}:null;
-  const preservedInputs=samePlayerAlreadyOpen?{balanceAmount:document.getElementById('player-balance-amount')?.value||'',balanceReason:document.getElementById('player-balance-reason')?.value||'',giftCount:document.getElementById('player-gift-count')?.value||'1',giftNoSell:!!document.getElementById('player-gift-no-sell')?.checked,luckPercent:document.getElementById('player-luck-percent')?.value}:null;
+  const preservedInputs=samePlayerAlreadyOpen?{balanceAmount:document.getElementById('player-balance-amount')?.value||'',balanceReason:document.getElementById('player-balance-reason')?.value||''}:null;
   PLAYER_ADMIN_ID = id;
   const u = USERS[id] || {};
   const banActive = isPlayerBanActive(u.ban);
   document.getElementById('player-admin-name').textContent = `${u.name || 'Игрок'}${u.username ? ' · @'+String(u.username).replace(/^@/,'') : ''} · Telegram ID ${id}`;
   const role = id === ADMIN_ID || u.is_admin ? 'Администратор' : ROLES[id] === 'moderator' ? 'Модератор' : 'Игрок';
   const inv = Object.keys(u.inventory || {}).length;
-  const opened = Object.values(u.openedCases || {}).reduce((a,b)=>a+(Number(b)||0),0);
   const ticketCount = Object.values(TICKETS).filter(t=>t && String(t.owner)===id).length;
   const created = u.createdAt ? new Date(u.createdAt).toLocaleString('ru-RU') : 'не указана';
   const history = (Array.isArray(u.balanceHistory) ? [...u.balanceHistory] : []).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
@@ -2160,52 +1789,19 @@ function openPlayerAdminModal(id) {
   const playerMoneyTickets=Object.entries(TICKETS||{}).filter(([,t])=>t&&String(t.owner)===String(id)&&['deposit','withdraw'].includes(t.type)).map(([key,t])=>({id:key,...t})).sort((a,b)=>(Number(b.createdAt||b.at||b.closedAt)||0)-(Number(a.createdAt||a.at||a.closedAt)||0));
   const moneyTicketsHtml=`<div style="margin-top:12px"><h3 style="font-size:13px;margin-bottom:7px">💳 История пополнений и выводов (${playerMoneyTickets.length})</h3>${playerMoneyTickets.length?playerMoneyTickets.map(t=>{const isDep=t.type==='deposit';const status=t.status==='closed'?(t.transactionApplied?'Выполнено':'Закрыто без выполнения'):t.status==='taken'?'В работе':'Ожидает';const at=Number(t.createdAt||t.at||t.openedAt||t.closedAt)||0;return `<div class="ticket-row" style="padding:7px;margin-bottom:5px;font-size:11px"><div class="row" style="align-items:center;gap:6px"><b style="color:${isDep?'var(--green)':'var(--red)'}">${isDep?'Пополнение':'Вывод'} · ${Number(t.amount||0).toLocaleString('ru-RU')} зол.</b><span style="margin-left:auto;color:var(--muted)">${esc(status)}</span></div><div class="chips" style="font-size:10px">${at?esc(fmtTime(at)):'Время не указано'} · тикет #${esc(t.num||t.id||t.key||'—')}${t.closedAt?' · закрыт '+esc(fmtTime(t.closedAt)):''}</div>${t.reason?`<div style="color:var(--muted);margin-top:3px">${esc(t.reason)}</div>`:''}</div>`}).join(''):'<p class="muted" style="font-size:11px">Заявок на пополнение или вывод пока нет.</p>'}</div>`;
   const inventoryEntries=Object.entries(u.inventory||{}).sort((a,b)=>(Number(b[1]?.at)||0)-(Number(a[1]?.at)||0));
-  const giftEntries=Object.entries(u.giftedCases||{}).filter(([,g])=>g&&g.status==='available');
-  const luckPercent=Math.max(0,Math.min(100,Number.isFinite(Number(u.luckPercent))?Number(u.luckPercent):100));
-  const luckHtml=`<div style="margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px"><h3 style="font-size:14px;margin-bottom:6px">🍀 Удача игрока</h3><p class="muted" style="font-size:11px">100% — обычные шансы. Чем ниже значение, тем сильнее снижается вес предметов дороже цены кейса; шанс не обнуляется полностью.</p><label for="player-luck-percent">Процент удачи (0–100)</label><div class="row" style="gap:8px;align-items:center"><input id="player-luck-percent" type="number" min="0" max="100" step="1" value="${luckPercent}" inputmode="numeric" style="flex:1"><button class="btn" type="button" onclick="savePlayerLuck()">Сохранить</button></div></div>`;
-  const inventoryEditorHtml=`<div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px"><h3 style="font-size:14px;margin-bottom:8px">🎒 Редактирование инвентаря (${inventoryEntries.length+giftEntries.length})</h3><p class="muted" style="font-size:12px">Можно удалить предмет или неоткрытый подаренный кейс. Для выдачи новых кейсов используй блок «Подарить кейс» выше.</p>${giftEntries.map(([key,g])=>`<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>🎁 ${esc(g.name||CASES[g.caseId]?.name||'Подаренный кейс')}</b><div class="chips">Подаренный кейс · доступен</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('gift','${key}')">Удалить</button></div></div>`).join('')}${inventoryEntries.map(([key,e])=>{const meta=getInventoryItemMeta(e)||{};return `<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>${esc(meta.name||e.name||'Предмет')}</b><div class="chips">${esc(meta.price||e.price||0)} · ${esc(e.source||'инвентарь')}${e.caseId?' · выпал из кейса':''}</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('item','${key}')">Удалить</button></div></div>`;}).join('')||(!giftEntries.length?'<p class="muted">Предметов нет.</p>':'')}</div>`;
+  const inventoryEditorHtml=`<div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px"><h3 style="font-size:14px;margin-bottom:8px">🎒 Редактирование инвентаря (${inventoryEntries.length})</h3><p class="muted" style="font-size:12px">Можно удалить предмет из инвентаря. Записи в базе не удаляются автоматически.</p>${inventoryEntries.map(([key,e])=>{const meta=getInventoryItemMeta(e)||{};return `<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>${esc(meta.name||e.name||'Предмет')}</b><div class="chips">${esc(meta.price||e.price||0)} · ${esc(e.source||'инвентарь')}</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('${key}')">Удалить</button></div></div>`;}).join('')||'<p class="muted">Предметов нет.</p>'}</div>`;
   const banBox = `<div style="margin-top:14px;padding:12px;border:1px solid ${banActive?'var(--red)':'var(--line)'};border-radius:12px"><h3 style="font-size:14px;margin-bottom:7px">${banActive?'⛔ Игрок заблокирован':'🛡️ Блокировка игрока'}</h3>${banActive?`<p style="font-size:13px;margin-bottom:5px">Причина: ${esc(u.ban.reason||'не указана')}</p><p data-ban-countdown data-expires-at="${Number(u.ban.expiresAt)||0}" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px">${Number(u.ban.expiresAt)>Date.now()?'Осталось: '+formatRemainingTime(Number(u.ban.expiresAt)-Date.now()):Number(u.ban.expiresAt)>0?'Срок блокировки истёк':'Срок блокировки: бессрочно'}</p>`:`<label for="player-ban-duration">Срок блокировки</label><select id="player-ban-duration"><option value="15m">15 минут</option><option value="1h">1 час</option><option value="6h">6 часов</option><option value="24h">24 часа</option><option value="7d">7 дней</option><option value="30d">30 дней</option><option value="permanent" selected>Бессрочно</option></select>`}<label for="player-ban-reason">${banActive?'Причина снятия (необязательно)':'Причина блокировки (обязательно)'}</label><textarea id="player-ban-reason" rows="2" maxlength="500" placeholder="${banActive?'Комментарий к снятию блокировки':'Укажи причину блокировки'}"></textarea><button class="btn ${banActive?'':'danger'}" style="margin-top:4px" onclick="setPlayerBan('${banActive?'unban':'ban'}')">${banActive?'Снять блокировку':'Заблокировать игрока'}</button></div>`
-  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Открытий кейсов</span><b>${opened}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${moneyTicketsHtml}${luckHtml}${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
-  const giftSelect=document.getElementById('player-gift-case'); if(giftSelect) giftSelect.innerHTML=Object.entries(CASES||{}).map(([caseId,caseData])=>`<option value="${esc(caseId)}">${esc(caseData.name||caseId)}</option>`).join('') || '<option value="">Нет доступных кейсов</option>';
+  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${moneyTicketsHtml}${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
   if(!samePlayerAlreadyOpen) { document.getElementById('player-balance-amount').value = ''; document.getElementById('player-balance-reason').value = ''; }
-  if(preservedInputs) { document.getElementById('player-balance-amount').value=preservedInputs.balanceAmount; document.getElementById('player-balance-reason').value=preservedInputs.balanceReason; const gc=document.getElementById('player-gift-count'); if(gc)gc.value=preservedInputs.giftCount; const ns=document.getElementById('player-gift-no-sell'); if(ns)ns.checked=preservedInputs.giftNoSell; const lp=document.getElementById('player-luck-percent'); if(lp && preservedInputs.luckPercent!==undefined) lp.value=preservedInputs.luckPercent; }
+  if(preservedInputs) { document.getElementById('player-balance-amount').value=preservedInputs.balanceAmount; document.getElementById('player-balance-reason').value=preservedInputs.balanceReason; }
   document.getElementById('player-admin-modal').classList.add('show');
   if(focusInfo) { const el=document.getElementById(focusInfo.id); if(el){el.focus({preventScroll:true});if(focusInfo.start!==null&&typeof el.setSelectionRange==='function'){try{el.setSelectionRange(focusInfo.start,focusInfo.end)}catch(_){}}} }
 }
-async function savePlayerLuck() {
-  const targetId=PLAYER_ADMIN_ID, input=document.getElementById('player-luck-percent');
-  const luckPercent=Number(input?.value);
-  if(!targetId || !Number.isInteger(luckPercent) || luckPercent<0 || luckPercent>100) return toast('Укажи целое число от 0 до 100');
-  const button=input?.parentElement?.querySelector('button'); if(button){button.disabled=true;button.textContent='Сохранение…';}
-  try {
-    await workerRequest('/api/admin/player/luck',{targetId,luckPercent});
-    if(USERS[targetId]) USERS[targetId].luckPercent=luckPercent;
-    toast(`Удача игрока установлена: ${luckPercent}%`);
-    // Не перерисовываем модальное окно: ввод и фокус остаются на месте.
-  } catch(e) { toast(e.message||'Не удалось сохранить удачу'); }
-  finally { if(button){button.disabled=false;button.textContent='Сохранить';} }
-}
-
-async function giftCaseToPlayer() {
-  const targetId=PLAYER_ADMIN_ID, caseId=String(document.getElementById('player-gift-case')?.value||''), count=Number(document.getElementById('player-gift-count')?.value||1), noSellDrop=!!document.getElementById('player-gift-no-sell')?.checked;
-  if(!targetId||!caseId) return toast('Выбери игрока и кейс');
-  if(!Number.isInteger(count)||count<1||count>100) return toast('Количество должно быть от 1 до 100');
-  const target=USERS[targetId]||{};
-  if(!confirm(`Подарить ${count} кейс(а) «${CASES[caseId]?.name||caseId}» игроку ${target.name||targetId}? Кейс появится в его инвентаре и будет открываться бесплатно.${noSellDrop?' Предметы из этих кейсов нельзя будет продать.':''}`)) return;
-  try {
-    await workerRequest('/api/admin/case/gift',{targetId,caseId,count,noSellDrop});
-    const snap=await db.ref('users/'+targetId).get(); if(snap.exists()) USERS[targetId]=snap.val();
-    toast('Подаренные кейсы добавлены в инвентарь игрока');
-    openPlayerAdminModal(targetId); drawAdminBody();
-  } catch(e) { toast(e.message||'Не удалось подарить кейс'); }
-}
-
-async function adminRemoveInventoryEntry(entryType,entryKey) {
+async function adminRemoveInventoryEntry(entryKey) {
   const targetId=PLAYER_ADMIN_ID;
-  if(!targetId||!entryKey) return toast('Игрок или элемент не выбран');
-  const label=entryType==='gift'?'подаренный кейс':'предмет';
-  if(!confirm(`Удалить ${label} из инвентаря игрока ${targetId}? Действие нельзя отменить.`)) return;
-  try { await workerRequest('/api/admin/inventory/delete',{targetId,entryType,entryKey}); const snap=await db.ref('users/'+targetId).get(); if(snap.exists()) USERS[targetId]=snap.val(); toast('Элемент инвентаря удалён'); openPlayerAdminModal(targetId); drawAdminBody(); }
+  if(!targetId||!entryKey) return toast('Игрок или предмет не выбран');
+  if(!confirm(`Удалить предмет из инвентаря игрока ${targetId}? Действие нельзя отменить.`)) return;
+  try { await workerRequest('/api/admin/inventory/delete',{targetId,entryKey}); const snap=await db.ref('users/'+targetId).get(); if(snap.exists()) USERS[targetId]=snap.val(); toast('Предмет удалён'); openPlayerAdminModal(targetId); drawAdminBody(); }
   catch(e) { toast(e.message||'Не удалось изменить инвентарь'); }
 }
 
@@ -2387,7 +1983,6 @@ function adminStatsHTML() {
   const isStaffAccount = (id,u) => String(id) === ADMIN_ID || u?.is_admin === true || u?.role === 'admin' || u?.role === 'moderator' || ROLES?.[id] === 'admin' || ROLES?.[id] === 'moderator';
   const users=Object.entries(USERS||{}).filter(([id,u])=>!isStaffAccount(id,u));
   const totalBalance=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.balance)||0),0), totalSpent=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.spentCurrency)||0),0), totalEarned=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.earnedCurrency)||0),0);
-  const openings=users.reduce((n,[,u])=>n+Math.max(0,Number(u?.caseOpenStats ?? Object.values(u?.openedCases||{}).reduce((x,v)=>x+Math.max(0,Number(v)||0),0))||0),0);
   const validInventory=users.reduce((n,[,u])=>n+Object.values(u?.inventory||{}).filter(e=>{const it=ITEMS[String(e?.itemId||e?.id||'')];return !!it&&!!String(it.name||it.title||'').trim()&&Number(it.price??it.cost)>0;}).length,0);
   const allTickets=Object.values(TICKETS||{}), openTickets=allTickets.filter(t=>t?.status==='open').length, activeTickets=allTickets.filter(t=>t?.status==='taken').length, closedTickets=allTickets.filter(t=>t?.status==='closed').length;
   const validTickets=allTickets.filter(t=>t?.transactionApplied===true && t?.status==='closed' && !isStaffAccount(String(t.owner||''),USERS?.[String(t.owner||'')]));
@@ -2407,11 +2002,11 @@ function adminStatsHTML() {
     + statsBarChartHTML('Зарегистрированные игроки',labels,dailyRegistrations,' игроков')
     + statsBarChartHTML('Приглашённые игроки',labels,dailyInvites,' игроков');
   return `<div class="card"><h2>📊 Подробная статистика</h2><p class="muted">В статистику включены только обычные игроки. Администраторы и модераторы исключены из подсчётов и рейтинга. Графики показывают последние 7 дней по дате подтверждения заявки или регистрации.</p><div class="player-info-grid">
-    ${[['Игроков',users.length],['Приглашено игроков',invitedUsers.length],['Начислено реферальных бонусов',referralEarnings],['Пополнения подтверждены',depositTotal],['Выводы подтверждены',withdrawalTotal],['Общий баланс',totalBalance],['Расходы на кейсы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Открытия кейсов',openings],['Валидные предметы в инвентарях',validInventory],['Кейсов в каталоге',Object.keys(CASES||{}).length],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
-    </div><h3 style="margin-top:16px;font-size:14px">📈 Диаграммы</h3>${charts}<h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)}${x.u?.username?` · @${esc(x.u.username)}`:''} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sec" onclick="drawAdminBody()">Обновить статистику</button><button class="btn danger" onclick="resetAdminStatistics()">Сбросить статистику</button></div><p class="muted" style="margin-top:8px">Сброс обнуляет расходы, доходы и счётчик открытий в статистике. Балансы, инвентари и лимиты открытий не меняются.</p></div>`;
+    ${[['Игроков',users.length],['Приглашено игроков',invitedUsers.length],['Начислено реферальных бонусов',referralEarnings],['Пополнения подтверждены',depositTotal],['Выводы подтверждены',withdrawalTotal],['Общий баланс',totalBalance],['Расходы',totalSpent],['Доход от продажи',totalEarned],['Расходы минус доходы',totalSpent-totalEarned],['Валидные предметы в инвентарях',validInventory],['Предметов в каталоге',Object.keys(ITEMS||{}).length],['Объявлений',Object.keys(ANNS||{}).length],['Открытых тикетов',openTickets],['Тикетов в работе',activeTickets],['Закрытых тикетов',closedTickets]].map(([label,value])=>`<div class="player-info-cell"><span>${label}</span><b>${Number(value).toLocaleString('ru-RU')}</b></div>`).join('')}
+    </div><h3 style="margin-top:16px;font-size:14px">📈 Диаграммы</h3>${charts}<h3 style="margin-top:16px;font-size:14px">Топ-10 по расходам</h3>${ranking.map((x,i)=>`<div class="ticket-row"><div class="row"><b>${i+1}. ${esc(x.u?.name||x.id)}</b><span style="margin-left:auto">−${x.spent.toLocaleString('ru-RU')}</span></div><div class="chips">ID ${esc(x.id)}${x.u?.username?` · @${esc(x.u.username)}`:''} · доход: ${x.earned.toLocaleString('ru-RU')} · баланс: ${Number(x.u?.balance||0).toLocaleString('ru-RU')}</div></div>`).join('')||'<p class="muted">Нет данных.</p>'}<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn sec" onclick="drawAdminBody()">Обновить статистику</button><button class="btn danger" onclick="resetAdminStatistics()">Сбросить статистику</button></div><p class="muted" style="margin-top:8px">Сброс обнуляет расходы и доходы от продажи. Балансы и инвентари не меняются.</p></div>`;
 }
 async function resetAdminStatistics() {
-  const confirmed=confirm('Сбросить статистику всех игроков? Будут обнулены расходы, доходы от продажи и счётчик открытий в статистике. Балансы, предметы и лимиты кейсов сохранятся. Это действие нельзя отменить.');
+  const confirmed=confirm('Сбросить статистику всех игроков? Будут обнулены расходы и доходы от продажи. Балансы и предметы сохранятся. Это действие нельзя отменить.');
   if(!confirmed) return;
   try {
     const result=await workerRequest('/api/admin/stats/reset',{confirm:'RESET_STATISTICS'});
@@ -2421,18 +2016,18 @@ async function resetAdminStatistics() {
 }
 
 function adminNotificationsHTML() {
-  const cfg=window._adminNotificationConfig||{}; const defaults={caseOpen:'📦 {name}, ты открыл кейс «{case}». Потрачено: {amount}. Баланс: {balance}.',itemSold:'💰 {name}, предмет «{item}» продан за {amount}. Баланс: {balance}.',upgrade:'⚡ {name}, апгрейд: {result}. Предмет: {item}.',reward:'🎁 {name}, ты получил награду: {item}.'}; const t={...defaults,...(cfg.templates||{})};
+  const cfg=window._adminNotificationConfig||{}; const defaults={itemSold:'💰 {name}, предмет «{item}» продан за {amount}. Баланс: {balance}.',reward:'🎁 {name}, ты получил награду: {item}.'}; const t={...defaults,...(cfg.templates||{})};
   return `<div class="card"><h2>🔔 Уведомления Telegram-бота</h2><p class="muted">Сообщения получают только пользователи, включившие их в настройках и запустившие бота. Ошибка отправки не отменяет игровую операцию.</p>
     <label style="display:flex;align-items:center;gap:10px;margin:8px 0"><input id="bot-notif-enabled" type="checkbox" ${cfg.enabled?'checked':''} style="width:auto"> Глобально включить пользовательские уведомления</label>
     <label style="display:flex;align-items:center;gap:10px;margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:10px"><input id="bot-staff-ticket-notifs" type="checkbox" ${cfg.staffTicketNotificationsEnabled!==false?'checked':''} style="width:auto"> Отправлять новые тикеты в личные сообщения администраторам и модераторам</label>
     <p class="muted">В уведомлении указаны номер тикета, тип, сумма, ID и имя игрока, локация и время. Каждый администратор и модератор должен хотя бы один раз запустить бота в Telegram, иначе бот не сможет написать ему первым.</p>
     <label>HTTPS-ссылка на Mini App</label><input id="bot-notif-app-url" value="${esc(cfg.appUrl||location.href.split('#')[0])}" placeholder="https://...github.io/...">
     <p class="muted">Ссылка для кнопки «Открыть приложение» в сообщении бота.</p>
-    <label>Шаблон: открытие кейса</label><textarea id="bot-tpl-caseOpen" rows="2">${esc(t.caseOpen)}</textarea><label>Шаблон: продажа</label><textarea id="bot-tpl-itemSold" rows="2">${esc(t.itemSold)}</textarea><label>Шаблон: апгрейд</label><textarea id="bot-tpl-upgrade" rows="2">${esc(t.upgrade)}</textarea><label>Шаблон: награда</label><textarea id="bot-tpl-reward" rows="2">${esc(t.reward)}</textarea>
-    <p class="muted">Переменные: {name}, {amount}, {balance}, {case}, {item}, {result}.</p><button class="btn" onclick="saveAdminNotificationConfig()">Сохранить настройки и тексты</button></div>`;
+    <label>Шаблон: продажа</label><textarea id="bot-tpl-itemSold" rows="2">${esc(t.itemSold)}</textarea><label>Шаблон: награда</label><textarea id="bot-tpl-reward" rows="2">${esc(t.reward)}</textarea>
+    <p class="muted">Переменные: {name}, {amount}, {balance}, {item}.</p><button class="btn" onclick="saveAdminNotificationConfig()">Сохранить настройки и тексты</button></div>`;
 }
 async function saveAdminNotificationConfig() {
-  const appUrl=document.getElementById('bot-notif-app-url').value.trim(), templates={caseOpen:document.getElementById('bot-tpl-caseOpen').value,itemSold:document.getElementById('bot-tpl-itemSold').value,upgrade:document.getElementById('bot-tpl-upgrade').value,reward:document.getElementById('bot-tpl-reward').value};
+  const appUrl=document.getElementById('bot-notif-app-url').value.trim(), templates={itemSold:document.getElementById('bot-tpl-itemSold').value,reward:document.getElementById('bot-tpl-reward').value};
   try { const r=await workerRequest('/api/admin/notifications',{enabled:document.getElementById('bot-notif-enabled').checked,staffTicketNotificationsEnabled:document.getElementById('bot-staff-ticket-notifs').checked,appUrl,templates}); window._adminNotificationConfig=r.config||{enabled:document.getElementById('bot-notif-enabled').checked,staffTicketNotificationsEnabled:document.getElementById('bot-staff-ticket-notifs').checked,appUrl,templates}; toast('Настройки уведомлений сохранены'); drawAdminBody(); } catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
 }
 async function loadAdminNotificationConfig() { try { const r=await workerRequest('/api/admin/notifications/get',{}); window._adminNotificationConfig=r.config||{}; if(CURRENT_TAB==='admin'&&adminSub==='notifications') drawAdminBody(); } catch(e) {} }
@@ -2442,27 +2037,11 @@ function adminSystemHTML() {
   const enabled = !!MAINTENANCE?.enabled;
   const updatedBy = MAINTENANCE?.updatedBy ? `Администратор ID: ${esc(MAINTENANCE.updatedBy)}` : '';
   const updatedAt = Number(MAINTENANCE?.updatedAt) > 0 ? new Date(Number(MAINTENANCE.updatedAt)).toLocaleString('ru-RU') : '';
-  const globalLuckPercent=Math.max(0,Math.min(100,Number.isInteger(Number(GLOBAL_LUCK?.luckPercent))?Number(GLOBAL_LUCK.luckPercent):100));
-  const globalLuckUpdated=GLOBAL_LUCK?.updatedAt?new Date(Number(GLOBAL_LUCK.updatedAt)).toLocaleString('ru-RU'):'';
-  return `<div class="card"><h2>🍀 Общая удача игроков</h2><p class="muted">Значение действует на всех игроков и является верхним пределом персональной удачи. Например, при общей удаче 40% игрок с персональными 80% будет играть с 40%, а игрок с персональными 20% — с 20%. Значение влияет только на выпадение предметов, но не меняет отображаемые шансы.</p>
-    <label for="global-luck-percent">Общая удача (0–100%)</label><div class="row" style="gap:8px;align-items:center"><input id="global-luck-percent" type="number" min="0" max="100" step="1" inputmode="numeric" value="${globalLuckPercent}" style="flex:1"><button class="btn" type="button" onclick="saveGlobalLuck()">Сохранить</button></div>
-    <p class="muted" style="font-size:11px;margin-top:8px">100% — без общего снижения удачи; 0% — максимальное влияние настройки. ${globalLuckUpdated?`Последнее изменение: ${esc(globalLuckUpdated)} · ID: ${esc(GLOBAL_LUCK.updatedBy||'—')}`:''}</p></div>
-    <div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
+  return `<div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
     <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
     <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
     <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p>
     ${enabled && updatedBy ? `<p class="muted">Включил: ${updatedBy}${updatedAt ? ` · ${updatedAt}` : ''}</p>` : ''}</div>`;
-}
-async function saveGlobalLuck() {
-  const input=document.getElementById('global-luck-percent');
-  const luckPercent=Number(input?.value);
-  if(!Number.isInteger(luckPercent)||luckPercent<0||luckPercent>100) return toast('Укажи целое число от 0 до 100');
-  try {
-    const result=await workerRequest('/api/admin/global-luck',{luckPercent});
-    GLOBAL_LUCK={luckPercent:result.luckPercent,updatedAt:result.updatedAt,updatedBy:result.updatedBy};
-    toast(`Общая удача установлена: ${luckPercent}%`);
-    drawAdminBody();
-  } catch(e) { toast(e.message||'Не удалось сохранить общую удачу'); }
 }
 async function saveMaintenance(enabled) {
   const message = document.getElementById('maintenance-text')?.value.trim() || 'Ведутся технические работы. Попробуйте зайти позже.';
