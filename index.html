@@ -320,6 +320,12 @@
 
   .home-game-section{margin:14px 0 100px}.home-section-title{font-size:19px;margin:14px 0}.home-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.home-game-card{min-width:0;border:1px solid var(--line);border-radius:16px;background:var(--card);padding:16px 12px;text-align:center;box-shadow:0 8px 24px #0002}.home-game-icon{font-size:36px;line-height:1.2;margin-bottom:10px}.home-game-name{font-weight:800;margin-bottom:12px}.home-play-btn{width:100%;min-height:38px}.home-placeholder-card{opacity:.72}.home-bottom-nav{position:fixed;z-index:40;bottom:calc(10px + env(safe-area-inset-bottom));left:12px;right:12px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;padding:9px 8px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 8px 30px #0004}.home-bottom-nav button{border:0;background:transparent;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:12px;cursor:pointer;padding:2px}.home-bottom-icon{font-size:20px;line-height:1.1}.home-bottom-nav small{font-size:10px;color:var(--muted)}.home-bottom-center{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:800;color:var(--accent)}@media(min-width:700px){.home-game-grid{grid-template-columns:repeat(2,minmax(0,220px))}.home-bottom-nav{left:calc(50% - 260px);right:calc(50% - 260px)}}
 
+
+.market-tabs{display:flex;gap:7px;overflow-x:auto;margin:10px 0 14px;padding-bottom:3px}.market-tabs button{white-space:nowrap;flex:0 0 auto}
+.market-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.market-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.market-icon{height:76px;display:grid;place-items:center;font-size:42px;overflow:hidden}.market-icon img{width:70px;height:70px;object-fit:contain}.market-title{font-weight:800;overflow-wrap:anywhere;margin:6px 0}.market-meta{color:var(--muted);font-size:11px;line-height:1.5}.market-price{font-size:18px;font-weight:900;color:var(--accent);margin:7px 0}.market-card .btn{width:100%;margin-top:7px}.market-empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}.market-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.market-form-grid .wide{grid-column:1/-1}.market-stock{font-weight:800;font-size:12px;color:var(--green)}
+.pvp-board-wrap{width:min(100%,600px);margin:12px auto;border-radius:15px;overflow:hidden;border:1px solid var(--line);background:#10131c;aspect-ratio:1}.pvp-board{display:block;width:100%;height:100%;image-rendering:pixelated}.pvp-board.pvp-reveal{animation:pvpReveal .85s cubic-bezier(.18,.8,.2,1)}@keyframes pvpReveal{0%{transform:scale(.72);filter:brightness(.45)}60%{transform:scale(1.04);filter:brightness(1.5)}100%{transform:scale(1);filter:brightness(1)}}.pvp-players{display:grid;gap:8px;margin-top:10px}.pvp-player{display:flex;align-items:center;gap:9px;padding:9px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}.pvp-dot{width:12px;height:12px;border-radius:4px;flex:0 0 12px}.pvp-player-name{min-width:0;flex:1;overflow-wrap:anywhere}.pvp-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pvp-stat{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-align:center}.pvp-stat b{display:block;font-size:17px}.pvp-stat span{color:var(--muted);font-size:10px}.market-review{padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}.market-inventory-note{font-size:11px;color:var(--muted);margin-top:5px}
+@media(max-width:420px){.market-form-grid{grid-template-columns:1fr}.market-form-grid .wide{grid-column:auto}.pvp-stat-grid{gap:5px}.pvp-stat{padding:8px 4px}.pvp-stat b{font-size:15px}}
+
 </style>
 </head>
 <body>
@@ -358,6 +364,7 @@
     <div class="menu-inner">
       <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
       <a class="nav-item" data-tab="games" onclick="go('games')">🎮 Игры</a>
+      <a class="nav-item" data-tab="market" onclick="go('market')">🛒 Маркет</a>
       <a class="nav-item" data-tab="inventory" onclick="go('inventory')">🎒 Инвентарь</a>
       <a class="nav-item" data-tab="profile"   onclick="go('profile')">👤 Профиль</a>
       <a class="nav-item" data-tab="settings"  onclick="go('settings')">⚙️ Настройки</a>
@@ -476,6 +483,12 @@ function formatApiError(data, status, fallback) {
   const message = String(data?.error || fallback || 'Неизвестная ошибка');
   return `${message} [код: ${code}]`;
 }
+function formatBalance(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '0';
+  return n.toLocaleString('ru-RU', {minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2});
+}
+
 async function workerRequest(path, payload = {}) {
   if (!CURRENT_ID || (!CURRENT_PASS && !TG_INIT_DATA)) throw new Error('Сессия не подтверждена. Откройте приложение через Telegram.');
   if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Укажи URL Cloudflare Worker в WORKER_URL в index.html');
@@ -610,7 +623,7 @@ function refreshBanCountdowns() {
   }
 }
 setInterval(refreshBanCountdowns, 1000);
-const TITLES = { home:'Главная', games:'Игры', inventory:'Инвентарь', mines:'Мины', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
+const TITLES = { home:'Главная', games:'Игры', market:'Маркет', pvp:'PvP', inventory:'Инвентарь', mines:'Мины', profile:'Профиль', settings:'Настройки', tickets:'Тикеты', admin:'Админ-панель' };
 let inventoryCleanupCheckedFor = null;
 const DEFAULT_NOTIFICATION_SETTINGS = { telegram:false, itemSold:true, reward:true, announcements:true, maintenanceStart:true, maintenanceEnd:true };
 
@@ -734,7 +747,7 @@ async function enterApp(id) {
     profile = s.val() || {};
     syncReferralInfoFromLocalData();
     if (CURRENT_TAB === 'home') updateHomeAnnouncements();
-    document.getElementById('balance').textContent = profile.balance ?? 0;
+    document.getElementById('balance').textContent = formatBalance(profile.balance ?? 0);
     document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
     updateStaffBtn();
     const sDb = document.getElementById('s-db');
@@ -1000,6 +1013,8 @@ function rerender() {
   const snapshot = FORM_STATE_SCOPE === scope ? captureFormState(c) : [];
   if (CURRENT_TAB === 'home') renderHome(c);
   if (CURRENT_TAB === 'games') renderGames(c);
+  if (CURRENT_TAB === 'market') renderMarket(c);
+  if (CURRENT_TAB === 'pvp') renderPvp(c);
   if (CURRENT_TAB === 'settings') renderSettings(c);
   if (CURRENT_TAB === 'inventory') renderInventory(c);
   if (CURRENT_TAB === 'mines') renderMines(c);
@@ -1134,13 +1149,13 @@ function updateHomeWelcome() {
 }
 function renderHome(c) {
   c.innerHTML=`<div id="home-announcements-host"></div><div id="home-welcome-host"></div>
-    <div class="home-bottom-nav"><button onclick="toast('Маркет скоро появится')"><span class="home-bottom-icon">🛒</span><span>Маркет</span><small>Заготовка</small></button><button class="home-bottom-center" onclick="go('games')"><span class="home-bottom-icon">🎮</span><span>Игры</span></button><button onclick="go('inventory')"><span class="home-bottom-icon">🎒</span><span>Инвентарь</span></button></div><div id="home-top-host"></div>`;
+    <div class="home-bottom-nav"><button onclick="go('market')"><span class="home-bottom-icon">🛒</span><span>Маркет</span><small>Торговля</small></button><button class="home-bottom-center" onclick="go('games')"><span class="home-bottom-icon">🎮</span><span>Игры</span></button><button onclick="go('inventory')"><span class="home-bottom-icon">🎒</span><span>Инвентарь</span></button></div><div id="home-top-host"></div>`;
   HOME_ANNS_RENDER_SIGNATURE=''; updateHomeAnnouncements(true); updateHomeWelcome(); updateHomeTopSpenders();
 }
 function renderGames(c) {
   c.innerHTML=`<section class="home-game-section"><h2 class="home-section-title">🎮 Игры</h2><div class="home-game-grid">
-    <article class="home-game-card"><div class="home-game-icon" id="games-mines-icon">💣</div><div class="home-game-name">Мины</div><button class="btn home-play-btn" onclick="go('mines')">Играть</button></article>
-    <article class="home-game-card home-placeholder-card"><div class="home-game-icon">🕹️</div><div class="home-game-name">Скоро</div><button class="btn sec home-play-btn" disabled>Скоро</button></article>
+    <article class="home-game-card"><div class="home-game-icon" id="games-mines-icon">${esc(GAME_CARD_CONFIG.minesIcon||'💣')}</div><div class="home-game-name" id="games-mines-name">${esc(GAME_CARD_CONFIG.minesName||'Мины')}</div><button class="btn home-play-btn" onclick="go('mines')">Играть</button></article>
+    <article class="home-game-card"><div class="home-game-icon" id="games-pvp-icon">${esc(GAME_CARD_CONFIG.pvpIcon||'⚔️')}</div><div class="home-game-name" id="games-pvp-name">${esc(GAME_CARD_CONFIG.pvpName||'PvP-клетки')}</div><button class="btn home-play-btn" onclick="go('pvp')">Играть</button></article>
   </div></section>`;
   loadHomeGameSettings();
 }
@@ -1233,12 +1248,66 @@ async function sellItem(entryKey) {
   catch (e) { toast(e.message || 'Не удалось продать предмет'); }
 }
 
+
+/* ================= МАРКЕТ ================= */
+let MARKET_VIEW={tab:'catalog',listings:[],inventory:{},purchases:[],orders:[],loading:false,loaded:false};
+function marketStars(n){const v=Math.max(0,Math.min(5,Math.round(Number(n)||0)));return '★'.repeat(v)+'☆'.repeat(5-v);}
+async function loadMarketData(showLoading=true){
+  if(MARKET_VIEW.loading)return;MARKET_VIEW.loading=true;if(showLoading&&CURRENT_TAB==='market')rerender();
+  try{const [cat,inv]=await Promise.all([workerRequest('/api/market/catalog',{}),workerRequest('/api/market/inventory',{})]);MARKET_VIEW.listings=Array.isArray(cat.listings)?cat.listings:[];MARKET_VIEW.inventory=inv.inventory||{};MARKET_VIEW.orders=inv.orders||[];MARKET_VIEW.purchases=inv.purchases||[];MARKET_VIEW.loaded=true;}
+  catch(e){MARKET_VIEW.error=e.message||'Не удалось загрузить маркет';}
+  finally{MARKET_VIEW.loading=false;if(CURRENT_TAB==='market')rerender();}
+}
+function setMarketTab(tab){MARKET_VIEW.tab=tab;rerender();}
+function renderMarket(c){
+  c.innerHTML=`<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1">🛒 Маркет</h2><button class="btn sec small" onclick="loadMarketData(false)">↻ Обновить</button></div><p class="muted">Торговля ресурсами между игроками. Маркет-инвентарь полностью отдельный от игрового инвентаря.</p><div class="market-tabs"><button class="btn sec ${MARKET_VIEW.tab==='catalog'?'on':''}" onclick="setMarketTab('catalog')">🛍 Каталог</button><button class="btn sec ${MARKET_VIEW.tab==='inventory'?'on':''}" onclick="setMarketTab('inventory')">📦 Мои ресурсы</button><button class="btn sec ${MARKET_VIEW.tab==='listings'?'on':''}" onclick="setMarketTab('listings')">🏷 Мои объявления</button></div><div id="market-body">${MARKET_VIEW.loading?'<div class="market-empty">Загружаем маркет…</div>':!MARKET_VIEW.loaded?`<div class="market-empty">${esc(MARKET_VIEW.error||'Нажми «Обновить», чтобы загрузить маркет.')}</div>`:MARKET_VIEW.tab==='catalog'?marketCatalogHTML():MARKET_VIEW.tab==='inventory'?marketInventoryHTML():marketMyListingsHTML()}</div></div>`;
+  if(!MARKET_VIEW.loaded&&!MARKET_VIEW.loading)loadMarketData(false);
+}
+function marketCatalogHTML(){
+  const rows=MARKET_VIEW.listings||[];return rows.length?`<div class="market-list">${rows.map(x=>`<article class="market-card"><div class="market-icon">${/^https:\/\//i.test(x.icon||'')?`<img src="${esc(x.icon)}" alt="">`:esc(x.icon||'📦')}</div><div class="market-title">${esc(x.title)}</div><div class="market-meta">Продавец: ${esc(x.sellerName)}<br><span style="color:var(--accent)">${marketStars(x.rating)} ${x.rating?Number(x.rating).toFixed(2):'Нет оценок'}</span> · ${x.reviewCount||0} отзывов</div><div class="market-price">${formatBalance(x.price)} / шт.</div><div class="market-stock">В наличии: ${Number(x.quantity).toLocaleString('ru-RU')}</div>${x.sellerId===CURRENT_ID?'<div class="market-empty">Твоё объявление</div>':`<button class="btn" onclick="marketBuy('${x.id}',${Number(x.quantity)||1})">Купить</button>`}<button class="btn sec small" onclick="marketShowReviews('${x.id}')">Отзывы</button></article>`).join('')}</div>`:'<div class="market-empty">Пока нет активных объявлений. Ресурсы можно добавить в маркет через тикет во вкладке «Мои ресурсы».</div>';
+}
+function marketInventoryHTML(){
+  const rows=Object.entries(MARKET_VIEW.inventory||{}).filter(([,x])=>x&&Number(x.quantity)>0);
+  const options=rows.map(([id,x])=>`<option value="${esc(id)}">${esc(x.title||'Ресурс')} · ${Number(x.quantity).toLocaleString('ru-RU')} шт.</option>`).join('');
+  const cards=rows.map(([id,x])=>`<article class="market-card"><div class="market-icon">${/^https:\/\//i.test(x.icon||'')?`<img src="${esc(x.icon)}" alt="">`:esc(x.icon||'📦')}</div><div class="market-title">${esc(x.title||'Ресурс')}</div><div class="market-stock">${Number(x.quantity).toLocaleString('ru-RU')} шт.</div><div class="market-inventory-note">Только хранилище маркета. Не смешивается с игровым инвентарём.</div><button class="btn" onclick="marketListItem('${id}')">Выставить на продажу</button></article>`).join('');
+  const purchaseHistory=(MARKET_VIEW.purchases||[]).map(x=>`<div class="market-review"><b>${esc(x.title||'Ресурс')}</b> · ${Number(x.quantity||0)} шт. · ${formatBalance(x.total||0)}${x.reviewed?' · отзыв оставлен':`<button class="btn sec small" style="margin-top:5px" onclick="marketReview('${x.id}')">Оценить покупку</button>`}</div>`).join('');
+  return `<div class="card" style="padding:12px"><h3>📥 Пополнить маркет</h3><p class="muted">Создай тикет и передай ресурс сотруднику в игре. После подтверждения он появится здесь.</p><div class="market-form-grid"><div class="wide"><label>Название ресурса</label><input id="market-in-title" maxlength="80" placeholder="Например: Железная руда"></div><div><label>Количество</label><input id="market-in-qty" type="number" min="1" step="1" value="1"></div><div><label>Иконка (emoji или HTTPS-ссылка)</label><input id="market-in-icon" maxlength="500" value="📦"></div><div class="wide"><label>Локация передачи</label><select id="market-in-location"><option value="home_zone">Домашняя зона</option><option value="monster_lair">Логово монстров</option><option value="survivor_base">База выживших</option><option value="hot_spot">Горячая точка</option></select></div></div><button class="btn" style="margin-top:10px;width:100%" onclick="marketCreateTicket('in')">Создать тикет на пополнение</button></div>
+  <div class="card" style="padding:12px"><h3>📤 Вывести ресурс обратно в игру</h3><p class="muted">Создаётся тикет для сотрудника. Количество резервируется до подтверждения; при отклонении вернётся в маркет-инвентарь.</p><label>Ресурс</label><select id="market-out-item">${options||'<option value="">Нет ресурсов</option>'}</select><label>Количество</label><input id="market-out-qty" type="number" min="1" step="1" value="1"><label>Локация передачи</label><select id="market-out-location"><option value="home_zone">Домашняя зона</option><option value="monster_lair">Логово монстров</option><option value="survivor_base">База выживших</option><option value="hot_spot">Горячая точка</option></select><button class="btn" style="margin-top:10px;width:100%" onclick="marketCreateTicket('out')" ${rows.length?'':'disabled'}>Создать тикет на вывод</button></div>
+  <div class="card"><h3>📦 Маркет-инвентарь (${rows.length})</h3>${cards?`<div class="market-list">${cards}</div>`:'<div class="market-empty">Здесь пока нет ресурсов.</div>'}</div><div class="card"><h3>🧾 История покупок</h3>${purchaseHistory||'<p class="muted">Покупок пока нет.</p>'}</div>`;
+}
+function marketMyListingsHTML(){const rows=MARKET_VIEW.listings.filter(x=>x.sellerId===CURRENT_ID);return rows.length?`<div class="market-list">${rows.map(x=>`<article class="market-card"><div class="market-icon">${/^https:\/\//i.test(x.icon||'')?`<img src="${esc(x.icon)}" alt="">`:esc(x.icon||'📦')}</div><div class="market-title">${esc(x.title)}</div><div class="market-price">${formatBalance(x.price)} / шт.</div><div class="market-stock">Остаток: ${Number(x.quantity).toLocaleString('ru-RU')}</div><div class="market-meta">${x.status==='active'?'Активно':'Завершено'}</div>${x.status==='active'?`<button class="btn danger" style="background:var(--red);color:white" onclick="marketUnlist('${x.id}')">Снять объявление</button>`:''}</article>`).join('')}</div>`:'<div class="market-empty">У тебя пока нет активных объявлений.</div>'}
+async function marketBuy(id,max){const q=Number(prompt(`Сколько единиц купить? В наличии: ${max}`, '1'));if(!Number.isSafeInteger(q)||q<1||q>max)return;if(!confirm(`Подтвердить покупку ${q} шт.?`))return;try{const r=await workerRequest('/api/market/buy',{listingId:id,quantity:q});const snap=await db.ref('users/'+CURRENT_ID).get();if(snap.exists())profile=snap.val();toast(`Покупка завершена · списано ${formatBalance(r.total)} · комиссия ${formatBalance(r.fee)}`);await loadMarketData(false);if(CURRENT_TAB==='market')rerender();}catch(e){toast(e.message||'Не удалось купить товар');await loadMarketData(false);}}
+async function marketCreateTicket(direction){try{let payload={direction,location:document.getElementById(`market-${direction}-location`)?.value,quantity:Number(document.getElementById(`market-${direction}-qty`)?.value)};if(direction==='in'){payload.title=document.getElementById('market-in-title')?.value.trim();payload.icon=document.getElementById('market-in-icon')?.value.trim()||'📦';}else payload.itemId=document.getElementById('market-out-item')?.value;if(!Number.isSafeInteger(payload.quantity)||payload.quantity<1)throw new Error('Укажи корректное количество');const r=await workerRequest('/api/market/ticket',payload);toast(`Тикет маркета #${r.num} создан`);MARKET_VIEW.tab='inventory';await loadMarketData(false);if(CURRENT_TAB==='market')rerender();}catch(e){toast(e.message||'Не удалось создать тикет маркета');}}
+async function marketListItem(itemId){const item=MARKET_VIEW.inventory?.[itemId];if(!item)return;const q=Number(prompt(`Количество для продажи (в наличии ${item.quantity})`,'1'));if(!Number.isSafeInteger(q)||q<1||q>Number(item.quantity))return;const title=String(prompt('Название объявления',item.title||'Ресурс')||'').trim().slice(0,80);if(!title)return toast('Укажи название объявления');const icon=String(prompt('Иконка объявления (emoji или HTTPS-ссылка)',item.icon||'📦')||'📦').trim().slice(0,500);const price=Number(prompt('Цена за одну штуку (можно до сотых)','1.00'));if(!Number.isFinite(price)||price<=0||Math.round(price*100)!==price*100)return toast('Цена должна быть положительной и с точностью до сотых');try{await workerRequest('/api/market/list',{itemId,quantity:q,price,title,icon});toast('Объявление опубликовано');MARKET_VIEW.tab='listings';await loadMarketData(false);if(CURRENT_TAB==='market')rerender();}catch(e){toast(e.message||'Не удалось выставить объявление');}}
+async function marketUnlist(id){if(!confirm('Снять объявление? Оставшиеся ресурсы вернутся в маркет-инвентарь.'))return;try{await workerRequest('/api/market/unlist',{listingId:id});toast('Объявление снято');await loadMarketData(false);if(CURRENT_TAB==='market')rerender();}catch(e){toast(e.message||'Не удалось снять объявление');}}
+async function marketShowReviews(id){try{const r=await workerRequest('/api/market/reviews',{listingId:id});const rows=r.reviews||[];alert(rows.length?rows.map(x=>`${'★'.repeat(x.stars)}${'☆'.repeat(5-x.stars)} · ${x.buyerName||'Игрок'}\n${x.text||'Без комментария'}`).join('\n\n'):'Отзывов пока нет');}catch(e){toast(e.message||'Не удалось загрузить отзывы');}}
+async function marketReview(purchaseId){const stars=Number(prompt('Оценка покупки от 1 до 5 звёзд','5'));if(!Number.isInteger(stars)||stars<1||stars>5)return;const text=String(prompt('Комментарий к покупке (можно оставить пустым)','')||'').slice(0,1000);try{await workerRequest('/api/market/review',{purchaseId,stars,text});toast('Отзыв сохранён');await loadMarketData(false);if(CURRENT_TAB==='market')rerender();}catch(e){toast(e.message||'Не удалось сохранить отзыв');}}
+
+/* ================= PvP-клетки ================= */
+let PVP_VIEW={roomId:'',room:null,loading:false,busy:false,error:'',pollTimer:null,initialized:false};
+const PVP_COLORS=['#4f9dff','#ff5f6d','#46c78a','#c084fc','#f7b84b','#23c8c8','#ff8b45','#a3b0c2'];
+function stopPvpPolling(){if(PVP_VIEW.pollTimer)clearInterval(PVP_VIEW.pollTimer);PVP_VIEW.pollTimer=null;}
+function ensurePvpPolling(){if(PVP_VIEW.roomId&&!PVP_VIEW.pollTimer)PVP_VIEW.pollTimer=setInterval(async()=>{await refreshPvpState(CURRENT_TAB==='pvp');if(!PVP_VIEW.room||PVP_VIEW.room.status!=='waiting')stopPvpPolling();},2200);}
+async function refreshPvpState(redraw=true){if(PVP_VIEW.loading)return;PVP_VIEW.loading=true;try{const r=await workerRequest('/api/pvp/state',{roomId:PVP_VIEW.roomId});PVP_VIEW.room=r.room||null;if(r.roomId)PVP_VIEW.roomId=r.roomId;PVP_VIEW.initialized=true;PVP_VIEW.error='';}catch(e){PVP_VIEW.error=e.message||'Не удалось загрузить PvP';}finally{PVP_VIEW.loading=false;if(PVP_VIEW.roomId&&PVP_VIEW.room?.status==='waiting')ensurePvpPolling();if(redraw&&CURRENT_TAB==='pvp')rerender();}}
+function renderPvp(c){
+  if(!PVP_VIEW.initialized&&!PVP_VIEW.loading)refreshPvpState();
+  const r=PVP_VIEW.room;
+  if(PVP_VIEW.roomId&&r?.status==='waiting')ensurePvpPolling();
+  c.innerHTML=`<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1">${esc(GAME_CARD_CONFIG.pvpIcon||'⚔️')} ${esc(GAME_CARD_CONFIG.pvpName||'PvP-клетки')}</h2><span class="badge">100 × 100</span></div><p class="muted">Комнаты до 8 игроков. Количество клеток пропорционально вкладу каждого участника. Победителя определяет случайная клетка после запуска комнаты. Комиссия игры — 5% банка.</p>${!r?`<div class="pvp-stat-grid"><div class="pvp-stat"><b>8</b><span>игроков максимум</span></div><div class="pvp-stat"><b>25 сек.</b><span>стартовый таймер</span></div><div class="pvp-stat"><b>5%</b><span>комиссия</span></div></div><label style="margin-top:14px">Твой вклад (целое золото)</label><input id="pvp-bet" type="number" min="1" step="1" value="10"><button class="btn" style="width:100%;margin-top:10px" onclick="joinPvpRoom()" ${PVP_VIEW.busy?'disabled':''}>${PVP_VIEW.busy?'Подключение…':'Войти в комнату'}</button><p class="muted" style="margin-top:8px">После входа вклад резервируется до результата. Если к окончанию таймера нет второго участника, все вклады возвращаются.</p>${PVP_VIEW.error?`<p style="color:var(--red);margin-top:8px">${esc(PVP_VIEW.error)}</p>`:''}`:pvpRoomHTML(r)}</div>`;
+  if(r?.status==='finished'&&Array.isArray(r.owners))drawPvpCanvas(r);
+}
+function pvpRoomHTML(r){const players=Object.entries(r.players||{}).sort((a,b)=>Number(a[1].joinedAt||0)-Number(b[1].joinedAt||0));const cells=Array(8).fill(0);if(Array.isArray(r.owners))r.owners.forEach(x=>{if(Number.isInteger(x)&&x>=0&&x<8)cells[x]++;});const pot=players.reduce((a,[,p])=>a+Number(p.bet||0),0);const secs=Math.max(0,Math.ceil((Number(r.endsAt||0)-Date.now())/1000));const finished=r.status==='finished'||r.status==='cancelled';return `<div class="pvp-stat-grid"><div class="pvp-stat"><b>${players.length}/8</b><span>игроков</span></div><div class="pvp-stat"><b>${formatBalance(pot)}</b><span>банк</span></div><div class="pvp-stat"><b>${r.status==='waiting'?secs+' сек.':r.status==='finished'?'Готово':'Отмена'}</b><span>${r.status==='waiting'?'до запуска':'статус'}</span></div></div><div class="pvp-players">${players.map(([id,x],i)=>`<div class="pvp-player"><span class="pvp-dot" style="background:${PVP_COLORS[i]}"></span><b class="pvp-player-name">${esc(x.name||id)}${id===CURRENT_ID?' (ты)':''}</b><span>${formatBalance(x.bet)} · ${r.status==='finished'?cells[i]+' клеток':Math.round(Number(x.bet)/Math.max(1,pot)*100)+'%'}</span></div>`).join('')}</div>${r.status==='waiting'?`<div class="market-empty" style="margin-top:12px">Ожидаем участников. Таймер увеличивается при новых игроках. Вход в комнату уже выполнен.</div>`:r.status==='cancelled'?`<div class="card" style="margin-top:12px"><h3>Комната отменена</h3><p class="muted">${esc(r.reason||'Недостаточно игроков')}. Все вклады возвращены.</p></div>`:`<div class="card" style="margin-top:12px"><h3>🏆 Победитель: ${esc(r.winnerName||r.winnerId)}</h3><p class="muted">Банк: ${formatBalance(Number(r.potCents||0)/100)} · комиссия 5%: ${formatBalance(Number(r.feeCents||0)/100)} · выигрыш: ${formatBalance(Number(r.prizeCents||0)/100)}</p><div class="pvp-board-wrap"><canvas id="pvp-board" class="pvp-board pvp-reveal" width="1000" height="1000"></canvas></div><p class="muted">Шар выпал на клетку №${Number(r.ballIndex||0)+1}. Она принадлежала победителю.</p></div>`}${finished?`<button class="btn" style="width:100%;margin-top:12px" onclick="pvpNewRoom()">Новая игра</button>`:''}`;}
+function pvpNewRoom(){stopPvpPolling();PVP_VIEW.roomId='';PVP_VIEW.room=null;PVP_VIEW.error='';PVP_VIEW.initialized=true;if(CURRENT_TAB==='pvp')rerender();}
+
+function drawPvpCanvas(room){const canvas=document.getElementById('pvp-board');if(!canvas)return;const ctx=canvas.getContext('2d');const owners=room.owners||[];const counts=new Uint32Array(8);for(let i=0;i<10000;i++){const owner=Number(owners[i])||0;counts[owner]++;ctx.fillStyle=PVP_COLORS[owner]||'#8290a3';ctx.fillRect((i%100)*10,Math.floor(i/100)*10,10,10);}const ball=Math.max(0,Math.min(9999,Number(room.ballIndex)||0));ctx.fillStyle='#fff';ctx.beginPath();ctx.arc((ball%100)*10+5,Math.floor(ball/100)*10+5,7,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.stroke();}
+async function joinPvpRoom(){if(PVP_VIEW.busy)return;const bet=Number(document.getElementById('pvp-bet')?.value);if(!Number.isSafeInteger(bet)||bet<1)return toast('Введи целый вклад от 1');PVP_VIEW.busy=true;PVP_VIEW.error='';rerender();try{const r=await workerRequest('/api/pvp/join',{bet});PVP_VIEW.roomId=r.roomId||r.room?.id||'';PVP_VIEW.room=r.room||null;const snap=await db.ref('users/'+CURRENT_ID).get();if(snap.exists())profile=snap.val();toast('Ты вошёл в PvP-комнату');if(PVP_VIEW.room?.status==='waiting')ensurePvpPolling();}catch(e){PVP_VIEW.error=e.message||'Не удалось войти в комнату';toast(PVP_VIEW.error);}finally{PVP_VIEW.busy=false;if(CURRENT_TAB==='pvp')rerender();}}
+
 /* ---------- ТИКЕТЫ ---------- */
 function sweepExpired() {
   // Статус просроченного тикета меняется только на сервере.
 }
 
-const TYPE_NAME = { deposit: 'Пополнение', withdraw: 'Вывод' };
+const TYPE_NAME = { deposit: 'Пополнение', withdraw: 'Вывод', market_in:'Зачисление в маркет', market_out:'Вывод из маркета' };
 const tStatusHTML = s => s === 'open' ? '<span class="ts-open">Открыт</span>' : s === 'taken' ? '<span class="ts-taken">Взят</span>' : '<span class="ts-closed">Закрыт</span>';
 
 const TICKET_LOCATIONS = {
@@ -1257,7 +1326,7 @@ async function createTicket(type, amount, location) {
   if (result.balance !== undefined && result.balanceReserved) {
     profile = {...(profile || {}), balance:Number(result.balance)};
     const balanceNode=document.getElementById('balance');
-    if(balanceNode) balanceNode.textContent=profile.balance;
+    if(balanceNode) balanceNode.textContent=formatBalance(profile.balance);
   }
   toast(`Тикет #${result.num} создан${result.balanceReserved ? ` · ${Number(amount).toLocaleString('ru-RU')} списано до решения` : ''}`);
 }
@@ -1300,15 +1369,15 @@ function closeTicket(id) {
   confirmBtn.disabled = false;
   confirmBtn.textContent = 'Подтвердить закрытие';
   const amount = Number(t.amount) || 0;
-  summary.textContent = `Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · сумма ${amount}${t.location ? ' · локация: ' + (TICKET_LOCATIONS[t.location] || t.location) : ''}.`;
-  label.textContent = t.type === 'deposit'
+  summary.textContent = `Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.type.startsWith('market_') ? 'количество '+(t.quantity||amount)+' шт.' : 'сумма '+amount}${t.location ? ' · локация: ' + (TICKET_LOCATIONS[t.location] || t.location) : ''}.`;
+  label.textContent = t.type === 'market_in' ? `Подтвердить зачисление ${t.quantity||amount} шт. ресурса «${t.title||'Ресурс'}» в маркет-инвентарь` : t.type === 'market_out' ? `Подтвердить выдачу ${t.quantity||amount} шт. ресурса «${t.title||'Ресурс'}» из маркета` : t.type === 'deposit'
     ? `Подтвердить пополнение: начислить игроку ${amount}`
     : t.type === 'withdraw' && t.withdrawReserved === true
       ? `Подтвердить вывод ${amount} (сумма уже удержана)`
       : t.type === 'withdraw'
         ? `Подтвердить вывод: списать у игрока ${amount}`
         : 'Применить операцию к балансу';
-  explainer.textContent = t.type === 'withdraw' && t.withdrawReserved === true
+  explainer.textContent = t.type === 'market_in' ? 'При подтверждении ресурс появится в отдельном маркет-инвентаре игрока. Обычный игровой инвентарь не изменяется.' : t.type === 'market_out' ? 'Количество уже зарезервировано в маркет-инвентаре. При отклонении ресурсы вернутся в маркет-инвентарь.' : t.type === 'withdraw' && t.withdrawReserved === true
     ? 'Сумма уже списана при создании тикета. Если галочка установлена — вывод подтверждается и сумма остаётся удержанной. Если снять галочку — тикет закроется, а сумма вернётся игроку.'
     : 'Если галочка снята, тикет закроется без изменения баланса. Причина обязательна в обоих случаях.';
   modal.classList.add('show');
@@ -1334,7 +1403,7 @@ async function confirmTicketClose() {
     return;
   }
   if (reason.length > 300) return toast('Причина должна быть не длиннее 300 символов');
-  if (approve && !['deposit', 'withdraw'].includes(t.type)) return toast('Неизвестный тип заявки');
+  if (approve && !['deposit', 'withdraw','market_in','market_out'].includes(t.type)) return toast('Неизвестный тип заявки');
 
   TICKET_CLOSE_BUSY = true;
   const confirmBtn = document.getElementById('ticket-close-confirm-btn');
@@ -1344,7 +1413,7 @@ async function confirmTicketClose() {
     await workerRequest('/api/ticket/close', { ticketId:id, approve, reason });
     document.getElementById('ticket-close-modal').classList.remove('show');
     PENDING_CLOSE_TICKET_ID = null;
-    toast(approve ? (t.type === 'deposit' ? 'Пополнение подтверждено сервером' : 'Вывод подтверждён сервером') : 'Тикет закрыт без изменения баланса');
+    toast(approve ? (t.type === 'deposit' ? 'Пополнение подтверждено сервером' : t.type === 'withdraw' ? 'Вывод подтверждён сервером' : t.type === 'market_in' ? 'Ресурсы зачислены в маркет-инвентарь' : 'Вывод ресурсов подтверждён') : (t.type==='market_out'?'Тикет отклонён, ресурсы возвращены':'Тикет закрыт без изменения баланса'));
     OPEN_TICKET_ID = null;
     rerender();
   } catch (e) {
@@ -1361,7 +1430,7 @@ function ticketRowHTML(id, t, btn) {
   return `<div class="ticket-row">
     <div class="row" style="align-items:center">
       <div style="flex:1">
-        <div class="tnum">#${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</div>
+        <div class="tnum">#${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.type.startsWith('market_')?`${Number(t.quantity||t.amount).toLocaleString('ru-RU')} шт. ${esc(t.title||'Ресурс')}`:t.amount}</div>
         <div class="chips">${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · ${tStatusHTML(t.status)}
           ${t.location ? ` · 📍 ${esc(TICKET_LOCATIONS[t.location] || t.location)}` : ''}
           ${t.reason ? ` · причина: ${esc(t.reason)}` : ''}</div>
@@ -1391,17 +1460,14 @@ function ticketViewHTML(id, t, backFn) {
   const isHandler = isStaff() && t.owner !== CURRENT_ID;
   const canClose = isHandler && t.status !== 'closed';
   const canTake = isHandler && t.status === 'open' && String(t.owner)!==String(CURRENT_ID);
-  const txLabel = t.type === 'deposit'
-    ? `Выдать игроку ${t.amount} ${CUR_ICON ? '' : '(пополнение)'}`
-    : t.withdrawReserved === true && t.status !== 'closed'
-      ? `Удержано при создании: ${t.amount}`
-      : `Забрать у игрока ${t.amount} ${CUR_ICON ? '' : '(вывод)'}`;
+  const txLabel = t.type === 'market_in' ? `Зачислить в маркет: ${t.quantity||t.amount} шт. ресурса «${esc(t.title||'Ресурс')}»` : t.type === 'market_out' ? `Выдать из маркета: ${t.quantity||t.amount} шт. ресурса «${esc(t.title||'Ресурс')}»` : t.type === 'deposit' ? `Выдать игроку ${t.amount} ${CUR_ICON ? '' : '(пополнение)'}` : t.withdrawReserved === true && t.status !== 'closed' ? `Удержано при создании: ${t.amount}` : `Забрать у игрока ${t.amount} ${CUR_ICON ? '' : '(вывод)'}`;
   return `<div class="card">
     <button class="btn sec small" onclick="${backFn}()">← Назад</button>
     <h2 style="margin-top:10px">Тикет #${t.num} · ${TYPE_NAME[t.type] || t.type} · ${t.amount}</h2>
     <div class="chips">От: ${esc(t.ownerName || t.owner)} · ${fmtTime(t.createdAt)} · статус: ${tStatusHTML(t.status)}
       ${t.location ? ` · 📍 ${esc(TICKET_LOCATIONS[t.location] || t.location)}` : ''}
       ${t.takenByName ? ` · взял: ${esc(t.takenByName)}` : ''}</div>
+    ${t.type==='market_in'||t.type==='market_out' ? `<p class="muted" style="margin-top:8px">${esc(txLabel)} · ID ресурса: ${esc(t.itemId||'—')}</p>` : ''}
     ${t.reason ? `<p class="muted" style="margin-top:6px">Причина закрытия: <b>${esc(t.reason)}</b></p>` : ''}
     <hr class="divider">
     <div class="chat" id="chat-box"><div id="chat-messages">${ticketMessagesHTML(msgs)}</div></div>
@@ -1560,6 +1626,7 @@ function uiTake(id) { takeTicket(id).then(rerender); }
 
 /* ---------- АДМИН-ПАНЕЛЬ ---------- */
 function renderAdmin(c) {
+  if(!GAME_CONFIG_LOADING){GAME_CONFIG_LOADING=true;loadHomeGameSettings().finally(()=>GAME_CONFIG_LOADING=false);}
   c.innerHTML = `
     <div class="card">
       <div class="admin-tabs">
@@ -1771,7 +1838,7 @@ function adminUsersHTML() {
       const deposits=moneyRows.filter(t=>t.type==='deposit').reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
       const withdrawals=moneyRows.filter(t=>t.type==='withdraw').reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
       return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
-        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''}</div><div style="font-size:12px;margin-top:4px;line-height:1.5"><span>Баланс: <b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></span><br><span style="color:var(--green)">Пополнения: +${deposits.toLocaleString('ru-RU')}</span><span style="color:var(--muted)"> · </span><span style="color:var(--red)">Выводы: −${withdrawals.toLocaleString('ru-RU')}</span></div></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${esc(u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''}</div><div style="font-size:12px;margin-top:4px;line-height:1.5"><span>Баланс: <b>${formatBalance(u.balance||0)}</b></span><br><span style="color:var(--green)">Пополнения: +${deposits.toLocaleString('ru-RU')}</span><span style="color:var(--muted)"> · </span><span style="color:var(--red)">Выводы: −${withdrawals.toLocaleString('ru-RU')}</span></div></div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
       </div>`;
     }).join('') || '<p class="muted">Игроки не найдены.</p>'}
@@ -1802,7 +1869,7 @@ function openPlayerAdminModal(id) {
   const inventoryEntries=Object.entries(u.inventory||{}).sort((a,b)=>(Number(b[1]?.at)||0)-(Number(a[1]?.at)||0));
   const inventoryEditorHtml=`<div style="margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px"><div class="row" style="align-items:center;gap:8px;flex-wrap:wrap"><h3 style="font-size:14px;margin:0;flex:1">🎒 Редактирование инвентаря (${inventoryEntries.length})</h3><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminSellAllInventory()">Продать все предметы</button></div><p class="muted" style="font-size:12px">Продаваемые предметы будут проданы, остальные удалены.</p>${inventoryEntries.map(([key,e])=>{const meta=getInventoryItemMeta(e)||{};return `<div class="ticket-row" style="margin:6px 0"><div class="row" style="align-items:center"><div style="flex:1;min-width:0"><b>${esc(meta.name||e.name||'Предмет')}</b><div class="chips">${esc(meta.price||e.price||0)} · ${esc(e.source||'инвентарь')}</div></div><button class="btn danger small" style="background:var(--red);color:#fff" onclick="adminRemoveInventoryEntry('${key}')">Удалить</button></div></div>`;}).join('')||'<p class="muted">Предметов нет.</p>'}</div>`;
   const banBox = `<div style="margin-top:14px;padding:12px;border:1px solid ${banActive?'var(--red)':'var(--line)'};border-radius:12px"><h3 style="font-size:14px;margin-bottom:7px">${banActive?'⛔ Игрок заблокирован':'🛡️ Блокировка игрока'}</h3>${banActive?`<p style="font-size:13px;margin-bottom:5px">Причина: ${esc(u.ban.reason||'не указана')}</p><p data-ban-countdown data-expires-at="${Number(u.ban.expiresAt)||0}" style="font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px">${Number(u.ban.expiresAt)>Date.now()?'Осталось: '+formatRemainingTime(Number(u.ban.expiresAt)-Date.now()):Number(u.ban.expiresAt)>0?'Срок блокировки истёк':'Срок блокировки: бессрочно'}</p>`:`<label for="player-ban-duration">Срок блокировки</label><select id="player-ban-duration"><option value="15m">15 минут</option><option value="1h">1 час</option><option value="6h">6 часов</option><option value="24h">24 часа</option><option value="7d">7 дней</option><option value="30d">30 дней</option><option value="permanent" selected>Бессрочно</option></select>`}<label for="player-ban-reason">${banActive?'Причина снятия (необязательно)':'Причина блокировки (обязательно)'}</label><textarea id="player-ban-reason" rows="2" maxlength="500" placeholder="${banActive?'Комментарий к снятию блокировки':'Укажи причину блокировки'}"></textarea><button class="btn ${banActive?'':'danger'}" style="margin-top:4px" onclick="setPlayerBan('${banActive?'unban':'ban'}')">${banActive?'Снять блокировку':'Заблокировать игрока'}</button></div>`
-  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${Number(u.balance||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${moneyTicketsHtml}${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
+  document.getElementById('player-admin-details').innerHTML = `<div class="player-info-grid"><div class="player-info-cell"><span>Баланс</span><b>${formatBalance(u.balance||0)}</b></div><div class="player-info-cell"><span>Роль</span><b>${role}</b></div><div class="player-info-cell"><span>Потрачено</span><b>${Number(u.spentCurrency||0).toLocaleString('ru-RU')}</b></div><div class="player-info-cell"><span>Предметов</span><b>${inv}</b></div><div class="player-info-cell"><span>Тикетов</span><b>${ticketCount}</b></div><div class="player-info-cell" style="grid-column:1/-1"><span>Дата создания профиля</span><b>${esc(created)}</b></div></div>${moneyTicketsHtml}${inventoryEditorHtml}${banActive?`<p class="muted" style="margin-top:10px;color:var(--red)">Статус: активная блокировка</p>`:''}${banBox}${banHistoryHtml}${historyHtml}`;
   if(!samePlayerAlreadyOpen) { document.getElementById('player-balance-amount').value = ''; document.getElementById('player-balance-reason').value = ''; }
   if(preservedInputs) { document.getElementById('player-balance-amount').value=preservedInputs.balanceAmount; document.getElementById('player-balance-reason').value=preservedInputs.balanceReason; }
   document.getElementById('player-admin-modal').classList.add('show');
@@ -2058,13 +2125,14 @@ async function saveAdminNotificationConfig() {
 async function loadAdminNotificationConfig() { try { const r=await workerRequest('/api/admin/notifications/get',{}); window._adminNotificationConfig=r.config||{}; if(CURRENT_TAB==='admin'&&adminSub==='notifications') drawAdminBody(); } catch(e) {} }
 
 /* --- Технический перерыв --- */
-async function loadHomeGameSettings(){try{const snap=await db.ref('config/gameCards').get();const cfg=snap.val()||{};const el=document.getElementById('home-mines-icon');if(el&&typeof cfg.minesIcon==='string'&&cfg.minesIcon.trim())el.textContent=cfg.minesIcon.trim().slice(0,12);}catch(e){}}
-async function saveHomeGameSettings(){if(!isAdmin())return toast('Недостаточно прав');const icon=(document.getElementById('admin-mines-icon')?.value||'💣').trim().slice(0,12)||'💣';try{await db.ref('config/gameCards').set({minesIcon:icon,updatedAt:Date.now(),updatedBy:CURRENT_ID});toast('Иконка игры сохранена');if(CURRENT_TAB==='home')loadHomeGameSettings();}catch(e){toast('Не удалось сохранить иконку. Проверь правила Firebase.');}}
+let GAME_CARD_CONFIG={minesName:'Мины',minesIcon:'💣',pvpName:'PvP-клетки',pvpIcon:'⚔️'},GAME_CONFIG_LOADING=false;
+async function loadHomeGameSettings(){try{const snap=await db.ref('config/gameCards').get();const cfg=snap.val()||{};GAME_CARD_CONFIG={...GAME_CARD_CONFIG,...cfg};for(const [id,key] of [['games-mines-icon','minesIcon'],['games-mines-name','minesName'],['games-pvp-icon','pvpIcon'],['games-pvp-name','pvpName']]){const el=document.getElementById(id);if(el&&GAME_CARD_CONFIG[key])el.textContent=String(GAME_CARD_CONFIG[key]).slice(0,80);}for(const [id,key] of [['admin-mines-icon','minesIcon'],['admin-mines-name','minesName'],['admin-pvp-icon','pvpIcon'],['admin-pvp-name','pvpName']]){const el=document.getElementById(id);if(el&&GAME_CARD_CONFIG[key])el.value=String(GAME_CARD_CONFIG[key]);}}catch(e){}}
+async function saveHomeGameSettings(){if(!isAdmin())return toast('Недостаточно прав');const next={...GAME_CARD_CONFIG,minesIcon:(document.getElementById('admin-mines-icon')?.value||'💣').trim().slice(0,12)||'💣',minesName:(document.getElementById('admin-mines-name')?.value||'Мины').trim().slice(0,40)||'Мины',pvpIcon:(document.getElementById('admin-pvp-icon')?.value||'⚔️').trim().slice(0,12)||'⚔️',pvpName:(document.getElementById('admin-pvp-name')?.value||'PvP-клетки').trim().slice(0,40)||'PvP-клетки',updatedAt:Date.now(),updatedBy:CURRENT_ID};try{await db.ref('config/gameCards').set(next);GAME_CARD_CONFIG=next;toast('Названия и иконки игр сохранены');if(CURRENT_TAB==='games')rerender();}catch(e){toast('Не удалось сохранить настройки. Проверь правила Firebase.');}}
 function adminSystemHTML() {
   const enabled = !!MAINTENANCE?.enabled;
   const updatedBy = MAINTENANCE?.updatedBy ? `Администратор ID: ${esc(MAINTENANCE.updatedBy)}` : '';
   const updatedAt = Number(MAINTENANCE?.updatedAt) > 0 ? new Date(Number(MAINTENANCE.updatedAt)).toLocaleString('ru-RU') : '';
-  return `<div class="card"><h2>🎮 Карточки игр</h2><p class="muted">Иконка карточки «Мины» на главной.</p><label>Иконка игры</label><input id="admin-mines-icon" maxlength="12" value="💣" style="max-width:160px"><button class="btn" style="margin-top:8px" onclick="saveHomeGameSettings()">Сохранить иконку</button></div><div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
+  return `<div class="card"><h2>🎮 Карточки игр</h2><p class="muted">Администратор может менять названия и иконки игр.</p><div class="market-form-grid"><div><label>Название «Мины»</label><input id="admin-mines-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.minesName||'Мины')}"></div><div><label>Иконка «Мины»</label><input id="admin-mines-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.minesIcon||'💣')}"></div><div><label>Название PvP</label><input id="admin-pvp-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.pvpName||'PvP-клетки')}"></div><div><label>Иконка PvP</label><input id="admin-pvp-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.pvpIcon||'⚔️')}"></div></div><button class="btn" style="margin-top:8px" onclick="saveHomeGameSettings()">Сохранить настройки игр</button></div><div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
     <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
     <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
     <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p>
