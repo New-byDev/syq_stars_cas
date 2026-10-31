@@ -1542,7 +1542,7 @@ function renderProfile(c) {
       <label>Тип</label><select id="tk-type">
         <option value="deposit">Пополнение</option>
         <option value="withdraw">Вывод</option><option value="item_deposit">Пополнение товара</option><option value="item_withdraw">Вывод товара</option></select>
-      <div id="tk-money-fields"><label>Сумма (золото)</label><input id="tk-amount" type="number" min="50" step="1" inputmode="numeric" placeholder="Минимум 50"></div><div id="tk-item-fields" style="display:none"><label>Товар (только непродаваемые)</label><select id="tk-item"><option value="">Загружаем список…</option></select><p class="muted" id="tk-item-preview"></p></div>
+      <div id="tk-money-fields"><label>Сумма (золото)</label><input id="tk-amount" type="number" min="50" step="1" inputmode="numeric" placeholder="Минимум 50"></div><div id="tk-item-fields" style="display:none"><label>Товар для маркета</label><div id="tk-item-picker" class="market-list"><div class="market-empty">Загружаем список…</div></div><input id="tk-item" type="hidden" value=""><p class="muted" id="tk-item-preview"></p></div>
       <label for="tk-location">Локация (обязательно)</label><select id="tk-location" required>
         <option value="">Выбери локацию</option>
         <option value="home_zone">Домашняя зона</option>
@@ -1596,7 +1596,8 @@ async function refreshTicketCooldown() {
   } catch (_) { /* сервер всё равно проверит cooldown при создании */ }
   if(document.getElementById('tk-create-btn')) startTicketCooldownTimer();
 }
-async function loadTicketItems(){const select=document.getElementById('tk-item');if(!select)return;const inv=profile?.inventory||{};const rows=Object.entries(inv).filter(([key,e])=>{const meta=getInventoryItemMeta(e);return meta.valid&&!(meta.sellable===true||Number(meta.sellable)===1)&&!e?.noSellDrop;});select.innerHTML='<option value="">Выбери товар</option>'+rows.map(([key,e])=>{const m=getInventoryItemMeta(e);return `<option value="${esc(key)}">${esc(m.img?'':'📦')} ${esc(m.name)} · количество ${Number(e.quantity||1)}</option>`}).join('');const preview=document.getElementById('tk-item-preview');if(preview)preview.textContent=rows.length?'Список содержит только непродаваемые предметы из инвентаря.':'Нет доступных непродаваемых предметов.';}
+async function loadTicketItems(){const picker=document.getElementById('tk-item-picker');if(!picker)return;const rows=Object.entries(ITEMS||{}).filter(([id,it])=>!!it&&!!String(it.name||'').trim()&&(it.marketTicket===true||Number(it.marketTicket)===1)&&!(it.sellable===true||Number(it.sellable)===1));const selected=document.getElementById('tk-item')?.value||'';picker.innerHTML=rows.length?rows.map(([id,it])=>`<button type="button" class="market-card" style="text-align:left;color:var(--text);cursor:pointer;border-color:${selected===id?'var(--accent)':'var(--line)'}" onclick="selectTicketItem('${id}')"><div class="market-icon">${marketIconHTML(it.img||it.image||it.icon||'📦')}</div><div class="market-title">${esc(it.name)}</div><div class="market-meta">Непродаваемый предмет</div></button>`).join(''):'<div class="market-empty">Нет предметов, отмеченных «Для маркета» в админ-панели.</div>';const preview=document.getElementById('tk-item-preview');if(preview)preview.textContent=selected&&ITEMS[selected]?`Выбрано: ${ITEMS[selected].name}`:'Выбери предмет из списка выше.';}
+function selectTicketItem(id){const el=document.getElementById('tk-item');if(!el)return;el.value=id;loadTicketItems();}
 async function uiCreateTicket() {
   if (TICKET_CREATE_BUSY) return;
   if (!featureVisible('profileCreateTicket') && !isAdmin()) return toast('Создание тикетов временно отключено');
@@ -1814,48 +1815,35 @@ async function saveUIVisibility() {
 
 /* --- Предметы --- */
 function adminItemsHTML() {
+  const entries=Object.entries(ITEMS);
   return `<div class="card"><h2>➕ Новый предмет</h2>
-    <label>Название</label><input id="it-name">
-    <label>Иконка (загрузи файл или вставь ссылку)</label>
-    <input type="file" accept="image/*" onchange="onItemFile(event)">
-    <p class="muted" style="text-align:center; margin:4px 0">или</p>
-    <input id="it-img" placeholder="https://...">
+    <label>Название</label><input id="it-name" maxlength="100">
+    <label>Иконка (загрузи файл или вставь ссылку)</label><input type="file" accept="image/*" onchange="onItemFile(event)">
+    <p class="muted" style="text-align:center;margin:4px 0">или</p><input id="it-img" placeholder="https://...">
     <img id="it-prev" class="preview" style="display:none">
-    <label>Цена</label><input id="it-price" type="number" value="0">
+    <label>Цена</label><input id="it-price" type="number" min="1" step="1" value="1">
     <label><input type="checkbox" id="it-sell" checked> Можно продавать</label>
+    <label><input type="checkbox" id="it-market-ticket"> Для маркета (показывать в выборе товарных тикетов)</label>
+    <p class="muted">Для тикетов можно включать только непродаваемые предметы. В списке будут отображаться иконка и название.</p>
     <button class="btn" onclick="addItem()">Создать предмет</button></div>
-  <div class="card"><h2>📚 Предметы (${Object.keys(ITEMS).length})</h2>
-    <div class="item-grid">${Object.entries(ITEMS).map(([id, it]) =>
-      `<div class="item-card price-tier-${priceTier(it.price)}">${it.img ? `<img src="${esc(it.img)}">` : ''}
-        <div class="nm">${esc(it.name)}</div>
-        <div class="chips">${it.price} · ${it.sellable ? 'продаётся' : 'не продаётся'}</div>
-        <button class="del" style="margin-top:8px" onclick="delItem('${id}')">Удалить</button></div>`).join('')}
-    </div></div>`;
+  <div class="card"><h2>📚 Предметы (${entries.length})</h2><div class="item-grid">${entries.map(([id,it])=>
+    `<div class="item-card price-tier-${priceTier(it.price)}">${it.img?`<img src="${esc(it.img)}">`:'<div style="font-size:32px">📦</div>'}
+      <div class="nm">${esc(it.name)}</div><div class="chips">${Number(it.price)||0} · ${it.sellable?'продаётся':'не продаётся'}${it.marketTicket?'<br>🎫 Для маркета':''}</div>
+      <button class="btn sec small" style="margin-top:8px" onclick="editItem('${id}')">Изменить</button>
+      <button class="del" style="margin-top:6px" onclick="delItem('${id}')">Удалить</button></div>`).join('')}</div></div>`;
 }
 function onItemFile(e) {
-  const f = e.target.files[0];
-  if (!f) return;
-  fileToDataUrl(f, url => {
-    document.getElementById('it-img').value = url;
-    const p = document.getElementById('it-prev');
-    p.src = url; p.style.display = 'block';
-    toast('Картинка загружена');
-  });
+  const f=e.target.files[0];if(!f)return;
+  fileToDataUrl(f,url=>{document.getElementById('it-img').value=url;const p=document.getElementById('it-prev');p.src=url;p.style.display='block';toast('Картинка загружена');});
 }
 async function addItem() {
-  const name = document.getElementById('it-name').value.trim();
-  const price = Number(document.getElementById('it-price').value);
-  if (!name) return toast('Введи название');
-  if (!Number.isSafeInteger(price) || price <= 0) return toast('Цена предмета должна быть целым числом больше нуля');
-  await db.ref('items').push().set({
-    name, img: document.getElementById('it-img').value.trim(),
-    price,
-    sellable: document.getElementById('it-sell').checked ? 1 : 0
-  });
-  toast('Предмет создан');
-  drawAdminBody();
+  const name=document.getElementById('it-name').value.trim(),price=Number(document.getElementById('it-price').value),sellable=document.getElementById('it-sell').checked?1:0,marketTicket=document.getElementById('it-market-ticket').checked;
+  if(!name)return toast('Введи название');if(!Number.isSafeInteger(price)||price<=0)return toast('Цена предмета должна быть целым числом больше нуля');if(marketTicket&&sellable)return toast('Для товарных тикетов предмет должен быть непродаваемым');
+  await db.ref('items').push().set({name,img:document.getElementById('it-img').value.trim(),price,sellable,marketTicket:marketTicket?1:0});toast('Предмет создан');drawAdminBody();
 }
-async function delItem(id) { if (confirm('Удалить предмет?')) { await db.ref('items/' + id).remove(); drawAdminBody(); } }
+async function editItem(id){const it=ITEMS[id];if(!it)return;marketOpenModal(`<h2>Изменить предмет</h2><label>Название</label><input id="edit-it-name" maxlength="100" value="${esc(it.name||'')}"><label>Иконка / URL изображения</label><input id="edit-it-img" value="${esc(it.img||'')}"><label>Цена</label><input id="edit-it-price" type="number" min="1" step="1" value="${Number(it.price)||1}"><label><input type="checkbox" id="edit-it-sell" ${it.sellable?'checked':''}> Можно продавать</label><label><input type="checkbox" id="edit-it-market-ticket" ${it.marketTicket?'checked':''}> Для маркета (список товарных тикетов)</label><button class="btn" style="width:100%;margin-top:12px" onclick="saveItemEdit('${id}')">Сохранить</button><button class="btn sec" style="width:100%;margin-top:7px" onclick="marketCloseModal()">Отмена</button>`);}
+async function saveItemEdit(id){const name=document.getElementById('edit-it-name').value.trim(),img=document.getElementById('edit-it-img').value.trim(),price=Number(document.getElementById('edit-it-price').value),sellable=document.getElementById('edit-it-sell').checked?1:0,marketTicket=document.getElementById('edit-it-market-ticket').checked;if(!name)return toast('Введи название');if(!Number.isSafeInteger(price)||price<=0)return toast('Укажи корректную цену');if(marketTicket&&sellable)return toast('Для товарных тикетов предмет должен быть непродаваемым');try{await db.ref('items/'+id).update({name,img,price,sellable,marketTicket:marketTicket?1:0});marketCloseModal();toast('Предмет обновлён');drawAdminBody();}catch(e){toast(e.message||'Не удалось сохранить предмет');}}
+async function delItem(id) { if(confirm('Удалить предмет?')){await db.ref('items/'+id).remove();drawAdminBody();} }
 
 /* --- Категории --- */
 function adminUsersHTML() {
