@@ -207,6 +207,28 @@
   #admin-body .btn, #admin-body .btn.sec, #admin-body .del { min-height:42px; }
   #admin-body .btn.small { min-height:38px; padding:9px 12px; }
   .admin-tabs .btn.sec.on { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+  /* Выдвижное меню категорий админ-панели */
+  .admin-shell{min-width:0}
+  .admin-toolbar{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:10px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+  .admin-menu-toggle{width:44px;height:44px;flex:0 0 44px;border:1px solid var(--line);border-radius:11px;background:#171717;color:var(--text);font-size:22px;cursor:pointer}
+  .admin-current{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+  .admin-current b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .admin-current small,.admin-refresh-status{font-size:11px;color:var(--muted)}
+  .admin-refresh-btn{width:44px;min-height:44px;padding:0;font-size:19px}
+  .admin-refresh-status{min-height:16px;margin:0 4px 8px}
+  .admin-drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1190;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}
+  .admin-drawer-overlay.open{opacity:1;visibility:visible}
+  .admin-drawer{position:fixed;z-index:1200;top:0;left:0;bottom:0;width:min(310px,86vw);overflow-y:auto;padding:16px 12px 24px;background:#111;border-right:1px solid var(--line);box-shadow:18px 0 50px #0008;transform:translateX(-105%);transition:transform .24s ease;overscroll-behavior:contain}
+  .admin-drawer.open{transform:translateX(0)}
+  .admin-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 16px;margin-bottom:8px;border-bottom:1px solid var(--line);font-size:18px}
+  .admin-drawer-head button{width:38px;height:38px;border:1px solid var(--line);border-radius:10px;background:#1b1b1b;color:var(--text);font-size:17px}
+  .admin-drawer-group{padding:8px 0;border-bottom:1px solid #282828}
+  .admin-drawer-label{padding:5px 10px 8px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+  .admin-drawer-item{display:flex;align-items:center;gap:11px;width:100%;min-height:45px;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--text);text-align:left;font-size:14px;cursor:pointer}
+  .admin-drawer-item>span:first-child{width:22px;text-align:center}
+  .admin-drawer-item.on{background:var(--accent);color:#000;font-weight:800}
+  body.admin-menu-open{overflow:hidden}
+
   .subtabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
   .subtabs button { background:#111; border:1px solid var(--line); color:var(--text); padding:7px 12px; border-radius:8px; font-size:13px; cursor:pointer; }
   .subtabs button.on { background:var(--accent); color:#000; font-weight:700; }
@@ -376,7 +398,7 @@
    ИГРА «ЗОМБИ»: отдельные CSS-классы. Меняй эти стили, не переименовывая
    HTML id и JS-функции — так можно менять внешний вид без поломки логики.
    ----------------------------------------------------------------------- */
-.zombie-wrap{max-width:560px;margin:0 auto}.zombie-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.zombie-title{font-size:23px;font-weight:900}.zombie-sub{font-size:12px;color:var(--muted);margin-top:4px}.zombie-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.zombie-stat{background:#202238;border:1px solid #383b5a;border-radius:12px;padding:10px;text-align:center;min-width:0}.zombie-stat small{display:block;color:var(--muted);font-size:11px}.zombie-stat b{display:block;font-size:18px;margin-top:4px;overflow-wrap:anywhere}.zombie-path{display:flex;gap:7px;overflow-x:auto;padding:18px 4px 12px;scrollbar-width:thin;scroll-snap-type:x proximity}.zombie-block{position:relative;flex:0 0 54px;height:58px;border-radius:10px;background:linear-gradient(145deg,#45495d,#25283a);border:1px solid #62677f;display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;font-weight:900;scroll-snap-align:center}.zombie-block.done{background:linear-gradient(145deg,#286b50,#174331);border-color:#3ba879}.zombie-block.failed{background:linear-gradient(145deg,#8c3038,#481b27);border-color:#e05b66}.zombie-block.current:before{content:'🧟';position:absolute;top:-27px;left:50%;transform:translateX(-50%);font-size:23px;filter:drop-shadow(0 3px 3px #0008)}.zombie-block small{font-size:10px;color:#e9eaf1}.zombie-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}.zombie-controls label{display:block}.zombie-controls input{margin-top:6px}.zombie-message{padding:10px 12px;border-radius:10px;background:#24263d;color:#e9eaf1;margin:10px 0;font-size:13px}.zombie-message.good{background:#153b2d;color:#a8f0c9}.zombie-message.bad{background:#48232a;color:#ffc0c5}.zombie-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.zombie-actions.single{grid-template-columns:1fr}@media(max-width:380px){.zombie-stat{padding:8px 4px}.zombie-stat b{font-size:15px}.zombie-block{flex-basis:47px;height:53px}}
+.zombie-wrap{max-width:560px;margin:0 auto}.zombie-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.zombie-title{font-size:23px;font-weight:900}.zombie-sub{font-size:12px;color:var(--muted);margin-top:4px}.zombie-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.zombie-stat{background:#202238;border:1px solid #383b5a;border-radius:12px;padding:10px;text-align:center;min-width:0}.zombie-stat small{display:block;color:var(--muted);font-size:11px}.zombie-stat b{display:block;font-size:18px;margin-top:4px;overflow-wrap:anywhere}.zombie-path{display:flex;gap:7px;overflow-x:auto;padding:18px 4px 12px;scrollbar-width:thin;scroll-snap-type:x proximity}.zombie-block{position:relative;flex:0 0 54px;height:58px;border-radius:10px;background:linear-gradient(145deg,#45495d,#25283a);border:1px solid #62677f;display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;font-weight:900;scroll-snap-align:center}.zombie-block.done{background:linear-gradient(145deg,#286b50,#174331);border-color:#3ba879}.zombie-block.failed{background:linear-gradient(145deg,#8c3038,#481b27);border-color:#e05b66}.zombie-block.current:before{content:'🧟';position:absolute;top:-27px;left:50%;transform:translateX(-50%);font-size:23px;filter:drop-shadow(0 3px 3px #0008)}.zombie-block small{font-size:10px;color:#e9eaf1;line-height:1.1;text-align:center;overflow-wrap:anywhere}.zombie-block{align-items:center;padding:0 2px}.zombie-title{font-size:21px;font-weight:900;letter-spacing:.2px}.zombie-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px}.zombie-controls label{display:block}.zombie-controls input{margin-top:6px}.zombie-message{padding:10px 12px;border-radius:10px;background:#24263d;color:#e9eaf1;margin:10px 0;font-size:13px}.zombie-message.good{background:#153b2d;color:#a8f0c9}.zombie-message.bad{background:#48232a;color:#ffc0c5}.zombie-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.zombie-actions.single{grid-template-columns:1fr}@media(max-width:380px){.zombie-stat{padding:8px 4px}.zombie-stat b{font-size:15px}.zombie-block{flex-basis:47px;height:53px}}
 
 </style>
 </head>
@@ -1177,8 +1199,12 @@ function renderZombie(host) {
     if (number <= current) classes.push('done');
     if (number === current && active) classes.push('current');
     if (number === Number(game?.failedBlock)) classes.push('failed');
-    const label = number === Number(game?.failedBlock) ? '✕' : String(number);
-    return `<div class="${classes.join(' ')}"><small>${label}</small></div>`;
+    // Для каждого блока показываем множитель, который будет действовать
+    // после успешного прохождения именно этого блока.
+    const blockMultiplier = Number(game?.configSnapshot?.initialMultiplier ?? cfg.initialMultiplier ?? 1.10)
+      + (number - 1) * Number(game?.configSnapshot?.multiplierStep ?? cfg.multiplierStep ?? 0.15);
+    const label = number === Number(game?.failedBlock) ? '✕' : `×${blockMultiplier.toFixed(2)}`;
+    return `<div class="${classes.join(' ')}" title="Блок ${number}"><small>${label}</small></div>`;
   }).join('');
   const message = ZOMBIE_VIEW.message || (game?.status === 'lost'
     ? `Зомби провалился на блоке ${game.failedBlock}. Зарезервированная сумма не возвращается.`
@@ -1187,9 +1213,9 @@ function renderZombie(host) {
   const tone = ZOMBIE_VIEW.tone || (game?.status === 'lost' ? 'bad' : (game?.status === 'cashed_out' ? 'good' : ''));
 
   host.innerHTML = `<div class="zombie-wrap">
-    <div class="zombie-head"><div><div class="zombie-title">🧟 ЗОМБИ-ПУТЬ</div><div class="zombie-sub">Продвигайся по блокам. Риск растёт с каждым шагом.</div></div><div class="mines-pill">${active ? 'ЗАБЕГ ИДЁТ' : 'АРКАДА'}</div></div>
+    <div class="zombie-head"><div class="zombie-title">${esc(GAME_CARD_CONFIG.zombieIcon||'🧟')} ${esc(GAME_CARD_CONFIG.zombieName||'Зомби-путь')}</div></div>
     <div class="card" style="background:linear-gradient(145deg,#1a1d31,#151621);border-color:#2b2f4a">
-      ${!active ? `<div class="zombie-controls"><div><label for="zombie-bet">Сумма золота</label><input id="zombie-bet" type="number" min="${Number(cfg.minBet)||1}" max="${Number(cfg.maxBet)||1000000000}" step="1" value="${Number(cfg.minBet)||10}" ${cfg.enabled===false?'disabled':''}></div><div><label>Доступно</label><div class="mines-pill" style="margin-top:6px">${Math.floor((Number(profile?.balance)||0)+(Number(profile?.bonusBalance)||0)).toLocaleString('ru-RU')} золота</div></div></div>` : ''}
+      ${!active ? `<div class="zombie-controls"><div class="wide"><label for="zombie-bet">Сумма золота</label><input id="zombie-bet" type="number" min="${Number(cfg.minBet)||1}" max="${Number(cfg.maxBet)||1000000000}" step="1" value="${Number(cfg.minBet)||10}" ${cfg.enabled===false?'disabled':''}></div></div>` : ''}
       <div class="zombie-stat-grid">
         <div class="zombie-stat"><small>Блок</small><b>${current}/${maxBlocks}</b></div>
         <div class="zombie-stat"><small>Множитель</small><b>×${multiplier.toFixed(2)}</b></div>
@@ -1200,7 +1226,6 @@ function renderZombie(host) {
       ${active ? `<div class="zombie-actions"><button class="btn" onclick="zombieStep()" ${ZOMBIE_VIEW.busy?'disabled':''}>➡ Следующий блок</button><button class="btn sec" onclick="zombieCashout()" ${ZOMBIE_VIEW.busy||current<1?'disabled':''}>Забрать ${Math.floor(Number(game.bet||0)*multiplier).toLocaleString('ru-RU')} золота</button></div>`
       : ended ? `<div class="zombie-actions single"><button class="btn" onclick="zombieReset()">Новый забег</button></div>`
       : `<div class="zombie-actions single"><button class="btn" onclick="zombieStart()" ${ZOMBIE_VIEW.busy||cfg.enabled===false?'disabled':''}>${cfg.enabled===false?'Игра отключена':'Начать забег'}</button></div>`}
-      ${game ? `<p class="muted" style="font-size:11px;margin-top:10px">Сумма забега: ${Number(game.bet||0).toLocaleString('ru-RU')} · ID: ${esc(String(game.id||'').slice(0,8))}</p>` : ''}
     </div>
   </div>`;
 }
@@ -1338,7 +1363,7 @@ function gameCardVisual(image, emoji, alt) { return image ? `<img src="${esc(ima
 function gameCardHTML(id, title, image, icon, gameKey, countId) {
   const whole = GAME_CARD_CONFIG[gameKey+'CardNoButton'] === true;
   const label = String(title ?? '');
-  const clickAttrs = whole ? ` role="button" tabindex="0" aria-label="${esc(label || (gameKey==='mines'?'Открыть игру Мины':'Открыть игру PvP'))}" onclick="go('${gameKey}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('${gameKey}')}"` : '';
+  const clickAttrs = whole ? ` role="button" tabindex="0" aria-label="${esc(label || (gameKey==='mines'?'Открыть игру Мины':(gameKey==='zombie'?'Открыть игру Зомби':'Открыть игру PvP')))}" onclick="go('${gameKey}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();go('${gameKey}')}"` : '';
   return `<article class="home-game-card${whole?' game-card-clickable':''}"${clickAttrs}><div class="home-game-icon" id="${id}-icon">${gameCardVisual(image,icon,label)}</div><div class="home-game-name" id="${id}-name">${esc(label)}</div><div class="home-game-live"><span class="home-game-live-dot"></span><span id="${countId}">Сейчас играют: —</span></div>${whole?'':`<button class="btn home-play-btn" onclick="go('${gameKey}')">Играть</button>`}</article>`;
 }
 function renderGames(c, settingsLoaded=false) {
@@ -1991,29 +2016,48 @@ function uiTake(id) { takeTicket(id).then(rerender); }
 /* ---------- АДМИН-ПАНЕЛЬ ---------- */
 function renderAdmin(c) {
   if(!GAME_CONFIG_LOADING){GAME_CONFIG_LOADING=true;loadHomeGameSettings().finally(()=>GAME_CONFIG_LOADING=false);}
+  const groups = [
+    {title:'Управление',items:[['items','📚','Предметы'],['users','👥','Игроки'],['anns','📢','Объявления'],['promos','🎟️','Промокоды']]},
+    {title:'Экономика',items:[['cur','🪙','Валюта'],['market','🛒','Маркет']]},
+    {title:'Система',items:[['system','🛠','Настройки системы'],['visibility','👁','Видимость функций'],['notifications','🔔','Уведомления бота']]},
+    {title:'Мониторинг',items:[['stats','📊','Статистика'],['logs','📜','Логи']]}
+  ];
+  const menuItems = groups.map(group=>`<div class="admin-drawer-group"><div class="admin-drawer-label">${group.title}</div>${group.items.map(([key,icon,label])=>`<button class="admin-drawer-item ${adminSub===key?'on':''}" onclick="setSub('${key}')"><span>${icon}</span><span>${label}</span></button>`).join('')}</div>`).join('');
+  const current = groups.flatMap(g=>g.items).find(x=>x[0]===adminSub);
   c.innerHTML = `
-    <div class="card">
-      <div class="admin-tabs">
-        <button class="btn sec ${adminSub==='items'?'on':''}" onclick="setSub('items')">📚 Предметы</button>
-        <button class="btn sec ${adminSub==='users'?'on':''}" onclick="setSub('users')">👥 Игроки</button>
-        <button class="btn sec ${adminSub==='anns'?'on':''}" onclick="setSub('anns')">📢 Объявления</button>
-        <button class="btn sec ${adminSub==='promos'?'on':''}" onclick="setSub('promos')">🎟️ Промокоды</button>
-        <button class="btn sec ${adminSub==='cur'?'on':''}" onclick="setSub('cur')">🪙 Валюта</button>
-        <button class="btn sec ${adminSub==='system'?'on':''}" onclick="setSub('system')">🛠 Система</button>
-        <button class="btn sec ${adminSub==='stats'?'on':''}" onclick="setSub('stats')">📊 Статистика</button>
-        <button class="btn sec ${adminSub==='logs'?'on':''}" onclick="setSub('logs')">📜 Логи</button>
-        <button class="btn sec ${adminSub==='notifications'?'on':''}" onclick="setSub('notifications')">🔔 Уведомления бота</button>
-        <button class="btn sec ${adminSub==='visibility'?'on':''}" onclick="setSub('visibility')">👁 Видимость функций</button><button class="btn sec ${adminSub==='market'?'on':''}" onclick="setSub('market')">🛒 Маркет</button>
+    <div class="admin-shell">
+      <div class="admin-toolbar">
+        <button class="admin-menu-toggle" type="button" onclick="toggleAdminMenu(true)" aria-label="Открыть меню категорий">☰</button>
+        <div class="admin-current"><b>${current?.[1]||'⚙️'} ${current?.[2]||'Админ-панель'}</b><small>Управление проектом</small></div>
+        <button class="btn sec admin-refresh-btn" type="button" onclick="refreshAdminData()">↻</button>
       </div>
+      <div id="admin-refresh-status" class="muted admin-refresh-status"></div>
+      <div id="admin-body"></div>
     </div>
-    <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><button class="btn sec" type="button" onclick="refreshAdminData()">↻ Обновить данные</button><span id="admin-refresh-status" class="muted" style="align-self:center;font-size:12px"></span></div>
-    <div id="admin-body"></div>`;
+    <div id="admin-drawer-overlay" class="admin-drawer-overlay" onclick="toggleAdminMenu(false)"></div>
+    <aside id="admin-drawer" class="admin-drawer" aria-label="Категории админ-панели">
+      <div class="admin-drawer-head"><b>Админ-панель</b><button type="button" onclick="toggleAdminMenu(false)" aria-label="Закрыть меню">✕</button></div>
+      ${menuItems}
+    </aside>`;
   drawAdminBody();
   if(adminSub==='logs') { if(ADMIN_LOG_ITEMS.length) startAdminLogAutoRefresh(); else loadAdminLogs(true); }
+}
+function toggleAdminMenu(open) {
+  const drawer=document.getElementById('admin-drawer');
+  const overlay=document.getElementById('admin-drawer-overlay');
+  if(!drawer||!overlay) return;
+  drawer.classList.toggle('open',!!open);
+  overlay.classList.toggle('open',!!open);
+  document.body.classList.toggle('admin-menu-open',!!open);
 }
 function setSub(s) {
   stopAdminLogAutoRefresh();
   adminSub = s;
+  toggleAdminMenu(false);
+  const title = document.querySelector('.admin-current b');
+  const labels = {items:'📚 Предметы',users:'👥 Игроки',anns:'📢 Объявления',promos:'🎟️ Промокоды',cur:'🪙 Валюта',market:'🛒 Маркет',system:'🛠 Настройки системы',visibility:'👁 Видимость функций',notifications:'🔔 Уведомления бота',stats:'📊 Статистика',logs:'📜 Логи'};
+  if(title) title.textContent=labels[s]||'Админ-панель';
+  document.querySelectorAll('.admin-drawer-item').forEach(el=>el.classList.toggle('on',el.getAttribute('onclick')===`setSub('${s}')`));
   drawAdminBody();
   if(s==='logs') loadAdminLogs(true);
 }
@@ -2028,7 +2072,7 @@ async function refreshAdminData() {
       cur: [['config/currency', v => CUR_ICON = v?.icon || '']],
       system: [['config/maintenance', v => MAINTENANCE = v || {enabled:false,message:''}]],
       stats: [['users', v => USERS = v], ['tickets', v => TICKETS = v], ['roles', v => ROLES = v], ['items', v => ITEMS = v], ['anns', v => ANNS = v]],
-      promos: [], notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]]
+      promos: [], market: [], notifications: [], visibility: [['config/uiVisibility', v => { UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(v || {})}; UI_VISIBILITY_MESSAGES = {...((v || {}).messages || {})}; }]]
     };
     const targets = reads[adminSub] || [];
     await Promise.all(targets.map(async ([path, apply]) => {
@@ -2492,9 +2536,71 @@ function previewButtonSfx(){const data=BUTTON_SFX_DRAFT||BUTTON_SFX_CONFIG.dataU
 async function saveButtonSfx(){if(!isAdmin())return toast('Недостаточно прав');const enabled=!!document.getElementById('admin-button-sfx-enabled')?.checked;const dataUrl=BUTTON_SFX_DRAFT||BUTTON_SFX_CONFIG.dataUrl||'';if(enabled&&!dataUrl)return toast('Загрузи аудиофайл или отключи звук');if(dataUrl.length>500000)return toast('Файл слишком большой');try{const next={enabled,dataUrl,fileName:BUTTON_SFX_DRAFT?(document.getElementById('admin-button-sfx-file')?.files?.[0]?.name||'button-sfx'):BUTTON_SFX_CONFIG.fileName||'',updatedAt:Date.now(),updatedBy:CURRENT_ID};await db.ref('config/buttonSfx').set(next);BUTTON_SFX_CONFIG=next;BUTTON_SFX_DRAFT='';toast('Звук кнопок сохранён');drawAdminBody();}catch(e){toast(e.message||'Не удалось сохранить звук. Проверь правила Firebase.')}}
 async function removeButtonSfx(){if(!isAdmin())return toast('Недостаточно прав');try{await db.ref('config/buttonSfx').remove();BUTTON_SFX_CONFIG={enabled:false,dataUrl:'',fileName:''};BUTTON_SFX_DRAFT='';toast('Звук кнопок удалён');drawAdminBody();}catch(e){toast(e.message||'Не удалось удалить звук')}}
 if(!window.__buttonSfxClickBound){window.__buttonSfxClickBound=true;document.addEventListener('click',e=>{const el=e.target?.closest?.('button,.nav-item,[role=button]');if(!el||el.disabled||el.id==='admin-button-sfx-preview')return;if(el.closest('#admin-body')&&el.id==='admin-button-sfx-save')return;playButtonSfx();},true); }
-async function loadHomeGameSettings(){try{const snap=await db.ref('config/gameCards').get();const cfg=snap.val()||{};GAME_CARD_CONFIG={...GAME_CARD_CONFIG,...cfg};for(const [id,key] of [['games-mines-name','minesName'],['games-pvp-name','pvpName'],['games-zombie-name','zombieName']]){const el=document.getElementById(id);if(el)el.textContent=String(GAME_CARD_CONFIG[key]??'').slice(0,80);}for(const [id,key] of [['admin-mines-icon','minesIcon'],['admin-mines-name','minesName'],['admin-pvp-icon','pvpIcon'],['admin-pvp-name','pvpName']]){const el=document.getElementById(id);if(el)el.value=String(GAME_CARD_CONFIG[key]??'');}for(const [id,key] of [['admin-mines-image-preview','minesImage'],['admin-pvp-image-preview','pvpImage']]){const el=document.getElementById(id);if(el)el.innerHTML=GAME_CARD_CONFIG[key]?`<img src="${esc(GAME_CARD_CONFIG[key])}" alt="Предпросмотр" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`:'Фото не выбрано';}if(CURRENT_TAB==='games'){const host=document.getElementById('content');if(host)renderGames(host,true);}}catch(e){}}
+async function loadHomeGameSettings(){
+  try {
+    const snap=await db.ref('config/gameCards').get();
+    const cfg=snap.val()||{};
+    GAME_CARD_CONFIG={...GAME_CARD_CONFIG,...cfg};
+    for(const [id,key] of [['games-mines-name','minesName'],['games-pvp-name','pvpName'],['games-zombie-name','zombieName']]){
+      const el=document.getElementById(id); if(el) el.textContent=String(GAME_CARD_CONFIG[key]??'').slice(0,80);
+    }
+    for(const [id,key] of [
+      ['admin-mines-icon','minesIcon'],['admin-mines-name','minesName'],
+      ['admin-pvp-icon','pvpIcon'],['admin-pvp-name','pvpName'],
+      ['admin-zombie-card-icon','zombieIcon'],['admin-zombie-card-name','zombieName']
+    ]){
+      const el=document.getElementById(id); if(el) el.value=String(GAME_CARD_CONFIG[key]??'');
+    }
+    for(const [id,key] of [
+      ['admin-mines-image-preview','minesImage'],['admin-pvp-image-preview','pvpImage'],
+      ['admin-zombie-card-image-preview','zombieImage']
+    ]){
+      const el=document.getElementById(id);
+      if(el) el.innerHTML=GAME_CARD_CONFIG[key]
+        ? `<img src="${esc(GAME_CARD_CONFIG[key])}" alt="Предпросмотр" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`
+        : 'Фото не выбрано';
+    }
+    if(CURRENT_TAB==='games'){
+      const host=document.getElementById('content'); if(host) renderGames(host,true);
+    }
+  } catch(e) {}
+}
 async function previewGameCardImage(inputId,previewId){try{const file=document.getElementById(inputId)?.files?.[0];if(!file)return;const data=await marketImageData(file);const preview=document.getElementById(previewId);if(preview)preview.innerHTML=`<img src="${esc(data)}" alt="Предпросмотр" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`;const input=document.getElementById(inputId);if(input)input.dataset.image=data;}catch(e){toast(e.message||'Не удалось загрузить изображение');}}
-async function saveHomeGameSettings(){if(!isAdmin())return toast('Недостаточно прав');try{const minesInput=document.getElementById('admin-mines-image'),pvpInput=document.getElementById('admin-pvp-image');let minesImage=minesInput?.dataset.image||GAME_CARD_CONFIG.minesImage||'',pvpImage=pvpInput?.dataset.image||GAME_CARD_CONFIG.pvpImage||'';if(document.getElementById('admin-mines-remove-image')?.checked)minesImage='';if(document.getElementById('admin-pvp-remove-image')?.checked)pvpImage='';const next={...GAME_CARD_CONFIG,minesImage,pvpImage,zombieName:GAME_CARD_CONFIG.zombieName||'Зомби-путь',zombieIcon:GAME_CARD_CONFIG.zombieIcon||'🧟',zombieImage:GAME_CARD_CONFIG.zombieImage||'',minesIcon:(document.getElementById('admin-mines-icon')?.value||'💣').trim().slice(0,12)||'💣',minesName:String(document.getElementById('admin-mines-name')?.value??'').trim().slice(0,40),minesCardNoButton:!!document.getElementById('admin-mines-no-button')?.checked,pvpIcon:(document.getElementById('admin-pvp-icon')?.value||'⚔️').trim().slice(0,12)||'⚔️',pvpName:String(document.getElementById('admin-pvp-name')?.value??'').trim().slice(0,40),pvpCardNoButton:!!document.getElementById('admin-pvp-no-button')?.checked,updatedAt:Date.now(),updatedBy:CURRENT_ID};await db.ref('config/gameCards').set(next);GAME_CARD_CONFIG=next;toast('Настройки карточек игр сохранены');if(CURRENT_TAB==='games')rerender();if(CURRENT_TAB==='admin')drawAdminBody();}catch(e){toast(e.message||'Не удалось сохранить настройки. Проверь правила Firebase.')}}
+async function saveHomeGameSettings(){
+  if(!isAdmin()) return toast('Недостаточно прав');
+  try {
+    const minesInput=document.getElementById('admin-mines-image');
+    const pvpInput=document.getElementById('admin-pvp-image');
+    const zombieInput=document.getElementById('admin-zombie-card-image');
+    let minesImage=minesInput?.dataset.image||GAME_CARD_CONFIG.minesImage||'';
+    let pvpImage=pvpInput?.dataset.image||GAME_CARD_CONFIG.pvpImage||'';
+    let zombieImage=zombieInput?.dataset.image||GAME_CARD_CONFIG.zombieImage||'';
+    if(document.getElementById('admin-mines-remove-image')?.checked) minesImage='';
+    if(document.getElementById('admin-pvp-remove-image')?.checked) pvpImage='';
+    if(document.getElementById('admin-zombie-card-remove-image')?.checked) zombieImage='';
+    const next={
+      ...GAME_CARD_CONFIG,
+      minesImage,pvpImage,zombieImage,
+      zombieName:String(document.getElementById('admin-zombie-card-name')?.value??GAME_CARD_CONFIG.zombieName??'Зомби-путь').trim().slice(0,40),
+      zombieIcon:(document.getElementById('admin-zombie-card-icon')?.value||'🧟').trim().slice(0,12)||'🧟',
+      zombieCardNoButton:!!document.getElementById('admin-zombie-card-no-button')?.checked,
+      minesIcon:(document.getElementById('admin-mines-icon')?.value||'💣').trim().slice(0,12)||'💣',
+      minesName:String(document.getElementById('admin-mines-name')?.value??'').trim().slice(0,40),
+      minesCardNoButton:!!document.getElementById('admin-mines-no-button')?.checked,
+      pvpIcon:(document.getElementById('admin-pvp-icon')?.value||'⚔️').trim().slice(0,12)||'⚔️',
+      pvpName:String(document.getElementById('admin-pvp-name')?.value??'').trim().slice(0,40),
+      pvpCardNoButton:!!document.getElementById('admin-pvp-no-button')?.checked,
+      updatedAt:Date.now(),updatedBy:CURRENT_ID
+    };
+    await db.ref('config/gameCards').set(next);
+    GAME_CARD_CONFIG=next;
+    toast('Настройки карточек игр сохранены');
+    if(CURRENT_TAB==='games') rerender();
+    if(CURRENT_TAB==='admin') drawAdminBody();
+  } catch(e) {
+    toast(e.message||'Не удалось сохранить настройки. Проверь правила Firebase.');
+  }
+}
 let ADMIN_ZOMBIE_CONFIG = {enabled:true,minBet:1,maxBet:1000000000,initialFailureChance:5,failureChanceStep:3,maxFailureChance:80,initialMultiplier:1.10,multiplierStep:0.15,maxBlocks:20};
 async function loadAdminZombieConfig() {
   if (!isAdmin()) return;
@@ -2555,7 +2661,7 @@ function adminSystemHTML() {
     </div>
     <button class="btn" style="margin-top:10px" onclick="saveAdminZombieConfig()">Сохранить настройки «Зомби»</button>
     <p class="muted" id="admin-zombie-config-status" style="margin-top:8px"></p>
-  </div><div class="card"><h2>🎮 Карточки игр</h2><p class="muted">Можно загрузить фотографию для каждой карточки. Если фото не выбрано, показывается эмодзи.</p><div class="market-form-grid"><div><label>Название «Мины» (можно оставить пустым)</label><input id="admin-mines-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.minesName??'Мины')}"></div><div><label>Иконка «Мины» (если без фото)</label><input id="admin-mines-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.minesIcon||'💣')}"></div><div class="wide"><label>Фото карточки «Мины»</label><input id="admin-mines-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="previewGameCardImage('admin-mines-image','admin-mines-image-preview')"><div id="admin-mines-image-preview" style="margin-top:8px">${GAME_CARD_CONFIG.minesImage?`<img src="${esc(GAME_CARD_CONFIG.minesImage)}" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`:'Фото не выбрано'}</div><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-mines-remove-image" type="checkbox" style="width:auto"> Удалить фото «Мины»</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-mines-no-button" type="checkbox" style="width:auto" ${GAME_CARD_CONFIG.minesCardNoButton?'checked':''}> Без кнопки — вся карточка открывает игру</label></div><div><label>Название PvP (можно оставить пустым)</label><input id="admin-pvp-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.pvpName??'PvP-клетки')}"></div><div><label>Иконка PvP (если без фото)</label><input id="admin-pvp-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.pvpIcon||'⚔️')}"></div><div class="wide"><label>Фото карточки PvP</label><input id="admin-pvp-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="previewGameCardImage('admin-pvp-image','admin-pvp-image-preview')"><div id="admin-pvp-image-preview" style="margin-top:8px">${GAME_CARD_CONFIG.pvpImage?`<img src="${esc(GAME_CARD_CONFIG.pvpImage)}" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`:'Фото не выбрано'}</div><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-pvp-remove-image" type="checkbox" style="width:auto"> Удалить фото PvP</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-pvp-no-button" type="checkbox" style="width:auto" ${GAME_CARD_CONFIG.pvpCardNoButton?'checked':''}> Без кнопки — вся карточка открывает игру</label></div></div><button class="btn" style="margin-top:8px" onclick="saveHomeGameSettings()">Сохранить настройки игр</button></div><div class="card"><h2>🔊 Звук кнопок (SFX)</h2><p class="muted">Загрузи короткий звук, который будет проигрываться при нажатии на кнопки приложения. Поддерживаются MP3, WAV, OGG, M4A и WEBM, до 350 КБ.</p><label style="display:flex;align-items:center;gap:8px;margin:8px 0"><input id="admin-button-sfx-enabled" type="checkbox" style="width:auto" ${BUTTON_SFX_CONFIG.enabled?'checked':''}> Включить звук кнопок</label><label>Аудиофайл</label><input id="admin-button-sfx-file" type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/ogg,audio/mp4,audio/aac,audio/webm,.mp3,.wav,.ogg,.m4a,.aac,.webm" onchange="previewButtonSfxFile()"><div id="admin-button-sfx-name" class="muted" style="margin-top:6px">${esc(BUTTON_SFX_CONFIG.fileName||'Файл не выбран')}</div><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px"><button id="admin-button-sfx-preview" class="btn sec" onclick="previewButtonSfx()" ${BUTTON_SFX_DRAFT||BUTTON_SFX_CONFIG.dataUrl?'':'disabled'}>▶ Прослушать</button><button id="admin-button-sfx-save" class="btn" onclick="saveButtonSfx()">Сохранить звук</button>${BUTTON_SFX_CONFIG.dataUrl?'<button class="btn sec" onclick="removeButtonSfx()">Удалить звук</button>':''}</div></div><div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
+  </div><div class="card"><h2>🎮 Карточки игр</h2><p class="muted">Можно загрузить фотографию для каждой карточки. Если фото не выбрано, показывается эмодзи.</p><div class="market-form-grid"><div><label>Название «Мины» (можно оставить пустым)</label><input id="admin-mines-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.minesName??'Мины')}"></div><div><label>Иконка «Мины» (если без фото)</label><input id="admin-mines-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.minesIcon||'💣')}"></div><div class="wide"><label>Фото карточки «Мины»</label><input id="admin-mines-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="previewGameCardImage('admin-mines-image','admin-mines-image-preview')"><div id="admin-mines-image-preview" style="margin-top:8px">${GAME_CARD_CONFIG.minesImage?`<img src="${esc(GAME_CARD_CONFIG.minesImage)}" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`:'Фото не выбрано'}</div><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-mines-remove-image" type="checkbox" style="width:auto"> Удалить фото «Мины»</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-mines-no-button" type="checkbox" style="width:auto" ${GAME_CARD_CONFIG.minesCardNoButton?'checked':''}> Без кнопки — вся карточка открывает игру</label></div><div><label>Название PvP (можно оставить пустым)</label><input id="admin-pvp-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.pvpName??'PvP-клетки')}"></div><div><label>Иконка PvP (если без фото)</label><input id="admin-pvp-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.pvpIcon||'⚔️')}"></div><div class="wide"><label>Фото карточки PvP</label><input id="admin-pvp-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="previewGameCardImage('admin-pvp-image','admin-pvp-image-preview')"><div id="admin-pvp-image-preview" style="margin-top:8px">${GAME_CARD_CONFIG.pvpImage?`<img src="${esc(GAME_CARD_CONFIG.pvpImage)}" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`:'Фото не выбрано'}</div><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-pvp-remove-image" type="checkbox" style="width:auto"> Удалить фото PvP</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-pvp-no-button" type="checkbox" style="width:auto" ${GAME_CARD_CONFIG.pvpCardNoButton?'checked':''}> Без кнопки — вся карточка открывает игру</label></div><div><label>Название «Зомби» (можно оставить пустым)</label><input id="admin-zombie-card-name" maxlength="40" value="${esc(GAME_CARD_CONFIG.zombieName??'Зомби-путь')}"></div><div><label>Иконка «Зомби» (если без фото)</label><input id="admin-zombie-card-icon" maxlength="12" value="${esc(GAME_CARD_CONFIG.zombieIcon||'🧟')}"></div><div class="wide"><label>Фото карточки «Зомби»</label><input id="admin-zombie-card-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="previewGameCardImage('admin-zombie-card-image','admin-zombie-card-image-preview')"><div id="admin-zombie-card-image-preview" style="margin-top:8px">${GAME_CARD_CONFIG.zombieImage?`<img src="${esc(GAME_CARD_CONFIG.zombieImage)}" style="width:100%;max-width:180px;aspect-ratio:1/1;height:auto;object-fit:cover;border-radius:10px">`:'Фото не выбрано'}</div><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-zombie-card-remove-image" type="checkbox" style="width:auto"> Удалить фото «Зомби»</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="admin-zombie-card-no-button" type="checkbox" style="width:auto" ${GAME_CARD_CONFIG.zombieCardNoButton?'checked':''}> Без кнопки — вся карточка открывает игру</label></div></div><button class="btn" style="margin-top:8px" onclick="saveHomeGameSettings()">Сохранить настройки игр</button></div><div class="card"><h2>🔊 Звук кнопок (SFX)</h2><p class="muted">Загрузи короткий звук, который будет проигрываться при нажатии на кнопки приложения. Поддерживаются MP3, WAV, OGG, M4A и WEBM, до 350 КБ.</p><label style="display:flex;align-items:center;gap:8px;margin:8px 0"><input id="admin-button-sfx-enabled" type="checkbox" style="width:auto" ${BUTTON_SFX_CONFIG.enabled?'checked':''}> Включить звук кнопок</label><label>Аудиофайл</label><input id="admin-button-sfx-file" type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/ogg,audio/mp4,audio/aac,audio/webm,.mp3,.wav,.ogg,.m4a,.aac,.webm" onchange="previewButtonSfxFile()"><div id="admin-button-sfx-name" class="muted" style="margin-top:6px">${esc(BUTTON_SFX_CONFIG.fileName||'Файл не выбран')}</div><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px"><button id="admin-button-sfx-preview" class="btn sec" onclick="previewButtonSfx()" ${BUTTON_SFX_DRAFT||BUTTON_SFX_CONFIG.dataUrl?'':'disabled'}>▶ Прослушать</button><button id="admin-button-sfx-save" class="btn" onclick="saveButtonSfx()">Сохранить звук</button>${BUTTON_SFX_CONFIG.dataUrl?'<button class="btn sec" onclick="removeButtonSfx()">Удалить звук</button>':''}</div></div><div class="card"><h2>🛠 Технический перерыв</h2><p class="muted">Когда режим включён, игроки видят экран технических работ. Администраторы продолжают пользоваться приложением. Статус синхронизируется у всех администраторов автоматически.</p>
     <label>Сообщение для игроков</label><textarea id="maintenance-text" rows="3" maxlength="300">${esc(MAINTENANCE?.message || 'Ведутся технические работы. Попробуйте зайти позже.')}</textarea>
     <button class="btn" onclick="saveMaintenance(${!enabled})">${enabled ? 'Выключить технический перерыв' : 'Включить технический перерыв'}</button>
     <p class="muted" style="margin-top:10px">Текущий статус: <b style="color:${enabled?'var(--red)':'var(--green)'}">${enabled?'ВКЛЮЧЁН':'выключен'}</b></p>
