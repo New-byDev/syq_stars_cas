@@ -403,17 +403,26 @@
 
 
 /* ================= ОФОРМЛЕНИЕ ПРОФИЛЯ И АВАТАРОК ================= */
-.skin-avatar{--skin-border-width:2px;--skin-gradient:conic-gradient(#555,#888,#555);--skin-glow-color:#5b86e5;--skin-glow-blur:0px;--skin-speed:8s;--skin-particle-size:3px;--skin-particle-color:#fff;--skin-particle-opacity:.75;--skin-particle-radius:28px;display:inline-flex;position:relative;flex:0 0 auto;width:46px;height:46px;padding:var(--skin-border-width);border-radius:50%;background:var(--skin-gradient);isolation:isolate;vertical-align:middle;filter:drop-shadow(0 0 var(--skin-glow-blur,0px) var(--skin-glow-color));}
+.skin-avatar{--skin-border-width:2px;--skin-gradient:conic-gradient(#555,#888,#555);--skin-glow-color:#5b86e5;--skin-glow-blur:0px;--skin-speed:8s;--skin-particle-size:3px;--skin-particle-color:#fff;--skin-particle-opacity:.75;--skin-particle-radius:28px;--skin-particle-distance:20px;display:inline-flex;position:relative;flex:0 0 auto;width:46px;height:46px;padding:var(--skin-border-width);border-radius:50%;background:var(--skin-gradient);isolation:isolate;vertical-align:middle;filter:drop-shadow(0 0 var(--skin-glow-blur,0px) var(--skin-glow-color));}
 .skin-avatar.no-skin{--skin-border-width:2px;--skin-gradient:linear-gradient(135deg,#333,#777);--skin-glow-blur:0px}
 .skin-avatar-inner{position:relative;z-index:1;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#222;color:#ddd;font-size:19px;font-weight:800;}
 .skin-avatar-inner img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.skin-avatar-particles{position:absolute;z-index:2;inset:-7%;border-radius:50%;pointer-events:none;}
-.skin-avatar-particles i{position:absolute;left:50%;top:50%;width:var(--skin-particle-size);height:var(--skin-particle-size);margin:-1px 0 0 -1px;border-radius:50%;background:var(--skin-particle-color);box-shadow:0 0 7px var(--skin-particle-color);opacity:var(--skin-particle-opacity);transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius));animation:skinOrbit var(--skin-speed) linear infinite;animation-delay:calc(var(--particle-index) * -.23s);}
-.skin-avatar-particles[data-type="sparkle"] i{animation-name:skinSparkle;transform:translate(-50%,-50%) translate(var(--particle-x),var(--particle-y));}
-.skin-avatar-particles[data-type="flow"] i{animation-name:skinFlow;transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius));}
-@keyframes skinOrbit{from{transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius)) scale(.7)}50%{opacity:1;transform:rotate(calc(var(--particle-angle) + 180deg)) translateX(var(--skin-particle-radius)) scale(1.25)}to{transform:rotate(calc(var(--particle-angle) + 360deg)) translateX(var(--skin-particle-radius)) scale(.7)}}
-@keyframes skinSparkle{0%,100%{opacity:.15;scale:.45}50%{opacity:1;scale:1.3}}
-@keyframes skinFlow{0%{opacity:0;transform:rotate(var(--particle-angle)) translateX(calc(var(--skin-particle-radius) - 5px))}45%{opacity:1}100%{opacity:0;transform:rotate(calc(var(--particle-angle) + 360deg)) translateX(calc(var(--skin-particle-radius) + 5px))}}
+.skin-avatar-particles{position:absolute;z-index:2;inset:-7%;border-radius:50%;pointer-events:none;overflow:visible;}
+.skin-avatar-particles i{position:absolute;left:50%;top:50%;display:block;width:var(--skin-particle-size);height:var(--skin-particle-size);margin:-1px 0 0 -1px;border-radius:50%;background:var(--skin-particle-color);box-shadow:0 0 7px var(--skin-particle-color);opacity:0;will-change:transform,opacity;animation-duration:var(--particle-duration,8s);animation-delay:var(--particle-delay,0s);animation-timing-function:linear;animation-iteration-count:infinite;}
+.skin-avatar-particles[data-type="orbit"] i{animation-name:skinOrbit;}
+.skin-avatar-particles[data-type="sparkle"] i{animation-name:skinSparkle;}
+.skin-avatar-particles[data-type="flow"] i{animation-name:skinFlow;}
+.skin-avatar-particles[data-type="starburst"] i{border-radius:0;clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 94%,50% 72%,21% 94%,32% 57%,2% 35%,39% 35%);animation-name:skinStarburst;}
+.skin-avatar-particles[data-type="inward"] i{animation-name:skinInward;}
+.skin-avatar-particles[data-type="scatter"] i{animation-name:skinScatter;}
+.skin-avatar-particles[data-type="comet"] i{width:calc(var(--skin-particle-size)*.8);height:calc(var(--skin-particle-size)*2.8);border-radius:100%;box-shadow:0 0 8px var(--skin-particle-color);animation-name:skinComet;}
+@keyframes skinOrbit{0%{opacity:0;transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius)) scale(.55)}15%,75%{opacity:var(--skin-particle-opacity)}50%{transform:rotate(calc(var(--particle-angle) + 180deg)) translateX(calc(var(--skin-particle-radius) + var(--particle-drift))) scale(1.25)}100%{opacity:0;transform:rotate(calc(var(--particle-angle) + 360deg)) translateX(var(--skin-particle-radius)) scale(.55)}}
+@keyframes skinSparkle{0%,100%{opacity:0;transform:translate(-50%,-50%) translate(var(--particle-x),var(--particle-y)) scale(.25) rotate(0)}35%,65%{opacity:var(--skin-particle-opacity);transform:translate(-50%,-50%) translate(var(--particle-x),var(--particle-y)) scale(1.35) rotate(90deg)}}
+@keyframes skinFlow{0%{opacity:0;transform:rotate(var(--particle-angle)) translateX(calc(var(--skin-particle-radius) - 9px)) scale(.45)}25%,65%{opacity:var(--skin-particle-opacity)}100%{opacity:0;transform:rotate(calc(var(--particle-angle) + 360deg)) translateX(calc(var(--skin-particle-radius) + 12px)) scale(1.1)}}
+@keyframes skinStarburst{0%{opacity:0;transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius)) scale(.15)}12%{opacity:var(--skin-particle-opacity)}100%{opacity:0;transform:rotate(calc(var(--particle-angle) + var(--particle-drift))) translateX(calc(var(--skin-particle-radius) + var(--particle-travel))) scale(.05) rotate(220deg)}}
+@keyframes skinInward{0%{opacity:0;transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius)) scale(1.15)}18%{opacity:var(--skin-particle-opacity)}78%{opacity:.7}100%{opacity:0;transform:rotate(var(--particle-angle)) translateX(1px) scale(.05)}}
+@keyframes skinScatter{0%{opacity:0;transform:translate(-50%,-50%) translate(var(--particle-x),var(--particle-y)) scale(.2)}15%{opacity:var(--skin-particle-opacity)}100%{opacity:0;transform:translate(-50%,-50%) translate(calc(var(--particle-x) + var(--particle-dx)),calc(var(--particle-y) + var(--particle-dy))) scale(.05) rotate(180deg)}}
+@keyframes skinComet{0%{opacity:0;transform:rotate(var(--particle-angle)) translateX(var(--skin-particle-radius)) scale(.4)}20%,65%{opacity:var(--skin-particle-opacity)}100%{opacity:0;transform:rotate(calc(var(--particle-angle) + 90deg)) translateX(calc(var(--skin-particle-radius) + var(--particle-travel))) scale(.15)}}
 .player-nick{color:var(--text);overflow-wrap:anywhere;}
 .cosmetics-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .cosmetics-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px;}
@@ -444,7 +453,7 @@
 .cosmetic-code-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px;}
 .cosmetic-code-row code{overflow-wrap:anywhere;flex:1;}
 @media(max-width:360px){.cosmetics-grid{gap:6px}.cosmetic-card{padding:8px 4px}.cosmetic-card .skin-avatar{width:50px;height:50px}.cosmetic-card .btn{font-size:9px}.cosmetic-admin-grid{grid-template-columns:1fr}.cosmetic-admin-grid .wide{grid-column:auto;}}
-@media(prefers-reduced-motion:reduce){.skin-avatar-particles i{animation:none!important;opacity:.55!important}}
+@media(prefers-reduced-motion:reduce){.skin-avatar-particles i{animation:none!important;opacity:0!important;}}
 
 </style>
 </head>
@@ -880,8 +889,11 @@ async function enterApp(id) {
 
   profileRef.on('value', s => {
     profile = s.val() || {};
+    // Сразу обновляем локальный индекс пользователей: аватар текущего игрока
+    // должен появиться в топе без ожидания отдельной подписки на весь users/.
+    if (CURRENT_ID) USERS[CURRENT_ID] = profile;
     syncReferralInfoFromLocalData();
-    if (CURRENT_TAB === 'home') updateHomeAnnouncements();
+    if (CURRENT_TAB === 'home') { updateHomeAnnouncements(); updateHomeTopSpenders(); }
     document.getElementById('balance').textContent = formatBalance(profile.balance ?? 0);
     const bonusBalanceEl=document.getElementById('bonus-balance'); if(bonusBalanceEl) bonusBalanceEl.textContent=formatBalance(profile.bonusBalance ?? 0);
     document.getElementById('admin-btn').style.display = isAdmin() ? 'block' : 'none';
@@ -1328,6 +1340,7 @@ function renderSettings(c) {
   const prefs = {...DEFAULT_NOTIFICATION_SETTINGS, ...(profile?.notificationSettings || {})};
   c.innerHTML = `<div class="settings-shell"><div class="settings-hero"><div class="settings-hero-icon">⚙️</div><div><h2>Настройки ${hiddenAdminBadge('settings')}</h2><p>Управление уведомлениями и параметрами аккаунта</p></div></div>
     ${featureDisplayVisible('settingsNotifications') ? `<section class="settings-panel"><div class="settings-panel-heading"><span class="settings-panel-icon">🔔</span><div><b>Уведомления</b><p>Выбери, о каких событиях бот будет сообщать в Telegram.</p></div></div>${hiddenAdminBadge('settingsNotifications')}<label class="settings-toggle-row settings-master-row"><span><b>Уведомления в Telegram</b><small>Сообщения придут, если ты уже запускал бота и он может писать тебе.</small></span><input id="notif-telegram" type="checkbox" ${prefs.telegram?'checked':''}></label><div class="settings-events-title">События</div>${[['itemSold','Продажа предмета'],['reward','Получение награды'],['announcements','Новые объявления'],['maintenanceStart','Начало технического перерыва'],['maintenanceEnd','Окончание технического перерыва']].map(([key,label])=>`<label class="settings-toggle-row"><span>${label}</span><input id="notif-${key}" type="checkbox" ${prefs[key]?'checked':''}></label>`).join('')}<button class="btn settings-save-btn" onclick="saveNotificationSettings()">Сохранить настройки</button></section>` : featurePlaceholder('settingsNotifications')}
+    <section class="settings-panel"><div class="settings-panel-heading"><span class="settings-panel-icon">✨</span><div><b>Эффекты оформления</b><p>Отключи частицы, чтобы снизить нагрузку на устройство. Рамки и цвета ников останутся включены.</p></div></div><label class="settings-toggle-row"><span><b>Анимированные частицы</b><small>Применяется к аватаркам на всех экранах.</small></span><input id="cosmetic-particles-enabled" type="checkbox" ${profile?.cosmeticsSettings?.showParticles===false?'':'checked'} onchange="saveCosmeticPreferences()"></label></section>
     <details class="settings-panel settings-rules"><summary><span class="settings-panel-icon">📜</span><span><b>Правила ZombixUP</b><small>Условия использования приложения и маркета</small></span><span class="settings-summary-arrow">⌄</span></summary><div class="settings-rules-content">${BOT_RULES_HTML}</div></details>
     ${featureDisplayVisible('settingsSupport') ? `<a class="btn sec settings-action-link" href="https://t.me/Siqyal" target="_blank" rel="noopener">💬 Поддержка @Siqyal ${hiddenAdminBadge('settingsSupport')}</a>` : featurePlaceholder('settingsSupport')}
     ${featureDisplayVisible('settingsLogout') ? `<button class="btn sec settings-logout-btn" onclick="logout()">↪ Выйти из аккаунта ${hiddenAdminBadge('settingsLogout')}</button>` : featurePlaceholder('settingsLogout')}</div>`;
@@ -1336,6 +1349,23 @@ async function saveNotificationSettings() {
   const settings={telegram:document.getElementById('notif-telegram').checked,itemSold:document.getElementById('notif-itemSold').checked,reward:document.getElementById('notif-reward').checked,announcements:document.getElementById('notif-announcements').checked,maintenanceStart:document.getElementById('notif-maintenanceStart').checked,maintenanceEnd:document.getElementById('notif-maintenanceEnd').checked};
   try { await workerRequest('/api/settings/notifications',{settings}); const snap=await db.ref('users/'+CURRENT_ID).get(); if(snap.exists()) profile=snap.val(); toast('Настройки уведомлений сохранены'); rerender(); }
   catch(e) { toast(e.message||'Не удалось сохранить настройки'); }
+}
+
+// Сохраняет персональный выбор частиц на сервере, чтобы он действовал на всех устройствах.
+async function saveCosmeticPreferences(){
+  const input=document.getElementById('cosmetic-particles-enabled');
+  if(!input)return;
+  const showParticles=input.checked;
+  const oldValue=profile?.cosmeticsSettings?.showParticles!==false;
+  try{
+    const result=await workerRequest('/api/settings/cosmetics',{showParticles});
+    profile.cosmeticsSettings={...(profile.cosmeticsSettings||{}),...(result.cosmeticsSettings||{showParticles})};
+    toast(showParticles?'Анимированные частицы включены':'Анимированные частицы отключены');
+    rerender();
+  }catch(error){
+    input.checked=oldValue;
+    toast(error.message||'Не удалось сохранить настройку частиц');
+  }
 }
 
 /* ---------- ГЛАВНАЯ: ОБЪЯВЛЕНИЯ ---------- */
@@ -1390,23 +1420,59 @@ function getUserCosmeticFrame(id) {
 }
 function cosmeticInlineStyle(frame, avatarSize=46) {
   const style = frame?.style || {};
-  const colors = Array.isArray(style.gradientColors) ? style.gradientColors : ['#36d1dc','#5b86e5','#b06ab3'];
+  const defaults = ['#36d1dc','#5b86e5','#b06ab3','#ee9ca7','#f6d365'];
+  const colors = Array.isArray(style.gradientColors) ? style.gradientColors : defaults;
+  const count = Math.max(2,Math.min(5,Math.round(Number(style.gradientColorCount ?? colors.length ?? 3) || 3)));
+  const stops = Array.isArray(style.gradientStops) ? style.gradientStops : [0,25,50,75,100];
+  const gradient = Array.from({length:count},(_,i)=>`${cosmeticHex(colors[i],defaults[i])} ${Math.max(0,Math.min(100,Number(stops[i] ?? [0,25,50,75,100][i])||0))}%`);
+  gradient.push(`${cosmeticHex(colors[0],defaults[0])} 100%`);
   const anim = style.animation || {};
-  const safeColors = [0,1,2].map(i=>cosmeticHex(colors[i],['#36d1dc','#5b86e5','#b06ab3'][i]));
-  const stops = Array.isArray(style.gradientStops) ? style.gradientStops : [0,50,100];
-  const safeStops = [0,1,2].map(i=>Math.max(0,Math.min(100,Number(stops[i])||0)));
   const angle = Number.isFinite(Number(style.gradientAngle)) ? Math.max(0,Math.min(360,Number(style.gradientAngle))) : 135;
-  return `--skin-gradient:conic-gradient(from ${angle}deg,${safeColors[0]} ${safeStops[0]}%,${safeColors[1]} ${safeStops[1]}%,${safeColors[2]} ${safeStops[2]}%,${safeColors[0]} 100%);--skin-border-width:${Math.max(1,Math.min(10,Number(style.borderWidth)||3))}px;--skin-glow-color:${cosmeticHex(style.glowColor,'#5b86e5')};--skin-glow-blur:${Math.max(0,Math.min(40,Number(style.glowIntensity)||0))*0.35}px;--skin-particle-radius:${Math.max(16,Number(avatarSize)/2+5)}px;--skin-speed:${Math.max(2,Math.min(30,Number(anim.speed)||8))}s;--skin-particle-size:${Math.max(1,Math.min(7,Number(anim.size)||3))}px;--skin-particle-color:${cosmeticHex(anim.color,'#ffffff')};--skin-particle-opacity:${Math.max(10,Math.min(100,Number(anim.opacity)||75))/100};`;
+  const speed = Math.max(2,Math.min(30,Number(anim.speed)||8));
+  return `--skin-gradient:conic-gradient(from ${angle}deg,${gradient.join(',')});--skin-border-width:${Math.max(1,Math.min(10,Number(style.borderWidth)||3))}px;--skin-glow-color:${cosmeticHex(style.glowColor,'#5b86e5')};--skin-glow-blur:${Math.max(0,Math.min(40,Number(style.glowIntensity)||0))*0.35}px;--skin-particle-radius:${Math.max(16,Number(avatarSize)/2+5)}px;--skin-speed:${speed}s;--skin-particle-size:${Math.max(1,Math.min(10,Number(anim.size)||3))}px;--skin-particle-color:${cosmeticHex(anim.color,'#ffffff')};--skin-particle-opacity:${Math.max(10,Math.min(100,Number(anim.opacity)||75))/100};--skin-particle-distance:${Math.max(4,Math.min(40,Number(anim.distance)||20))}px;`;
+}
+// Возвращает постоянный адрес аватарки. Сначала используем сохранённый Telegram file_id,
+// который Worker безопасно проксирует; прямой photo_url оставляем для старых профилей.
+function getUserAvatarURL(id, user={}) {
+  const fileId = String(user?.avatarFileId || '');
+  if (fileId && fileId.length <= 512) {
+    const version = String(user?.avatarFileUniqueId || user?.avatarUpdatedAt || '1');
+    return `${WORKER_URL}/api/avatar?id=${encodeURIComponent(String(id))}&v=${encodeURIComponent(version)}`;
+  }
+  const direct = String(user?.photoUrl || user?.photo_url || user?.avatar || '');
+  return /^https:\/\//i.test(direct) ? direct : '';
 }
 function skinAvatarHTML(id, name, size=46, photoOverride='', frameOverride=undefined) {
   const user = String(id) === String(CURRENT_ID) ? (profile || {}) : (USERS[String(id)] || {});
   const frame = frameOverride === undefined ? getUserCosmeticFrame(id) : frameOverride;
-  const photo = String(photoOverride || user.photoUrl || user.photo_url || user.avatar || '');
+  const photo = String(photoOverride || getUserAvatarURL(id,user));
   const hasPhoto = /^https:\/\//i.test(photo);
   const initials = String(name || '👤').trim().slice(0,1).toUpperCase() || '👤';
-  const particles = frame?.style?.animation?.enabled === true ? Math.max(3,Math.min(18,Number(frame.style.animation.density)||8)) : 0;
-  const type = ['orbit','sparkle','flow'].includes(frame?.style?.animation?.type) ? frame.style.animation.type : 'orbit';
-  const dots = Array.from({length:particles},(_,i)=>`<i style="--particle-index:${i};--particle-angle:${i*360/Math.max(1,particles)}deg;--particle-x:${Math.cos(i*2.399)*(Number(size)/2+5)}px;--particle-y:${Math.sin(i*2.399)*(Number(size)/2+5)}px"></i>`).join('');
+  const animation = frame?.style?.animation || {};
+  const particlesAllowed = String(id) === 'preview' || user?.cosmeticsSettings?.showParticles !== false;
+  const particles = frame && animation.enabled === true && particlesAllowed ? Math.max(3,Math.min(30,Number(animation.density)||8)) : 0;
+  const supportedTypes = ['orbit','sparkle','flow','starburst','inward','scatter','comet'];
+  const type = supportedTypes.includes(animation.type) ? animation.type : 'orbit';
+  const baseSpeed = Math.max(2,Math.min(30,Number(animation.speed)||8));
+  const variation = Math.max(0,Math.min(100,Number(animation.speedVariation ?? 65)))/100;
+  const distance = Math.max(4,Math.min(40,Number(animation.distance)||20));
+  // У каждой частицы собственные длительность, задержка, направление и траектория.
+  // Это создаёт естественную неоднородность без JS-таймеров и лишней нагрузки.
+  const dots = Array.from({length:particles},(_,i)=>{
+    const angle = Math.random()*360;
+    const speedFactor = 1 - variation*.45 + Math.random()*variation*.9;
+    const duration = Math.max(1.2,baseSpeed/Math.max(.25,speedFactor));
+    const radius = size/2 + 4 + Math.random()*Math.max(5,distance*.35);
+    const travel = distance*(.45+Math.random()*1.1);
+    const delay = -Math.random()*duration;
+    const drift = (Math.random()-.5)*150;
+    const x = Math.cos(angle*Math.PI/180)*radius;
+    const y = Math.sin(angle*Math.PI/180)*radius;
+    const dx = (Math.random()-.5)*distance*2;
+    const dy = (Math.random()-.5)*distance*2;
+    const vars = `--particle-index:${i};--particle-angle:${angle}deg;--particle-x:${x.toFixed(2)}px;--particle-y:${y.toFixed(2)}px;--particle-duration:${duration.toFixed(2)}s;--particle-delay:${delay.toFixed(2)}s;--particle-drift:${drift.toFixed(1)}deg;--particle-travel:${travel.toFixed(1)}px;--particle-dx:${dx.toFixed(1)}px;--particle-dy:${dy.toFixed(1)}px`;
+    return `<i style="${vars}"></i>`;
+  }).join('');
   return `<span class="skin-avatar ${frame?'has-skin':'no-skin'}" style="width:${size}px;height:${size}px;${frame?cosmeticInlineStyle(frame,size):''}" aria-label="Аватар ${esc(name||'игрок')}"><span class="skin-avatar-inner">${hasPhoto?`<img src="${esc(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:esc(initials)}</span>${particles?`<span class="skin-avatar-particles" data-type="${type}">${dots}</span>`:''}</span>`;
 }
 function playerNickHTML(id, name) {
@@ -1435,7 +1501,7 @@ function closeCosmeticsShop(){COSMETICS_OPEN=false;rerender();}
 function cosmeticsPanelHTML(){
   const owned=new Set([...(COSMETIC_OWNED_IDS||[]),...Object.keys(profile?.cosmetics?.owned||{})]);
   const frames=Object.values(COSMETIC_FRAMES||{}).filter(frame=>frame.active!==false||owned.has(String(frame.id)));
-  const photo=String(TG_USER?.photo_url||profile?.photoUrl||'');
+  const photo=getUserAvatarURL(CURRENT_ID,profile||{}) || String(TG_USER?.photo_url||'');
   const cards=frames.map(frame=>{
     const id=String(frame.id),has=owned.has(id),active=id===COSMETIC_ACTIVE_ID||id===String(profile?.cosmetics?.activeFrameId||'');
     const action=has?`<button class="btn ${active?'sec':''}" ${active?'disabled':''} onclick="equipCosmeticFrame('${esc(id)}')">${active?'Используется':'Применить'}</button>`:frame.acquisition==='code'?'<button class="btn sec" disabled>Только по коду</button>':`<button class="btn" onclick="buyCosmeticFrame('${esc(id)}')">Купить · ${formatBalance(frame.price)} 🪙</button>`;
@@ -1458,7 +1524,7 @@ function buildHomeTopSpendersHTML() {
   }
   const top = Object.entries(depositsByUser).map(([id, deposited]) => ({id, u:USERS[id] || {}, deposited}))
     .filter(x => x.deposited > 0).sort((a,b) => b.deposited-a.deposited).slice(0,5);
-  return featureDisplayVisible('topSpenders')?`<div class="card"><h2>🏆 Топ пополнений ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшей суммой подтверждённых пополнений.</p>${top.length?top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b>${skinAvatarHTML(x.id,x.u.name||x.id,42,x.u.photoUrl||x.u.photo_url||'')}<div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${playerNickHTML(x.id,x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.deposited.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join(''):'<p class="muted">Пока нет подтверждённых пополнений.</p>'}</div>`:featurePlaceholder('topSpenders');
+  return featureDisplayVisible('topSpenders')?`<div class="card"><h2>🏆 Топ пополнений ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшей суммой подтверждённых пополнений.</p>${top.length?top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b>${skinAvatarHTML(x.id,x.u.name||x.id,42)}<div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${playerNickHTML(x.id,x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.deposited.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join(''):'<p class="muted">Пока нет подтверждённых пополнений.</p>'}</div>`:featurePlaceholder('topSpenders');
 }
 function updateHomeTopSpenders() {
   if(CURRENT_TAB!=='home')return;
@@ -1994,7 +2060,7 @@ function renderProfile(c) {
   const closed = my.filter(([, t]) => t.status === 'closed');
   const list = profileTicketTab === 'open' ? open : closed;
 
-  const telegramAvatar = String(TG_USER?.photo_url || profile?.photoUrl || '');
+  const telegramAvatar = getUserAvatarURL(CURRENT_ID,profile||{}) || String(TG_USER?.photo_url || '');
   const avatarHTML = skinAvatarHTML(CURRENT_ID,profile?.name||TG_USER?.first_name||'Игрок',76,telegramAvatar);
   c.innerHTML = `${featureDisplayVisible('profileInfo') ? `<div class="card"><div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">${avatarHTML}<div style="min-width:0"><h2 style="margin:0 0 5px">👤 ${playerNickHTML(CURRENT_ID,TG_USER?.first_name || profile?.name || 'Профиль')} ${hiddenAdminBadge('profileInfo')}</h2><div class="muted" style="overflow-wrap:anywhere">Telegram ID: <b>${esc(CURRENT_ID)}</b></div></div></div>
       <p class="muted">Имя: <b>${playerNickHTML(CURRENT_ID,[TG_USER?.first_name,TG_USER?.last_name].filter(Boolean).join(' ') || profile?.name || '—')}</b></p>
@@ -2374,7 +2440,7 @@ function adminUsersHTML() {
       const deposits=moneyRows.filter(t=>t.type==='deposit').reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
       const withdrawals=moneyRows.filter(t=>t.type==='withdraw').reduce((n,t)=>n+Math.max(0,Number(t.amount)||0),0);
       return `<div class="row" style="align-items:center;margin-bottom:9px;padding:9px;background:#101010;border:1px solid var(--line);border-radius:12px">
-        ${skinAvatarHTML(id,u.name||id,40,u.photoUrl||u.photo_url||'')}<div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${playerNickHTML(id,u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''}</div><div style="font-size:12px;margin-top:4px;line-height:1.5"><span>Баланс: <b>${formatBalance(u.balance||0)}</b></span><br><span style="color:var(--green)">Пополнения: +${deposits.toLocaleString('ru-RU')}</span><span style="color:var(--muted)"> · </span><span style="color:var(--red)">Выводы: −${withdrawals.toLocaleString('ru-RU')}</span></div></div>
+        ${skinAvatarHTML(id,u.name||id,40)}<div style="flex:1;min-width:0"><div style="font-size:14px;overflow-wrap:anywhere">${playerNickHTML(id,u.name || id)} <span class="badge ${role==='moderator'?'mod':''}" style="margin:0">${label}</span> ${isPlayerBanActive(u.ban)?'<span class="badge" style="background:var(--red);color:#fff;margin:0">ЗАБЛОКИРОВАН</span>':''}</div><div class="chips">ID: ${esc(id)}${u.username?` · @${esc(String(u.username).replace(/^@/,''))}`:''}</div><div style="font-size:12px;margin-top:4px;line-height:1.5"><span>Баланс: <b>${formatBalance(u.balance||0)}</b></span><br><span style="color:var(--green)">Пополнения: +${deposits.toLocaleString('ru-RU')}</span><span style="color:var(--muted)"> · </span><span style="color:var(--red)">Выводы: −${withdrawals.toLocaleString('ru-RU')}</span></div></div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="btn small" style="flex:0 0 auto" onclick="openPlayerAdminModal('${id}')">Подробно</button><button class="btn small sec" style="flex:0 0 auto" onclick="openRoleModal('${id}')">Настроить</button></div>
       </div>`;
     }).join('') || '<p class="muted">Игроки не найдены.</p>'}
@@ -2765,29 +2831,43 @@ async function saveAdminZombieConfig() {
 function adminCosmeticsHTML(){
   setTimeout(loadAdminCosmetics,0);
   const f=COSMETIC_EDITING_FRAME||{};
-  const st=f.style||{},colors=st.gradientColors||['#36d1dc','#5b86e5','#b06ab3'],stops=st.gradientStops||[0,50,100],a=st.animation||{};
+  const st=f.style||{},colors=st.gradientColors||['#36d1dc','#5b86e5','#b06ab3','#ee9ca7','#f6d365'],stops=st.gradientStops||[0,25,50,75,100],a=st.animation||{};
+  const colorCount=Math.max(2,Math.min(5,Number(st.gradientColorCount??colors.length??3)||3));
   const checked=f.active!==false;
   const selected=f.acquisition==='code'?'code':'shop';
-  return `<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1">🎨 Редактор рамки аватарки</h2><button class="btn sec small" style="flex:0 0 auto" onclick="resetCosmeticEditor()">Новая</button></div><p class="muted">Настрой три цветовых сектора градиента, цвет ника, свечение и плавные частицы. Предпросмотр обновляется при изменении параметров.</p><input id="ac-frame-id" type="hidden" value="${esc(f.id||'')}"><label>Название рамки</label><input id="ac-name" maxlength="40" placeholder="Например: Северное сияние" value="${esc(f.name||'')}"><div class="cosmetic-admin-grid"><div><label>Тип получения</label><select id="ac-acquisition" onchange="updateCosmeticPreview()"><option value="shop" ${selected==='shop'?'selected':''}>Покупка в магазине</option><option value="code" ${selected==='code'?'selected':''}>Только одноразовый код</option></select></div><div><label>Цена в золоте</label><input id="ac-price" type="number" min="0" max="1000000000" step="0.01" value="${Number(f.price)||0}" ${selected==='code'?'disabled':''}></div></div><label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input id="ac-active" type="checkbox" style="width:auto" ${checked?'checked':''}> Показывать рамку в каталоге</label><hr class="divider"><h3 style="font-size:13px;margin-bottom:8px">Градиент рамки</h3><div class="cosmetic-color-row"><label class="cosmetic-color-field"><input type="color" id="ac-g1" value="${cosmeticHex(colors[0],'#36d1dc')}" oninput="updateCosmeticPreview()"><span>Цвет 1</span></label><label class="cosmetic-color-field"><input type="color" id="ac-g2" value="${cosmeticHex(colors[1],'#5b86e5')}" oninput="updateCosmeticPreview()"><span>Цвет 2</span></label><label class="cosmetic-color-field"><input type="color" id="ac-g3" value="${cosmeticHex(colors[2],'#b06ab3')}" oninput="updateCosmeticPreview()"><span>Цвет 3</span></label></div><label>Позиция первого цвета</label><div class="cosmetic-range"><input id="ac-stop1" type="range" min="0" max="100" value="${Number(stops[0]??0)}" oninput="updateCosmeticPreview()"><output id="ac-stop1-value">${Number(stops[0]??0)}%</output></div><label>Позиция второго цвета</label><div class="cosmetic-range"><input id="ac-stop2" type="range" min="0" max="100" value="${Number(stops[1]??50)}" oninput="updateCosmeticPreview()"><output id="ac-stop2-value">${Number(stops[1]??50)}%</output></div><label>Позиция третьего цвета</label><div class="cosmetic-range"><input id="ac-stop3" type="range" min="0" max="100" value="${Number(stops[2]??100)}" oninput="updateCosmeticPreview()"><output id="ac-stop3-value">${Number(stops[2]??100)}%</output></div><label>Угол градиента</label><div class="cosmetic-range"><input id="ac-angle" type="range" min="0" max="360" value="${Number(st.gradientAngle??135)}" oninput="updateCosmeticPreview()"><output id="ac-angle-value">${Number(st.gradientAngle??135)}°</output></div><label>Толщина рамки</label><div class="cosmetic-range"><input id="ac-border" type="range" min="1" max="10" value="${Number(st.borderWidth??4)}" oninput="updateCosmeticPreview()"><output id="ac-border-value">${Number(st.borderWidth??4)} px</output></div><div class="cosmetic-admin-grid"><div><label>Цвет свечения</label><input id="ac-glow-color" type="color" value="${cosmeticHex(st.glowColor,'#5b86e5')}" oninput="updateCosmeticPreview()"></div><div><label>Цвет ника</label><input id="ac-nick-color" type="color" value="${cosmeticHex(st.nicknameColor,'#8ecbff')}" oninput="updateCosmeticPreview()"></div></div><label>Интенсивность свечения</label><div class="cosmetic-range"><input id="ac-glow" type="range" min="0" max="40" value="${Number(st.glowIntensity??18)}" oninput="updateCosmeticPreview()"><output id="ac-glow-value">${Number(st.glowIntensity??18)}</output></div><hr class="divider"><h3 style="font-size:13px;margin-bottom:8px">Анимированные частицы</h3><label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input id="ac-particles-enabled" type="checkbox" style="width:auto" ${a.enabled===false?'':'checked'} onchange="updateCosmeticPreview()"> Включить анимацию частиц</label><div class="cosmetic-admin-grid"><div><label>Тип движения</label><select id="ac-particle-type" onchange="updateCosmeticPreview()"><option value="orbit" ${a.type==='orbit'||!a.type?'selected':''}>Орбита</option><option value="sparkle" ${a.type==='sparkle'?'selected':''}>Мерцание</option><option value="flow" ${a.type==='flow'?'selected':''}>Поток</option></select></div><div><label>Цвет частиц</label><input id="ac-particle-color" type="color" value="${cosmeticHex(a.color,'#ffffff')}" oninput="updateCosmeticPreview()"></div></div><label>Скорость анимации (секунд на цикл)</label><div class="cosmetic-range"><input id="ac-speed" type="range" min="2" max="30" value="${Number(a.speed??8)}" oninput="updateCosmeticPreview()"><output id="ac-speed-value">${Number(a.speed??8)} сек.</output></div><label>Количество частиц</label><div class="cosmetic-range"><input id="ac-density" type="range" min="3" max="18" value="${Number(a.density??8)}" oninput="updateCosmeticPreview()"><output id="ac-density-value">${Number(a.density??8)}</output></div><label>Размер частиц</label><div class="cosmetic-range"><input id="ac-size" type="range" min="1" max="7" value="${Number(a.size??3)}" oninput="updateCosmeticPreview()"><output id="ac-size-value">${Number(a.size??3)} px</output></div><label>Непрозрачность частиц</label><div class="cosmetic-range"><input id="ac-opacity" type="range" min="10" max="100" value="${Number(a.opacity??75)}" oninput="updateCosmeticPreview()"><output id="ac-opacity-value">${Number(a.opacity??75)}%</output></div><h3 style="font-size:13px;margin-top:8px">Предпросмотр</h3><div id="ac-preview" class="cosmetic-preview"></div><button class="btn" onclick="saveAdminCosmeticFrame()">${f.id?'Сохранить изменения':'Создать рамку'}</button><p class="muted" id="ac-status" style="margin-top:8px"></p></div><div class="card"><div class="row" style="align-items:center"><h2 style="flex:1">Рамки в каталоге</h2><button class="btn sec small" onclick="loadAdminCosmetics()">↻</button></div><div id="ac-frames-list">Загрузка…</div></div><div class="card"><h2>🎁 Одноразовые коды для победителей</h2><p class="muted">Создай код для рамки. Каждый код активируется одним аккаунтом ровно один раз. После создания скопируй его и передай победителю.</p><label>Рамка для награды</label><select id="ac-code-frame"><option value="">Выбери рамку</option>${ADMIN_COSMETIC_FRAMES.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.id)}</option>`).join('')}</select><label>Свой код (необязательно, 8–32 символа)</label><input id="ac-code-custom" maxlength="32" placeholder="Оставь пустым для генерации"><button class="btn" onclick="createAdminCosmeticCode()">Создать одноразовый код</button><div id="ac-code-created" style="margin-top:8px"></div><hr class="divider"><div id="ac-codes-list">Загрузка кодов…</div></div>`;
+  const colorsHtml=Array.from({length:5},(_,i)=>`<label class="cosmetic-color-field" id="ac-color-row-${i+1}" style="${i+1>colorCount?'display:none':''}"><input type="color" id="ac-g${i+1}" value="${cosmeticHex(colors[i],['#36d1dc','#5b86e5','#b06ab3','#ee9ca7','#f6d365'][i])}" oninput="updateCosmeticPreview()"><span>Цвет ${i+1}</span></label>`).join('');
+  const stopsHtml=Array.from({length:5},(_,i)=>`<div id="ac-stop-row-${i+1}" style="${i+1>colorCount?'display:none':''}"><label>Позиция цвета ${i+1}</label><div class="cosmetic-range"><input id="ac-stop${i+1}" type="range" min="0" max="100" value="${Number(stops[i]??[0,25,50,75,100][i])}" oninput="updateCosmeticPreview()"><output id="ac-stop${i+1}-value">${Number(stops[i]??[0,25,50,75,100][i])}%</output></div></div>`).join('');
+  const types=[['orbit','Орбита вокруг рамки'],['sparkle','Мерцание на разных сторонах'],['flow','Плавный круговой поток'],['starburst','Звёзды разлетаются и рассеиваются'],['inward','С краёв к центру, уменьшаясь'],['scatter','Случайный разлёт в стороны'],['comet','Кометы с хвостом']];
+  return `<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1">🎨 Редактор рамки аватарки</h2><button class="btn sec small" style="flex:0 0 auto" onclick="resetCosmeticEditor()">Новая</button></div><p class="muted">Параметры выбранной рамки загружаются в редактор. Можно использовать от двух до пяти цветов, менять движение частиц и сразу смотреть результат.</p><input id="ac-frame-id" type="hidden" value="${esc(f.id||'')}"><label>Название рамки</label><input id="ac-name" maxlength="40" placeholder="Например: Северное сияние" value="${esc(f.name||'')}"><div class="cosmetic-admin-grid"><div><label>Тип получения</label><select id="ac-acquisition" onchange="updateCosmeticPreview()"><option value="shop" ${selected==='shop'?'selected':''}>Покупка в магазине</option><option value="code" ${selected==='code'?'selected':''}>Только одноразовый код</option></select></div><div><label>Цена в золоте</label><input id="ac-price" type="number" min="0" max="1000000000" step="0.01" value="${Number(f.price)||0}" ${selected==='code'?'disabled':''}></div></div><label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input id="ac-active" type="checkbox" style="width:auto" ${checked?'checked':''}> Показывать рамку в каталоге</label><hr class="divider"><h3 style="font-size:13px;margin-bottom:8px">Градиент рамки</h3><label>Количество цветов</label><select id="ac-color-count" onchange="updateCosmeticColorFields()">${[2,3,4,5].map(n=>`<option value="${n}" ${colorCount===n?'selected':''}>${n} цвета</option>`).join('')}</select><div class="cosmetic-color-row" id="ac-colors-grid">${colorsHtml}</div>${stopsHtml}<label>Угол градиента</label><div class="cosmetic-range"><input id="ac-angle" type="range" min="0" max="360" value="${Number(st.gradientAngle??135)}" oninput="updateCosmeticPreview()"><output id="ac-angle-value">${Number(st.gradientAngle??135)}°</output></div><label>Толщина рамки</label><div class="cosmetic-range"><input id="ac-border" type="range" min="1" max="10" value="${Number(st.borderWidth??4)}" oninput="updateCosmeticPreview()"><output id="ac-border-value">${Number(st.borderWidth??4)} px</output></div><div class="cosmetic-admin-grid"><div><label>Цвет свечения</label><input id="ac-glow-color" type="color" value="${cosmeticHex(st.glowColor,'#5b86e5')}" oninput="updateCosmeticPreview()"></div><div><label>Цвет ника</label><input id="ac-nick-color" type="color" value="${cosmeticHex(st.nicknameColor,'#8ecbff')}" oninput="updateCosmeticPreview()"></div></div><label>Интенсивность свечения</label><div class="cosmetic-range"><input id="ac-glow" type="range" min="0" max="40" value="${Number(st.glowIntensity??18)}" oninput="updateCosmeticPreview()"><output id="ac-glow-value">${Number(st.glowIntensity??18)}</output></div><hr class="divider"><h3 style="font-size:13px;margin-bottom:8px">Анимированные частицы</h3><label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input id="ac-particles-enabled" type="checkbox" style="width:auto" ${a.enabled===false?'':'checked'} onchange="updateCosmeticPreview()"> Включить анимацию частиц</label><div class="cosmetic-admin-grid"><div><label>Тип частиц</label><select id="ac-particle-type" onchange="updateCosmeticPreview()">${types.map(([value,label])=>`<option value="${value}" ${(a.type||'orbit')===value?'selected':''}>${label}</option>`).join('')}</select></div><div><label>Цвет частиц</label><input id="ac-particle-color" type="color" value="${cosmeticHex(a.color,'#ffffff')}" oninput="updateCosmeticPreview()"></div></div><label>Базовая скорость (секунд на цикл)</label><div class="cosmetic-range"><input id="ac-speed" type="range" min="2" max="30" value="${Number(a.speed??8)}" oninput="updateCosmeticPreview()"><output id="ac-speed-value">${Number(a.speed??8)} сек.</output></div><label>Разброс скорости частиц</label><div class="cosmetic-range"><input id="ac-speed-variation" type="range" min="0" max="100" value="${Number(a.speedVariation??65)}" oninput="updateCosmeticPreview()"><output id="ac-speed-variation-value">${Number(a.speedVariation??65)}%</output></div><label>Количество частиц</label><div class="cosmetic-range"><input id="ac-density" type="range" min="3" max="30" value="${Number(a.density??8)}" oninput="updateCosmeticPreview()"><output id="ac-density-value">${Number(a.density??8)}</output></div><label>Размер частиц</label><div class="cosmetic-range"><input id="ac-size" type="range" min="1" max="10" value="${Number(a.size??3)}" oninput="updateCosmeticPreview()"><output id="ac-size-value">${Number(a.size??3)} px</output></div><label>Дальность движения / разброс</label><div class="cosmetic-range"><input id="ac-distance" type="range" min="4" max="40" value="${Number(a.distance??20)}" oninput="updateCosmeticPreview()"><output id="ac-distance-value">${Number(a.distance??20)} px</output></div><label>Непрозрачность частиц</label><div class="cosmetic-range"><input id="ac-opacity" type="range" min="10" max="100" value="${Number(a.opacity??75)}" oninput="updateCosmeticPreview()"><output id="ac-opacity-value">${Number(a.opacity??75)}%</output></div><h3 style="font-size:13px;margin-top:8px">Предпросмотр</h3><div id="ac-preview" class="cosmetic-preview"></div><button class="btn" onclick="saveAdminCosmeticFrame()">${f.id?'Сохранить изменения':'Создать рамку'}</button><p class="muted" id="ac-status" style="margin-top:8px"></p></div><div class="card"><div class="row" style="align-items:center"><h2 style="flex:1">Рамки в каталоге</h2><button class="btn sec small" onclick="loadAdminCosmetics()">↻</button></div><div id="ac-frames-list">Загрузка…</div></div><div class="card"><h2>🎁 Одноразовые коды для победителей</h2><p class="muted">Создай код для рамки. Каждый код активируется одним аккаунтом ровно один раз. После создания скопируй его и передай победителю.</p><label>Рамка для награды</label><select id="ac-code-frame"><option value="">Выбери рамку</option>${ADMIN_COSMETIC_FRAMES.map(x=>`<option value="${esc(x.id)}">${esc(x.name||x.id)}</option>`).join('')}</select><label>Свой код (необязательно, 8–32 символа)</label><input id="ac-code-custom" maxlength="32" placeholder="Оставь пустым для генерации"><button class="btn" onclick="createAdminCosmeticCode()">Создать одноразовый код</button><div id="ac-code-created" style="margin-top:8px"></div><hr class="divider"><div id="ac-codes-list">Загрузка кодов…</div></div>`;
 }
 function getCosmeticEditorData(){
   const val=id=>document.getElementById(id)?.value;
   const num=id=>Number(val(id));
   const check=id=>!!document.getElementById(id)?.checked;
-  return {id:String(val('ac-frame-id')||''),name:String(val('ac-name')||'').trim(),acquisition:val('ac-acquisition')||'shop',price:num('ac-price'),active:check('ac-active'),style:{gradientColors:[val('ac-g1'),val('ac-g2'),val('ac-g3')],gradientStops:[num('ac-stop1'),num('ac-stop2'),num('ac-stop3')],gradientAngle:num('ac-angle'),borderWidth:num('ac-border'),glowColor:val('ac-glow-color'),glowIntensity:num('ac-glow'),nicknameColor:val('ac-nick-color'),animation:{enabled:check('ac-particles-enabled'),type:val('ac-particle-type'),color:val('ac-particle-color'),speed:num('ac-speed'),density:num('ac-density'),size:num('ac-size'),opacity:num('ac-opacity')}}};
+  const colorCount=Math.max(2,Math.min(5,num('ac-color-count')||3));
+  return {id:String(val('ac-frame-id')||''),name:String(val('ac-name')||'').trim(),acquisition:val('ac-acquisition')||'shop',price:num('ac-price'),active:check('ac-active'),style:{gradientColorCount:colorCount,gradientColors:Array.from({length:5},(_,i)=>val('ac-g'+(i+1))),gradientStops:Array.from({length:5},(_,i)=>num('ac-stop'+(i+1))),gradientAngle:num('ac-angle'),borderWidth:num('ac-border'),glowColor:val('ac-glow-color'),glowIntensity:num('ac-glow'),nicknameColor:val('ac-nick-color'),animation:{enabled:check('ac-particles-enabled'),type:val('ac-particle-type'),color:val('ac-particle-color'),speed:num('ac-speed'),speedVariation:num('ac-speed-variation'),density:num('ac-density'),size:num('ac-size'),distance:num('ac-distance'),opacity:num('ac-opacity')}}};
+}
+function updateCosmeticColorFields(){
+  const count=Math.max(2,Math.min(5,Number(document.getElementById('ac-color-count')?.value)||3));
+  for(let i=1;i<=5;i++){
+    const color=document.getElementById('ac-color-row-'+i),stop=document.getElementById('ac-stop-row-'+i);
+    if(color)color.style.display=i<=count?'':'none';
+    if(stop)stop.style.display=i<=count?'':'none';
+  }
+  updateCosmeticPreview();
 }
 function updateCosmeticPreview(){
   const el=document.getElementById('ac-preview');if(!el)return;
   const data=getCosmeticEditorData();
   const frame={style:data.style};
-  const ranges=[['ac-stop1-value','ac-stop1','%'],['ac-stop2-value','ac-stop2','%'],['ac-stop3-value','ac-stop3','%'],['ac-angle-value','ac-angle','°'],['ac-border-value','ac-border',' px'],['ac-glow-value','ac-glow',''],['ac-speed-value','ac-speed',' сек.'],['ac-density-value','ac-density',''],['ac-size-value','ac-size',' px'],['ac-opacity-value','ac-opacity','%']];
+  const ranges=[...[1,2,3,4,5].map(i=>[`ac-stop${i}-value`,`ac-stop${i}`,'%']),['ac-angle-value','ac-angle','°'],['ac-border-value','ac-border',' px'],['ac-glow-value','ac-glow',''],['ac-speed-value','ac-speed',' сек.'],['ac-speed-variation-value','ac-speed-variation','%'],['ac-density-value','ac-density',''],['ac-size-value','ac-size',' px'],['ac-distance-value','ac-distance',' px'],['ac-opacity-value','ac-opacity','%']];
   ranges.forEach(([out,input,suffix])=>{const node=document.getElementById(out),field=document.getElementById(input);if(node&&field)node.textContent=field.value+suffix;});
   const price=document.getElementById('ac-price');if(price)price.disabled=data.acquisition==='code';
   const fakeName='ZombixUP';
   el.innerHTML=`${skinAvatarHTML('preview',fakeName,76,'',frame)}<div style="min-width:0;text-align:left"><b style="color:${cosmeticHex(data.style.nicknameColor,'#fff')}">${fakeName}</b><div class="muted" style="font-size:11px;margin-top:4px">${esc(data.name||'Новая рамка')}</div></div>`;
 }
 function resetCosmeticEditor(){COSMETIC_EDITING_FRAME=null;drawAdminBody();}
-function adminCosmeticEdit(id){const frame=ADMIN_COSMETIC_FRAMES.find(x=>String(x.id)===String(id));if(!frame)return;COSMETIC_EDITING_FRAME=JSON.parse(JSON.stringify(frame));drawAdminBody();setTimeout(updateCosmeticPreview,0);}
+function adminCosmeticEdit(id){const frame=ADMIN_COSMETIC_FRAMES.find(x=>String(x.id)===String(id));if(!frame)return;COSMETIC_EDITING_FRAME=JSON.parse(JSON.stringify(frame));drawAdminBody();requestAnimationFrame(()=>{updateCosmeticColorFields();updateCosmeticPreview();});}
 async function saveAdminCosmeticFrame(){
   const data=getCosmeticEditorData();
   if(data.name.length<2)return toast('Название рамки должно содержать минимум 2 символа');
