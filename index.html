@@ -406,7 +406,7 @@
 .skin-avatar{--skin-border-width:2px;--skin-gradient:conic-gradient(#555,#888,#555);--skin-glow-color:#5b86e5;--skin-glow-blur:0px;--skin-speed:8s;--skin-particle-size:3px;--skin-particle-color:#fff;--skin-particle-opacity:.75;--skin-particle-radius:28px;--skin-particle-distance:20px;display:inline-flex;position:relative;flex:0 0 auto;width:46px;height:46px;padding:var(--skin-border-width);border-radius:50%;background:var(--skin-gradient);isolation:isolate;vertical-align:middle;filter:drop-shadow(0 0 var(--skin-glow-blur,0px) var(--skin-glow-color));}
 .skin-avatar.no-skin{--skin-border-width:2px;--skin-gradient:linear-gradient(135deg,#333,#777);--skin-glow-blur:0px}
 .skin-avatar-inner{position:relative;z-index:1;display:grid;place-items:center;width:100%;height:100%;border-radius:50%;overflow:hidden;background:#222;color:#ddd;font-size:19px;font-weight:800;}
-.skin-avatar-inner img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.skin-avatar-inner img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .skin-avatar-particles{position:absolute;z-index:2;inset:-7%;border-radius:50%;pointer-events:none;overflow:visible;}
 .skin-avatar-particles i{position:absolute;left:50%;top:50%;display:block;width:var(--skin-particle-size);height:var(--skin-particle-size);margin:-1px 0 0 -1px;border-radius:50%;background:var(--skin-particle-color);box-shadow:0 0 7px var(--skin-particle-color);opacity:0;will-change:transform,opacity;animation-duration:var(--particle-duration,8s);animation-delay:var(--particle-delay,0s);animation-timing-function:linear;animation-iteration-count:infinite;}
 .skin-avatar-particles[data-type="orbit"] i{animation-name:skinOrbit;}
@@ -1442,10 +1442,22 @@ function getUserAvatarURL(id, user={}) {
   const direct = String(user?.photoUrl || user?.photo_url || user?.avatar || '');
   return /^https:\/\//i.test(direct) ? direct : '';
 }
+function avatarImageError(img) {
+  if (!img) return;
+  const fallback = String(img.dataset.fallback || '');
+  if (fallback && img.src !== fallback) {
+    img.dataset.fallback = '';
+    img.src = fallback;
+    return;
+  }
+  img.remove();
+}
 function skinAvatarHTML(id, name, size=46, photoOverride='', frameOverride=undefined) {
   const user = String(id) === String(CURRENT_ID) ? (profile || {}) : (USERS[String(id)] || {});
   const frame = frameOverride === undefined ? getUserCosmeticFrame(id) : frameOverride;
   const photo = String(photoOverride || getUserAvatarURL(id,user));
+  const directFallback = String(user?.photoUrl || user?.photo_url || (String(id)===String(CURRENT_ID)?TG_USER?.photo_url:'') || '');
+  const fallbackPhoto = /^https:\/\//i.test(directFallback) && directFallback !== photo ? directFallback : '';
   const hasPhoto = /^https:\/\//i.test(photo);
   const initials = String(name || '👤').trim().slice(0,1).toUpperCase() || '👤';
   const animation = frame?.style?.animation || {};
@@ -1473,7 +1485,7 @@ function skinAvatarHTML(id, name, size=46, photoOverride='', frameOverride=undef
     const vars = `--particle-index:${i};--particle-angle:${angle}deg;--particle-x:${x.toFixed(2)}px;--particle-y:${y.toFixed(2)}px;--particle-duration:${duration.toFixed(2)}s;--particle-delay:${delay.toFixed(2)}s;--particle-drift:${drift.toFixed(1)}deg;--particle-travel:${travel.toFixed(1)}px;--particle-dx:${dx.toFixed(1)}px;--particle-dy:${dy.toFixed(1)}px`;
     return `<i style="${vars}"></i>`;
   }).join('');
-  return `<span class="skin-avatar ${frame?'has-skin':'no-skin'}" style="width:${size}px;height:${size}px;${frame?cosmeticInlineStyle(frame,size):''}" aria-label="Аватар ${esc(name||'игрок')}"><span class="skin-avatar-inner">${hasPhoto?`<img src="${esc(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:esc(initials)}</span>${particles?`<span class="skin-avatar-particles" data-type="${type}">${dots}</span>`:''}</span>`;
+  return `<span class="skin-avatar ${frame?'has-skin':'no-skin'}" style="width:${size}px;height:${size}px;${frame?cosmeticInlineStyle(frame,size):''}" aria-label="Аватар ${esc(name||'игрок')}"><span class="skin-avatar-inner">${esc(initials)}${hasPhoto?`<img src="${esc(photo)}" data-fallback="${esc(fallbackPhoto)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="avatarImageError(this)">`:''}</span>${particles?`<span class="skin-avatar-particles" data-type="${type}">${dots}</span>`:''}</span>`;
 }
 function playerNickHTML(id, name) {
   const frame = getUserCosmeticFrame(id);
@@ -2878,12 +2890,25 @@ async function loadAdminCosmetics(){
   if(CURRENT_TAB!=='admin'||adminSub!=='cosmetics'||!isAdmin())return;
   try{const [frames,codes]=await Promise.all([workerRequest('/api/admin/cosmetics/list',{}),workerRequest('/api/admin/cosmetics/code/list',{})]);ADMIN_COSMETIC_FRAMES=frames.frames||[];ADMIN_COSMETIC_CODES=codes.codes||[];
     const frameSelect=document.getElementById('ac-code-frame');if(frameSelect){const selected=frameSelect.value;frameSelect.innerHTML='<option value="">Выбери рамку</option>'+ADMIN_COSMETIC_FRAMES.map(f=>`<option value="${esc(f.id)}">${esc(f.name||f.id)}</option>`).join('');if(selected&&ADMIN_COSMETIC_FRAMES.some(f=>String(f.id)===selected))frameSelect.value=selected;}
-    const list=document.getElementById('ac-frames-list');if(list)list.innerHTML=ADMIN_COSMETIC_FRAMES.map(f=>`<div class="cosmetic-admin-row">${skinAvatarHTML('preview',f.name,42,'',{style:f.style})}<div class="cosmetic-admin-row-info"><b>${esc(f.name||'Рамка')}</b><small>${f.active===false?'Скрыта':'Активна'} · ${f.acquisition==='code'?'Только код':formatBalance(f.price)+' золота'}</small></div><button class="btn sec small" onclick="adminCosmeticEdit('${esc(f.id)}')">Изменить</button><button class="btn sec small" onclick="adminCosmeticToggle('${esc(f.id)}',${f.active===false?'true':'false'})">${f.active===false?'Вкл.':'Выкл.'}</button></div>`).join('')||'<p class="muted">Рамки ещё не созданы.</p>';
+    const list=document.getElementById('ac-frames-list');if(list)list.innerHTML=ADMIN_COSMETIC_FRAMES.map(f=>`<div class="cosmetic-admin-row">${skinAvatarHTML('preview',f.name,42,'',{style:f.style})}<div class="cosmetic-admin-row-info"><b>${esc(f.name||'Рамка')}</b><small>${f.active===false?'Скрыта':'Активна'} · ${f.acquisition==='code'?'Только код':formatBalance(f.price)+' золота'}</small></div><button class="btn sec small" onclick="adminCosmeticEdit('${esc(f.id)}')">Изменить</button><button class="btn sec small" onclick="adminCosmeticToggle('${esc(f.id)}',${f.active===false?'true':'false'})">${f.active===false?'Вкл.':'Выкл.'}</button><button class="btn danger small" onclick="deleteAdminCosmeticFrame('${esc(f.id)}')">Удалить</button></div>`).join('')||'<p class="muted">Рамки ещё не созданы.</p>';
     const codeList=document.getElementById('ac-codes-list');if(codeList)codeList.innerHTML='<h3 style="font-size:13px;margin:8px 0">Созданные коды</h3>'+ADMIN_COSMETIC_CODES.map(c=>`<div class="cosmetic-code-row"><code>${esc(c.code||'—')}</code><span>${c.status==='claimed'?'Использован':'Не использован'}</span>${c.status==='unused'?`<button class="btn sec small" onclick="deleteAdminCosmeticCode('${esc(c.id)}')">Удалить</button>`:`<small>ID игрока: ${esc(c.claimedBy||'—')}</small>`}</div>`).join('')||'<p class="muted">Кодов пока нет.</p>';
   }catch(e){const list=document.getElementById('ac-frames-list');if(list)list.textContent=e.message||'Не удалось загрузить рамки';}
   if(document.getElementById('ac-preview'))updateCosmeticPreview();
 }
 async function adminCosmeticToggle(id,active){const frame=ADMIN_COSMETIC_FRAMES.find(x=>String(x.id)===String(id));if(!frame)return;try{await workerRequest('/api/admin/cosmetics/save',{...frame,active});toast(active?'Рамка включена':'Рамка скрыта');await loadAdminCosmetics();await loadCosmeticsCatalog(true);}catch(e){toast(e.message||'Не удалось изменить рамку');}}
+async function deleteAdminCosmeticFrame(id){
+  const frame=ADMIN_COSMETIC_FRAMES.find(x=>String(x.id)===String(id));
+  if(!frame)return;
+  if(!confirm(`Удалить рамку «${frame.name||'Рамка'}»? Она исчезнет из коллекций игроков, будет снята у владельцев, а связанные коды будут удалены.`))return;
+  try{
+    const result=await workerRequest('/api/admin/cosmetics/delete',{id});
+    if(String(COSMETIC_EDITING_FRAME?.id||'')===String(id))COSMETIC_EDITING_FRAME=null;
+    toast(result.message||'Рамка удалена');
+    await loadAdminCosmetics();
+    await loadCosmeticsCatalog(true);
+    drawAdminBody();
+  }catch(e){toast(e.message||'Не удалось удалить рамку');}
+}
 async function createAdminCosmeticCode(){const frameId=String(document.getElementById('ac-code-frame')?.value||''),code=String(document.getElementById('ac-code-custom')?.value||'').trim().toUpperCase();if(!frameId)return toast('Выбери рамку');if(code&&!/^[A-Z0-9-]{8,32}$/.test(code))return toast('Код должен содержать 8–32 символа A–Z, 0–9 или дефис');try{const r=await workerRequest('/api/admin/cosmetics/code/create',{frameId,code});const out=document.getElementById('ac-code-created');if(out)out.innerHTML=`<div class="ticket-row"><b>Новый код: ${esc(r.code)}</b><button class="btn sec small" onclick="copyCosmeticCode('${esc(r.code)}')">Копировать</button></div>`;const input=document.getElementById('ac-code-custom');if(input)input.value='';toast('Одноразовый код создан');await loadAdminCosmetics();}catch(e){toast(e.message||'Не удалось создать код');}}
 async function copyCosmeticCode(code){try{await navigator.clipboard.writeText(code);toast('Код скопирован');}catch(_){prompt('Скопируй код:',code);}}
 async function deleteAdminCosmeticCode(id){if(!confirm('Удалить неиспользованный код?'))return;try{await workerRequest('/api/admin/cosmetics/code/delete',{id});toast('Код удалён');await loadAdminCosmetics();}catch(e){toast(e.message||'Не удалось удалить код');}}
