@@ -479,7 +479,7 @@
 .crash-stage:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:32px 32px}
 .crash-mult{position:relative;z-index:2;text-align:center;font-size:clamp(48px,12vw,76px);font-weight:900;letter-spacing:-3px;color:#f5f7fb;text-shadow:0 0 30px #91b8ff55}
 .crash-mult small{display:block;font-size:12px;letter-spacing:2px;color:#9aa9bd;font-weight:700}
-.crash-rocket{position:absolute;z-index:3;left:12%;bottom:14%;font-size:38px;filter:drop-shadow(0 0 14px #91b8ff);transform:rotate(-35deg);transition:left .12s linear,bottom .12s linear}
+.crash-rocket{position:absolute;z-index:3;left:12%;bottom:14%;width:12px;height:12px;border-radius:50%;background:#dceaff;box-shadow:0 0 8px 3px #91b8ff,0 0 22px 7px #91b8ff66;transform:translate(-50%,50%);transition:none;pointer-events:none}
 .crash-state{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:7px 13px;border:1px solid #ffffff25;border-radius:30px;background:#0008;color:#cbd5e1;font-size:11px;font-weight:800;letter-spacing:1px;white-space:nowrap}
 .crash-state.live{color:#9fffd0;border-color:#39d98a88}.crash-state.dead{color:#ff8e8e;border-color:#ff555588}
 .crash-history{display:flex;gap:6px;overflow:auto;padding:3px 0}.crash-history span{flex:0 0 auto;padding:5px 9px;border-radius:8px;background:#ffffff0c;border:1px solid #ffffff18;font:700 11px monospace;color:#cbd5e1}
@@ -1392,12 +1392,43 @@ function minesReset(){MINES_VIEW.game=null;MINES_VIEW.status='';MINES_VIEW.tone=
 
 
 /* ---------- ZOMBIX CRASH ---------- */
-let CRASH_VIEW={game:null,busy:false,message:'',history:[],config:{enabled:true,minBet:10,growthRate:0.00006}}, CRASH_STATE_LOADED_FOR=null, CRASH_TIMER=null;
+let CRASH_VIEW={game:null,busy:false,message:'',history:[],config:{enabled:true,minBet:10,growthRate:0.00006},visualMultiplier:null,finishFrame:null,serverOffset:0}, CRASH_STATE_LOADED_FOR=null, CRASH_TIMER=null, CRASH_ANIMATION_FRAME=null;
+function crashAnimateFinish(game){
+  if(CRASH_VIEW.finishFrame)cancelAnimationFrame(CRASH_VIEW.finishFrame);
+  const target=Math.min(10,Math.max(0,Number(game?.crashPoint??game?.multiplier)||0));
+  const start=Math.min(10,Math.max(0,crashMultiplierNow(CRASH_VIEW.game)));
+  const started=performance.now(),duration=260;
+  CRASH_VIEW.visualMultiplier=start;
+  const frame=(now)=>{
+    const t=Math.min(1,(now-started)/duration);
+    const eased=1-Math.pow(1-t,3);
+    CRASH_VIEW.visualMultiplier=start+(target-start)*eased;
+    crashPaint();
+    if(t<1){CRASH_VIEW.finishFrame=requestAnimationFrame(frame);}
+    else{CRASH_VIEW.visualMultiplier=null;CRASH_VIEW.finishFrame=null;crashPaint();}
+  };
+  CRASH_VIEW.finishFrame=requestAnimationFrame(frame);
+}
+function crashAnimationLoop(){
+  if(CURRENT_TAB!=='crash'){CRASH_ANIMATION_FRAME=null;return;}
+  if(CRASH_VIEW.game?.status==='active')crashPaint();
+  CRASH_ANIMATION_FRAME=requestAnimationFrame(crashAnimationLoop);
+}
+function crashSyncServerTime(response,requestStarted=Date.now()){
+  const serverTime=Number(response?.serverTime),receivedAt=Date.now();
+  if(Number.isFinite(serverTime)&&serverTime>0){
+    const midpoint=requestStarted+(receivedAt-requestStarted)/2;
+    CRASH_VIEW.serverOffset=serverTime-midpoint;
+  }
+}
 async function crashLoadState(silent=false){
   try{
+    const requestStarted=Date.now();
     const r=await workerRequest('/api/crash/state',{});
+    crashSyncServerTime(r,requestStarted);
     CRASH_VIEW.config={...CRASH_VIEW.config,...(r.config||{})};
     CRASH_VIEW.game=r.game||null;
+    CRASH_VIEW.visualMultiplier=null;
     if(CRASH_VIEW.game && CRASH_VIEW.game.status!=='active'){
       CRASH_VIEW.history.unshift(Number(CRASH_VIEW.game.crashPoint)||1);
       CRASH_VIEW.history=CRASH_VIEW.history.slice(0,12);
@@ -1408,36 +1439,43 @@ async function crashLoadState(silent=false){
 function crashMultiplierNow(game){
   if(!game)return 0;
   if(game.status!=='active')return Math.min(10,Math.max(0,Number(game.cashoutMultiplier??game.multiplier??game.crashPoint)||0));
-  const elapsed=Math.max(0,Date.now()-Number(game.startedAt||Date.now()));
+  const elapsed=Math.max(0,(Date.now()+(Number(CRASH_VIEW.serverOffset)||0))-Number(game.startedAt||Date.now()));
   const raw=Math.exp(Number(game.growthRate||CRASH_VIEW.config?.growthRate||0.00006)*elapsed*elapsed/1000);
   return Math.min(10,Math.max(0,game.multiplierVersion>=2?raw-1:raw));
 }
 function crashPaint(){
   if(CURRENT_TAB!=='crash')return;
-  const g=CRASH_VIEW.game, active=g?.status==='active', mult=crashMultiplierNow(g);
+  const g=CRASH_VIEW.game, active=g?.status==='active', mult=CRASH_VIEW.visualMultiplier!==null?CRASH_VIEW.visualMultiplier:crashMultiplierNow(g);
   const value=document.getElementById('crash-multiplier'),rocket=document.getElementById('crash-rocket'),stateEl=document.getElementById('crash-state'),btn=document.getElementById('crash-action'),label=document.getElementById('crash-action-label');
   if(value)value.innerHTML=`${mult.toFixed(2)}x<small>${active?'МНОЖИТЕЛЬ РАСТЁТ':g?.status==='lost'?'РАКЕТА РАЗБИЛАСЬ':g?.status==='cashed_out'?'ВЫИГРЫШ ЗАБРАН':'СДЕЛАЙ СТАВКУ'}</small>`;
   if(rocket){const p=Math.min(85,Math.max(12,(Math.log(Math.max(1,mult))*22)+12));rocket.style.left=p+'%';rocket.style.bottom=Math.min(78,14+Math.log(Math.max(1,mult))*12)+'%';}
   if(stateEl){stateEl.textContent=active?'● ПОЛЁТ':g?.status==='lost'?'КРАШ':g?.status==='cashed_out'?'РАУНД ЗАВЕРШЁН':'ОЖИДАНИЕ СТАВОК';stateEl.className='crash-state '+(active?'live':g?.status==='lost'?'dead':'');}
-  if(btn){btn.disabled=CRASH_VIEW.busy||(!active&&CRASH_VIEW.config?.enabled===false);btn.className='crash-action'+(active?' cash':'');btn.textContent=active?'ЗАБРАТЬ '+Math.floor(Number(g.bet)*mult).toLocaleString('ru-RU')+' 🪙':'СДЕЛАТЬ СТАВКУ';}
+  if(btn){btn.disabled=CRASH_VIEW.busy||(!active&&CRASH_VIEW.config?.enabled===false);btn.className='crash-action'+(active?' cash':'');const buttonText=active?'ЗАБРАТЬ '+Math.floor(Number(g.bet)*mult).toLocaleString('ru-RU')+' 🪙':'СДЕЛАТЬ СТАВКУ';if(btn.textContent!==buttonText)btn.textContent=buttonText;}
   if(label)label.textContent=CRASH_VIEW.message|| (active?'Забери выигрыш до краша':CRASH_VIEW.config?.enabled===false?'Игра временно отключена администратором':g?.status==='lost'?'Ставка потеряна':g?.status==='cashed_out'?`Начислено ${Number(g.payout||0).toLocaleString('ru-RU')} 🪙`:`Минимальная ставка — ${Number(CRASH_VIEW.config?.minBet||10)} 🪙`);
   const bet=document.getElementById('crash-bet');if(bet)bet.disabled=active||CRASH_VIEW.busy;
   const stats=document.getElementById('crash-stats');
-  if(stats)stats.innerHTML=`<div><small>Ставка</small><b>${Number(g?.bet||0).toLocaleString('ru-RU')}</b></div><div><small>Множитель</small><b>${active?mult.toFixed(2):g?Math.min(10,Math.max(0,Number(g.multiplier??g.cashoutMultiplier??g.crashPoint)||0)).toFixed(2):'0.00'}x</b></div><div><small>Выплата</small><b>${Number(g?.payout||0).toLocaleString('ru-RU')}</b></div>`;
+  if(stats){const values=stats.querySelectorAll('b');const shown=active||CRASH_VIEW.visualMultiplier!==null?mult:Math.min(10,Math.max(0,Number(g?.multiplier??g?.cashoutMultiplier??g?.crashPoint)||0));if(values[0])values[0].textContent=Number(g?.bet||0).toLocaleString('ru-RU');if(values[1])values[1].textContent=shown.toFixed(2)+'x';if(values[2])values[2].textContent=Number(g?.payout||0).toLocaleString('ru-RU');}
 }
 async function crashRefresh(){
   if(CURRENT_TAB!=='crash'||CRASH_VIEW.busy)return;
-  try{const r=await workerRequest('/api/crash/state',{});CRASH_VIEW.config={...CRASH_VIEW.config,...(r.config||{})};const before=CRASH_VIEW.game?.status;CRASH_VIEW.game=r.game||null;if(before==='active'&&CRASH_VIEW.game?.status==='lost'){CRASH_VIEW.message='💥 Краш! Ставка потеряна.';CRASH_VIEW.history.unshift(Number(CRASH_VIEW.game.crashPoint)||1);CRASH_VIEW.history=CRASH_VIEW.history.slice(0,12);}crashPaint();}catch(e){CRASH_VIEW.message=e.message;crashPaint();}
+  try{const requestStarted=Date.now();const r=await workerRequest('/api/crash/state',{});crashSyncServerTime(r,requestStarted);CRASH_VIEW.config={...CRASH_VIEW.config,...(r.config||{})};const before=CRASH_VIEW.game?.status;const previous=CRASH_VIEW.game;CRASH_VIEW.game=r.game||null;if(before==='active'&&CRASH_VIEW.game?.status==='lost'){CRASH_VIEW.message='💥 Краш! Ставка потеряна.';CRASH_VIEW.history.unshift(Number(CRASH_VIEW.game.crashPoint)||0);CRASH_VIEW.history=CRASH_VIEW.history.slice(0,12);CRASH_VIEW.visualMultiplier=crashMultiplierNow(previous);crashAnimateFinish(CRASH_VIEW.game);}crashPaint();}catch(e){CRASH_VIEW.message=e.message;crashPaint();}
 }
 async function crashAction(){
   if(CRASH_VIEW.busy)return;
   const active=CRASH_VIEW.game?.status==='active';
   const bet=Number(document.getElementById('crash-bet')?.value);
   if(!active&&(!Number.isSafeInteger(bet)||bet<Number(CRASH_VIEW.config?.minBet||10))){toast(`Минимальная ставка — ${Number(CRASH_VIEW.config?.minBet||10)} монет`);return;}
+  // Фиксируем именно тот множитель, который виден игроку при нажатии.
+  // Сервер проверит его по своему времени и не позволит запросить значение выше реального.
+  const displayMultiplier=active?Math.floor(crashMultiplierNow(CRASH_VIEW.game)*100)/100:null;
   CRASH_VIEW.busy=true;crashPaint();
   try{
-    const r=active?await workerRequest('/api/crash/cashout',{}):await workerRequest('/api/crash/start',{bet});
+    const requestStarted=Date.now();
+    const r=active?await workerRequest('/api/crash/cashout',{displayMultiplier}):await workerRequest('/api/crash/start',{bet});
+    crashSyncServerTime(r,requestStarted);
     CRASH_VIEW.game=r.game||null;CRASH_VIEW.message=r.message||'';
+    if(CRASH_VIEW.game?.status==='cashed_out')CRASH_VIEW.visualMultiplier=Number(CRASH_VIEW.game.cashoutMultiplier??CRASH_VIEW.game.multiplier)||0;
+    else CRASH_VIEW.visualMultiplier=null;
     if(CRASH_VIEW.game?.status==='lost'){CRASH_VIEW.history.unshift(Number(CRASH_VIEW.game.crashPoint)||1);CRASH_VIEW.history=CRASH_VIEW.history.slice(0,12);}
     toast(r.message||'Готово');
   }catch(e){CRASH_VIEW.message=e.message||'Ошибка операции';toast(CRASH_VIEW.message);}
@@ -1457,7 +1495,7 @@ function renderCrash(host){
   host.innerHTML=`<section class="crash-shell">
     <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>🚀 ${esc(GAME_CARD_CONFIG.crashName||'Zombix Crash')}</h2><span class="muted">Общий баланс</span></div><p class="muted">Сделай ставку и забери выплату до того, как ракета разобьётся. Результат проверяется сервером.</p></div>
     <div class="crash-history">${CRASH_VIEW.history.map(x=>`<span>${Number(x).toFixed(2)}x</span>`).join('')||'<span>История раундов появится здесь</span>'}</div>
-    <div class="crash-stage"><div id="crash-state" class="crash-state ${active?'live':''}">${active?'● ПОЛЁТ':'ОЖИДАНИЕ СТАВОК'}</div><div class="crash-mult" id="crash-multiplier">${active?crashMultiplierNow(g).toFixed(2):'0.00'}x<small>МНОЖИТЕЛЬ</small></div><div class="crash-rocket" id="crash-rocket">🚀</div></div>
+    <div class="crash-stage"><div id="crash-state" class="crash-state ${active?'live':''}">${active?'● ПОЛЁТ':'ОЖИДАНИЕ СТАВОК'}</div><div class="crash-mult" id="crash-multiplier">${active?crashMultiplierNow(g).toFixed(2):'0.00'}x<small>МНОЖИТЕЛЬ</small></div><div class="crash-rocket" id="crash-rocket" aria-hidden="true"></div></div>
     <div class="card" style="display:flex;flex-direction:column;gap:10px">
       <div class="crash-controls"><input id="crash-bet" type="number" min="${Number(CRASH_VIEW.config?.minBet||10)}" step="1" value="${Math.max(Number(CRASH_VIEW.config?.minBet||10),100)}" ${active?'disabled':''} aria-label="Ставка"><div style="display:flex;flex-direction:column;gap:5px"><button class="crash-quick" onclick="crashQuick('half')">½</button><button class="crash-quick" onclick="crashQuick('double')">×2</button></div></div>
       <div class="crash-quick"><button onclick="crashQuick('100')">100</button><button onclick="crashQuick('500')">500</button><button onclick="crashQuick('1000')">1K</button><button onclick="crashQuick('max')">MAX</button></div>
@@ -1468,7 +1506,9 @@ function renderCrash(host){
   </section>`;
   crashPaint();
   if(CRASH_TIMER)clearInterval(CRASH_TIMER);
-  CRASH_TIMER=setInterval(()=>{if(CURRENT_TAB!=='crash'){clearInterval(CRASH_TIMER);CRASH_TIMER=null;return;}crashPaint();if(CRASH_VIEW.game?.status==='active')crashRefresh();},900);
+  if(CRASH_ANIMATION_FRAME)cancelAnimationFrame(CRASH_ANIMATION_FRAME);
+  CRASH_ANIMATION_FRAME=requestAnimationFrame(crashAnimationLoop);
+  CRASH_TIMER=setInterval(()=>{if(CURRENT_TAB!=='crash'){clearInterval(CRASH_TIMER);CRASH_TIMER=null;return;}if(CRASH_VIEW.game?.status==='active')crashRefresh();},1200);
 }
 
 /* ========================================================================
@@ -1691,8 +1731,10 @@ function getUserAvatarURL(id, user={}) {
     const version = String(user?.avatarUpdatedAt || user?.avatarFileUniqueId || '1');
     return `${WORKER_URL}/api/avatar?id=${encodeURIComponent(String(id))}&v=${encodeURIComponent(version)}`;
   }
-  const direct = String(user?.photoUrl || user?.photo_url || user?.avatar || '');
-  return /^https:\/\//i.test(direct) ? direct : '';
+  const isCurrentUser = String(id) === String(CURRENT_ID);
+  const direct = String(user?.photoUrl || user?.photo_url || user?.avatar || user?.photo ||
+    user?.avatarUrl || user?.photoURL || (isCurrentUser ? TG_USER?.photo_url : '') || '');
+  return /^https:\/\//i.test(direct) || /^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(direct) ? direct : '';
 }
 function avatarImageError(img) {
   if (!img) return;
@@ -1708,9 +1750,10 @@ function skinAvatarHTML(id, name, size=46, photoOverride='', frameOverride=undef
   const user = String(id) === String(CURRENT_ID) ? (profile || {}) : (USERS[String(id)] || {});
   const frame = frameOverride === undefined ? getUserCosmeticFrame(id) : frameOverride;
   const photo = String(photoOverride || getUserAvatarURL(id,user));
-  const directFallback = String(user?.photoUrl || user?.photo_url || (String(id)===String(CURRENT_ID)?TG_USER?.photo_url:'') || '');
-  const fallbackPhoto = /^https:\/\//i.test(directFallback) && directFallback !== photo ? directFallback : '';
-  const hasPhoto = /^https:\/\//i.test(photo);
+  const directFallback = String(user?.photoUrl || user?.photo_url || user?.avatar || user?.photo ||
+    user?.avatarUrl || user?.photoURL || (String(id)===String(CURRENT_ID)?TG_USER?.photo_url:'') || '');
+  const fallbackPhoto = (/^https:\/\//i.test(directFallback) || /^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(directFallback)) && directFallback !== photo ? directFallback : '';
+  const hasPhoto = /^https:\/\//i.test(photo) || /^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(photo);
   const initials = String(name || '👤').trim().slice(0,1).toUpperCase() || '👤';
   const animation = frame?.style?.animation || {};
   const particlesAllowed = String(id) === 'preview' || user?.cosmeticsSettings?.showParticles !== false;
@@ -1818,7 +1861,12 @@ function renderHome(c) {
     <div id="home-top-host"></div>`;
   HOME_ANNS_RENDER_SIGNATURE=''; updateHomeAnnouncements(true); updateHomeWelcome(); updateHomeTopSpenders();
 }
-function gameCardVisual(image, emoji, alt) { return image ? `<img src="${esc(image)}" alt="${esc(alt||'')}">` : esc(emoji); }
+function gameCardVisual(image, emoji, alt) {
+  const fallback=esc(emoji||'🎮');
+  return image
+    ? `<img src="${esc(image)}" alt="${esc(alt||'')}" onerror="this.replaceWith(document.createTextNode('${fallback}'))">`
+    : fallback;
+}
 function gameCardHTML(id, title, image, icon, gameKey, countId) {
   const whole = GAME_CARD_CONFIG[gameKey+'CardNoButton'] === true;
   const label = String(title ?? '');
