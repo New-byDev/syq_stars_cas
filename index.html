@@ -243,8 +243,23 @@
   /* ---------- МИНЫ ---------- */
   .mines-wrap{max-width:500px;margin:0 auto}.mines-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.mines-title{font-size:22px;font-weight:900;letter-spacing:.5px}.mines-sub{color:var(--muted);font-size:12px;margin-top:4px}.mines-pill{padding:8px 11px;border:1px solid #393b59;border-radius:12px;background:#202238;font-weight:800;white-space:nowrap}.mines-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mines-controls label{display:block}.mines-controls input,.mines-controls select{margin-top:6px}.mines-shortcuts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}.mines-shortcuts button{background:#24263d;border:1px solid #383b5a;color:#eee;border-radius:10px;padding:10px 4px;font-weight:800}.mines-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:8px 0;padding:6px;background:#121421;border:1px solid #25283d;border-radius:17px;box-shadow:0 12px 28px #0005}.mine-cell{aspect-ratio:1;border:1px solid #424966;border-radius:10px;background:linear-gradient(145deg,#363b57,#22263b 72%);box-shadow:inset 0 1px #ffffff12,0 3px 5px #0005;color:white;font-size:clamp(17px,5vw,26px);font-weight:900;cursor:pointer;min-width:0;padding:0;transition:transform .12s,border-color .12s}.mine-cell:active{transform:scale(.96)}.mine-cell:disabled{cursor:default}.mine-cell.safe{background:linear-gradient(145deg,#174d4a,#123632);border-color:#2b8177}.mine-cell.bomb{background:linear-gradient(145deg,#752f47,#3a1e31);border-color:#b94e70}.mine-cell.reveal-safe{background:linear-gradient(145deg,#30354a,#24283a);border-color:#515875}.mines-mult{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background:#202238;border:1px solid #383b5a;border-radius:11px;margin:7px 0}.mines-mult strong{font-size:22px;color:#c5c8ff}.mines-action{background:linear-gradient(110deg,#5b6df8,#8755ed)!important;color:white!important;border:0!important;border-radius:13px!important;min-height:48px;font-size:15px!important;box-shadow:0 5px 16px #6655f633}.mines-status{font-size:13px;line-height:1.45;text-align:center;color:#b9bdd5;min-height:20px;margin:8px 0}.mines-status.good{color:#77e0bc}.mines-status.bad{color:#ff8da5}@media(max-width:380px){.mines-board{gap:5px;padding:6px}.mine-cell{border-radius:8px}.mines-controls{gap:7px}}
   /* ---------- СТАРТОВАЯ ЗАГРУЗКА ---------- */
-  #app-loader { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; padding:24px; background:radial-gradient(ellipse at 50% 35%,#242424 0%,#111 42%,#070707 100%); opacity:1; visibility:visible; transition:opacity .55s ease,visibility .55s ease; }
+  #app-loader { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:22px; background:radial-gradient(ellipse at 50% 28%,#252525 0%,#111 44%,#070707 100%); opacity:1; visibility:visible; transition:opacity .5s ease,visibility .5s ease; }
   #app-loader.is-hidden { opacity:0; visibility:hidden; pointer-events:none; }
+  .loader-panel { width:min(390px,100%); padding:30px 25px 24px; border:1px solid #343434; border-radius:24px; background:linear-gradient(155deg,#1c1c1c 0%,#111 68%); box-shadow:0 28px 90px #000a,inset 0 1px #ffffff0b; display:flex; flex-direction:column; align-items:center; gap:13px; }
+  .loader-brand { display:flex; align-items:center; gap:11px; }
+  .loader-emblem { width:62px; height:62px; flex:0 0 62px; border-radius:19px; display:grid; place-items:center; font-size:29px; font-weight:950; color:#fff; background:linear-gradient(145deg,#343434,#101010); border:1px solid #555; box-shadow:0 0 30px #ffffff12,inset 0 0 18px #ffffff08; animation:loaderFloat 2.4s ease-in-out infinite; position:relative; }
+  .loader-emblem::before { content:''; position:absolute; inset:-5px; border-radius:23px; border:1px solid #ffffff1c; animation:loaderRing 2.4s ease-out infinite; }
+  .loader-brand-copy { display:flex; flex-direction:column; gap:4px; }
+  .loader-title { font-size:21px; font-weight:950; letter-spacing:3px; }
+  .loader-edition { color:#777; font-size:9px; letter-spacing:2.2px; font-weight:800; }
+  .loader-divider { width:100%; height:1px; background:linear-gradient(90deg,transparent,#393939,transparent); margin:7px 0 2px; }
+  .loader-status-row { width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .loader-subtitle { font-size:11px; color:#b8b8b8; letter-spacing:.7px; font-weight:650; }
+  .loader-percent { font-size:12px; color:#f2f2f2; font-variant-numeric:tabular-nums; font-weight:850; }
+  .loader-track { width:100%; height:7px; background:#292929; border:1px solid #363636; border-radius:20px; overflow:hidden; margin-top:1px; box-shadow:inset 0 1px 3px #0009; }
+  .loader-progress { height:100%; width:0%; border-radius:20px; background:linear-gradient(90deg,#858585,#f5f5f5); box-shadow:0 0 14px #ffffff55; transition:width .35s cubic-bezier(.2,.7,.2,1); }
+  .loader-foot { width:100%; display:flex; align-items:center; gap:7px; color:#666; font-size:10px; margin-top:2px; }
+  .loader-dot { width:6px; height:6px; border-radius:50%; background:#bdbdbd; box-shadow:0 0 9px #fff8; animation:loaderPulse 1.2s ease-in-out infinite; }
   #blocked-screen { position:fixed; inset:0; z-index:1300; display:none; align-items:center; justify-content:center; padding:24px; background:#090909; color:#f5f5f5; }
   #blocked-screen.show { display:flex; }
   .blocked-box { width:100%; max-width:440px; padding:24px; border:1px solid #5a2929; border-radius:16px; background:#151515; }
@@ -257,15 +272,9 @@
   .startup-error-box h2 { margin-bottom:10px; font-size:20px; }
   .startup-error-box p { color:#aaa; font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
   .startup-error-box button { margin-top:16px; width:100%; }
-  .loader-emblem { width:82px; height:82px; border-radius:25px; display:grid; place-items:center; font-size:34px; font-weight:900; color:#fff; background:linear-gradient(145deg,#292929,#0c0c0c); border:1px solid #555; box-shadow:0 0 35px #ffffff12,inset 0 0 22px #ffffff08; animation:loaderFloat 2s ease-in-out infinite; position:relative; }
-  .loader-emblem::before { content:''; position:absolute; inset:-6px; border-radius:29px; border:1px solid #ffffff20; animation:loaderRing 2.2s ease-out infinite; }
-  .loader-title { font-size:22px; font-weight:900; letter-spacing:4px; }
-  .loader-subtitle { font-size:12px; color:#8d8d8d; letter-spacing:1.2px; }
-  .loader-track { width:min(230px,70vw); height:3px; background:#292929; border-radius:9px; overflow:hidden; margin-top:4px; }
-  .loader-progress { height:100%; width:35%; border-radius:9px; background:linear-gradient(90deg,#777,#fff); box-shadow:0 0 12px #fff8; animation:loaderProgress 1.35s cubic-bezier(.65,0,.35,1) infinite; }
-  @keyframes loaderFloat { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-6px) scale(1.035); } }
-  @keyframes loaderRing { 0% { transform:scale(.9); opacity:.6; } 100% { transform:scale(1.22); opacity:0; } }
-  @keyframes loaderProgress { 0% { transform:translateX(-120%); } 100% { transform:translateX(340%); } }
+  @keyframes loaderFloat { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-4px) scale(1.025); } }
+  @keyframes loaderRing { 0% { transform:scale(.92); opacity:.55; } 100% { transform:scale(1.18); opacity:0; } }
+  @keyframes loaderPulse { 0%,100% { opacity:.45; transform:scale(.85); } 50% { opacity:1; transform:scale(1.15); } }
   @media(prefers-reduced-motion:reduce) { #app-loader *,#app-loader *::before { animation-duration:.01ms !important; animation-iteration-count:1 !important; } .item-card { transition:none; } }
   #maintenance-screen { display:none; position:fixed; inset:0; z-index:700; background:radial-gradient(circle at 50% 20%,#222,#080808 70%); align-items:center; justify-content:center; padding:24px; text-align:center; }
   #maintenance-screen.show { display:flex; }
@@ -469,10 +478,13 @@
 <canvas id="ambient-canvas" aria-hidden="true"></canvas>
 
 <div id="app-loader" role="status" aria-live="polite">
-  <div class="loader-emblem">Z</div>
-  <div class="loader-title">ZOMBIXUP</div>
-  <div class="loader-subtitle">ЗАГРУЗКА ПРИЛОЖЕНИЯ</div>
-  <div class="loader-track"><div class="loader-progress"></div></div>
+  <div class="loader-panel">
+    <div class="loader-brand"><div class="loader-emblem">Z</div><div class="loader-brand-copy"><div class="loader-title">ZOMBIXUP</div><div class="loader-edition">GAME PLATFORM</div></div></div>
+    <div class="loader-divider"></div>
+    <div class="loader-status-row"><div class="loader-subtitle" id="loader-status">Подготовка приложения…</div><div class="loader-percent" id="loader-percent">0%</div></div>
+    <div class="loader-track" aria-label="Прогресс загрузки"><div class="loader-progress" id="loader-progress"></div></div>
+    <div class="loader-foot"><span class="loader-dot"></span><span id="loader-detail">Проверяем компоненты и соединение</span></div>
+  </div>
 </div>
 
 <div id="auth-screen">
@@ -554,7 +566,21 @@
 
 <script>
 let APP_BOOTSTRAPPING = true;
+let APP_LOADER_PROGRESS = 0;
+function updateAppLoader(percent, status, detail) {
+  const value = Math.max(APP_LOADER_PROGRESS, Math.min(100, Number(percent) || 0));
+  APP_LOADER_PROGRESS = value;
+  const bar = document.getElementById('loader-progress');
+  const label = document.getElementById('loader-percent');
+  const statusEl = document.getElementById('loader-status');
+  const detailEl = document.getElementById('loader-detail');
+  if (bar) bar.style.width = value + '%';
+  if (label) label.textContent = Math.round(value) + '%';
+  if (status && statusEl) statusEl.textContent = status;
+  if (detail && detailEl) detailEl.textContent = detail;
+}
 function hideAppLoader() {
+  updateAppLoader(100, 'Готово', 'Приложение подготовлено');
   const loader = document.getElementById('app-loader');
   if (loader) loader.classList.add('is-hidden');
 }
@@ -592,6 +618,8 @@ function priceTier(value) {
 }
 
 /* ================= FIREBASE ================= */
+updateAppLoader(8, 'Запуск ZombixUP…', 'Подготавливаем интерфейс');
+
 const firebaseConfig = {
   apiKey: "AIzaSyB9uAa0NjkxMvjK0ZrGGHBtksWWRZA2cPs",
   authDomain: "syq-site.firebaseapp.com",
@@ -612,6 +640,7 @@ if (!window.firebase || typeof firebase.initializeApp !== 'function' || typeof f
 // В обычном браузере Telegram WebApp может отсутствовать: в этом случае
 // разрешаем тестовый вход по паролю через серверный секрет Worker.
 const telegramWebApp = window.Telegram?.WebApp || null;
+updateAppLoader(22, 'Подключение сервисов', 'Инициализируем Firebase');
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
@@ -621,6 +650,7 @@ tg.ready(); tg.expand();
 const TG_USER = tg.initDataUnsafe?.user || null;
 const TG_ID = TG_USER ? String(TG_USER.id) : null;
 const TG_INIT_DATA = tg.initData || '';
+updateAppLoader(34, 'Проверка авторизации', TG_USER && TG_INIT_DATA ? 'Обнаружена Telegram-сессия' : 'Ожидаем вход тестового пользователя');
 let autoTelegramStarted = false;
 let REFERRAL_INFO = null, REFERRAL_INFO_LOADING_FOR = null;
 
@@ -675,6 +705,9 @@ function syncReferralInfoFromLocalData() {
   REFERRAL_INFO = {...REFERRAL_INFO, invitedCount, earned:wholeEarned + pendingHundredths / 100};
 }
 let ITEMS = {}, USERS = {}, TICKETS = {}, ROLES = {}, ANNS = {};
+let HOME_TOP_SPENDERS = [];
+let HOME_TOP_SPENDERS_UPDATED_AT = 0;
+let HOME_TOP_SPENDERS_LOADING = false;
 // Каталог и выбранное оформление профиля. Источник истины — Cloudflare Worker/Firebase.
 let COSMETIC_FRAMES = {}, COSMETIC_OWNED_IDS = [], COSMETIC_ACTIVE_ID = '', COSMETIC_CATALOG_FOR = '';
 let COSMETICS_OPEN = false, ADMIN_COSMETIC_FRAMES = [], ADMIN_COSMETIC_CODES = [], COSMETIC_EDITING_FRAME = null;
@@ -847,8 +880,10 @@ function handleBlockedLogin(data) {
 async function telegramAutoLogin(firebaseUser) {
   if (!TG_USER || !TG_INIT_DATA) throw new Error('Telegram не передал данные авторизации. Откройте Mini App кнопкой бота.');
   if (WORKER_URL.includes('YOUR-WORKER')) throw new Error('Не настроен URL Cloudflare Worker.');
+  updateAppLoader(48, 'Авторизация Telegram', 'Проверяем подпись и данные пользователя');
   aMsg('Выполняется вход через Telegram…');
   const idToken = await firebaseUser.getIdToken();
+  updateAppLoader(62, 'Проверка аккаунта', 'Получаем подтверждение от сервера');
   const response = await fetch(WORKER_URL + '/api/telegram-session', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({ initData:TG_INIT_DATA, uid:firebaseUser.uid, idToken })
@@ -865,12 +900,14 @@ async function doTestAuth() {
   if (password.length < 6) return aMsg('Введите пароль тестового доступа (минимум 6 символов).', 'err');
   if (WORKER_URL.includes('YOUR-WORKER')) return aMsg('Не настроен URL Cloudflare Worker.', 'err');
   const button = document.getElementById('test-login-btn');
+  updateAppLoader(42, 'Тестовая авторизация', 'Проверяем пароль и создаём защищённую сессию');
   if (button) { button.disabled = true; button.textContent = 'Проверка…'; }
   try {
     // Тестовый вход получает отдельную анонимную Firebase-сессию, чтобы не переиспользовать UID другого аккаунта.
     if (auth.currentUser) await auth.signOut();
     const cred = await auth.signInAnonymously();
     const idToken = await cred.user.getIdToken(true);
+    updateAppLoader(62, 'Проверка тестового аккаунта', 'Связываемся с сервером авторизации');
     const response = await fetch(WORKER_URL + '/api/test-session', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({password, uid:cred.user.uid, idToken})
@@ -1044,17 +1081,20 @@ function activateWindowData(tab=CURRENT_TAB) {
     loadCosmeticsCatalog(false);
     loadReferralInfo();
   }
+  if(tab==='home') loadHomeTopSpenders();
 }
 
 /* ---------- СТАРТ ---------- */
 async function enterApp(id) {
   try {
+  updateAppLoader(76, 'Загрузка профиля', 'Получаем данные аккаунта');
   CURRENT_ID = id;
   document.getElementById('auth-screen').classList.remove('show');
   document.getElementById('app').style.display = 'flex';
 
   profileRef = db.ref('users/' + id);
   const snap = await profileRef.get();
+  updateAppLoader(89, 'Подготовка главного экрана', 'Настраиваем профиль и игровые данные');
   if (!snap.exists()) {
     await profileRef.child('tgId').set(id);
     await profileRef.child('name').set((TG_USER && String(TG_USER.id) === id) ? TG_USER.first_name : id);
@@ -1082,6 +1122,7 @@ async function enterApp(id) {
 
   // Остальные данные подключаются только для активного окна через activateWindowData().
 
+  updateAppLoader(96, 'Почти готово', 'Открываем главное окно');
   go('home');
   startLivePanelRefresh();
   APP_BOOTSTRAPPING = false;
@@ -1548,7 +1589,7 @@ function cosmeticInlineStyle(frame, avatarSize=46) {
 function getUserAvatarURL(id, user={}) {
   const fileId = String(user?.avatarFileId || '');
   if (fileId && fileId.length <= 512) {
-    const version = String(user?.avatarFileUniqueId || user?.avatarUpdatedAt || '1');
+    const version = String(user?.avatarUpdatedAt || user?.avatarFileUniqueId || '1');
     return `${WORKER_URL}/api/avatar?id=${encodeURIComponent(String(id))}&v=${encodeURIComponent(version)}`;
   }
   const direct = String(user?.photoUrl || user?.photo_url || user?.avatar || '');
@@ -1639,16 +1680,28 @@ async function equipCosmeticFrame(frameId){try{const result=await workerRequest(
 async function redeemCosmeticCode(){const input=document.getElementById('cosmetic-redeem-code'),code=String(input?.value||'').trim().toUpperCase();if(!/^[A-Z0-9-]{8,32}$/.test(code))return toast('Введи корректный код длиной от 8 символов');try{const result=await workerRequest('/api/cosmetics/redeem',{code});if(input)input.value='';const snap=await db.ref('users/'+CURRENT_ID).get();if(snap.exists())profile=snap.val();await loadCosmeticsCatalog(true);toast(result.message||'Рамка получена');rerender();}catch(error){toast(error.message||'Код не принят');}}
 
 function buildHomeTopSpendersHTML() {
-  const depositsByUser = {};
-  for (const t of Object.values(TICKETS || {})) {
-    if (!t || t.type !== 'deposit' || t.status !== 'closed' || t.transactionApplied !== true) continue;
-    const id = String(t.owner || '');
-    if (!id || id === ADMIN_ID || USERS[id]?.is_admin === true || USERS[id]?.role === 'admin' || USERS[id]?.role === 'moderator' || ROLES[id] === 'admin' || ROLES[id] === 'moderator') continue;
-    depositsByUser[id] = (depositsByUser[id] || 0) + Math.max(0, Number(t.amount) || 0);
-  }
-  const top = Object.entries(depositsByUser).map(([id, deposited]) => ({id, u:USERS[id] || {}, deposited}))
-    .filter(x => x.deposited > 0).sort((a,b) => b.deposited-a.deposited).slice(0,5);
-  return featureDisplayVisible('topSpenders')?`<div class="card"><h2>🏆 Топ пополнений ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшей суммой подтверждённых пополнений.</p>${top.length?top.map((x,i)=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b>${skinAvatarHTML(x.id,x.u.name||x.id,42)}<div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${playerNickHTML(x.id,x.u.name||x.id)}</div><div class="chips">ID: ${esc(x.id)}</div></div><b>${x.deposited.toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`).join(''):'<p class="muted">Пока нет подтверждённых пополнений.</p>'}</div>`:featurePlaceholder('topSpenders');
+  const top = Array.isArray(HOME_TOP_SPENDERS) ? HOME_TOP_SPENDERS : [];
+  return featureDisplayVisible('topSpenders')?`<div class="card"><h2>🏆 Топ пополнений ${hiddenAdminBadge('topSpenders')}</h2><p class="muted">Игроки с наибольшей суммой подтверждённых пополнений.</p>${top.length?top.map((x,i)=>{
+    const id=String(x.id||''),u=x.user||USERS[id]||{};
+    if(id&&!USERS[id]) USERS[id]=u;
+    return `<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)"><b style="width:24px">${i+1}.</b>${skinAvatarHTML(id,u.name||id,42)}<div style="flex:1;min-width:0"><div style="overflow-wrap:anywhere">${playerNickHTML(id,u.name||id)}</div><div class="chips">ID: ${esc(id)}</div></div><b>${Number(x.deposited||0).toLocaleString('ru-RU')} ${CUR_ICON?`<img class="cmini" src="${esc(CUR_ICON)}" alt="">`:'<span class="currency-fallback" aria-label="валюта">🪙</span>'}</b></div>`;
+  }).join(''):'<p class="muted">Пока нет подтверждённых пополнений.</p>'}</div>`:featurePlaceholder('topSpenders');
+}
+async function loadHomeTopSpenders(force=false) {
+  if(!CURRENT_ID || CURRENT_TAB!=='home' || HOME_TOP_SPENDERS_LOADING) return;
+  if(!force && HOME_TOP_SPENDERS_UPDATED_AT && Date.now()-HOME_TOP_SPENDERS_UPDATED_AT<30000) return;
+  HOME_TOP_SPENDERS_LOADING=true;
+  try {
+    const data=await workerRequest('/api/home/top-deposits',{});
+    if(CURRENT_TAB!=='home') return;
+    HOME_TOP_SPENDERS=(data.players||[]).map(x=>({id:String(x.id),deposited:Number(x.deposited)||0,user:x.user||{}}));
+    for(const x of HOME_TOP_SPENDERS) USERS[x.id]=x.user;
+    HOME_TOP_SPENDERS_UPDATED_AT=Date.now();
+    updateHomeTopSpenders();
+  } catch(e) {
+    // Сохраняем последний успешный рейтинг из памяти, не подменяя его пустым списком.
+    console.warn('Не удалось обновить топ пополнений:',e?.message||e);
+  } finally { HOME_TOP_SPENDERS_LOADING=false; }
 }
 function updateHomeTopSpenders() {
   if(CURRENT_TAB!=='home')return;
