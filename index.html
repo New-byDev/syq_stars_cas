@@ -469,10 +469,14 @@
 
 <div id="auth-screen">
   <h1>ZombixUP</h1>
-  <p class="sub">Вход через Telegram</p>
+  <p class="sub" id="auth-subtitle">Вход через Telegram</p>
   <div class="card">
     <p class="muted" id="a-msg" style="margin:6px 0 12px; min-height:18px">Открой приложение через Telegram — вход и создание профиля выполняются автоматически.</p>
-    <button class="btn" id="manual-auth-btn" onclick="doAuth()" style="display:none">Войти вручную</button>
+    <div id="test-auth-fields" style="display:none">
+      <label for="test-login-password" class="muted" style="display:block;margin:10px 0 6px">Пароль тестового доступа</label>
+      <input id="test-login-password" type="password" autocomplete="current-password" placeholder="Введите пароль" style="width:100%;box-sizing:border-box;margin-bottom:10px">
+      <button class="btn" id="test-login-btn" onclick="doTestAuth()" style="width:100%">Войти как тестовый аккаунт</button>
+    </div>
   </div>
 </div>
 
@@ -595,15 +599,14 @@ if (!window.firebase || typeof firebase.initializeApp !== 'function' || typeof f
   showStartupError(new Error('Не загрузились библиотеки Firebase. Проверьте интернет, блокировщики и доступ к gstatic.com.'), 'Загрузка зависимостей');
   throw new Error('Firebase SDK is unavailable');
 }
-if (!window.Telegram || !window.Telegram.WebApp) {
-  showStartupError(new Error('Не загрузилась библиотека Telegram WebApp. Откройте приложение внутри Telegram или проверьте доступ к telegram.org.'), 'Загрузка зависимостей');
-  throw new Error('Telegram WebApp SDK is unavailable');
-}
+// В обычном браузере Telegram WebApp может отсутствовать: в этом случае
+// разрешаем тестовый вход по паролю через серверный секрет Worker.
+const telegramWebApp = window.Telegram?.WebApp || null;
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-const tg = window.Telegram.WebApp;
+const tg = telegramWebApp || {ready(){}, expand(){}, initDataUnsafe:{}, initData:''};
 tg.ready(); tg.expand();
 const TG_USER = tg.initDataUnsafe?.user || null;
 const TG_ID = TG_USER ? String(TG_USER.id) : null;
@@ -839,6 +842,34 @@ async function telegramAutoLogin(firebaseUser) {
   CURRENT_ID = String(data.id || TG_USER.id);
   CURRENT_PASS = '';
   await enterApp(CURRENT_ID);
+}
+
+async function doTestAuth() {
+  const password = document.getElementById('test-login-password')?.value || '';
+  if (password.length < 6) return aMsg('Введите пароль тестового доступа (минимум 6 символов).', 'err');
+  if (WORKER_URL.includes('YOUR-WORKER')) return aMsg('Не настроен URL Cloudflare Worker.', 'err');
+  const button = document.getElementById('test-login-btn');
+  if (button) { button.disabled = true; button.textContent = 'Проверка…'; }
+  try {
+    const cred = auth.currentUser ? {user:auth.currentUser} : await auth.signInAnonymously();
+    const idToken = await cred.user.getIdToken(true);
+    const response = await fetch(WORKER_URL + '/api/test-session', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password, uid:cred.user.uid, idToken})
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      if (handleBlockedLogin(data)) return;
+      throw new Error(formatApiError(data, response.status, 'Не удалось войти в тестовый аккаунт'));
+    }
+    CURRENT_ID = '0';
+    CURRENT_PASS = password;
+    await enterApp('0');
+  } catch (e) {
+    aMsg('Ошибка тестового входа: ' + (e?.message || 'Неизвестная ошибка'), 'err');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Войти как тестовый аккаунт'; }
+  }
 }
 
 async function doAuth() {
@@ -1101,9 +1132,11 @@ auth.onAuthStateChanged(u => {
     return;
   }
   showAuth();
-  const manualButton = document.getElementById('manual-auth-btn');
-  if (manualButton) manualButton.style.display = 'block';
-  aMsg('Откройте сайт внутри Telegram, чтобы входить автоматически.');
+  const fields = document.getElementById('test-auth-fields');
+  if (fields) fields.style.display = 'block';
+  const subtitle = document.getElementById('auth-subtitle');
+  if (subtitle) subtitle.textContent = 'Тестовый вход вне Telegram';
+  aMsg('Вы открыли сайт вне Telegram. Введите пароль тестового доступа — вход будет выполнен под аккаунтом ID 0.');
 });
 function showAuth() {
   APP_BOOTSTRAPPING = false;
