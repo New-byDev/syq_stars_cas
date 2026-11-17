@@ -37,9 +37,17 @@
   .burger { background:var(--card); border:1px solid var(--line); color:var(--text); width:42px; height:40px; border-radius:10px; font-size:17px; cursor:pointer; transition:.2s; }
   .burger:active { transform:scale(.92); }
 
-  .menu-panel { background:var(--card); border-bottom:1px solid var(--line); max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.4,0,.2,1); }
-  .menu-panel.open { max-height:420px; }
-  .menu-inner { display:flex; flex-wrap:wrap; gap:8px; padding:14px 16px; }
+  /* Основное меню использует тот же выдвижной drawer-паттерн, что и меню админ-панели. */
+  .menu-panel { position:fixed; z-index:1200; top:0; left:0; bottom:0; width:min(310px,86vw); max-height:none; overflow-y:auto; padding:12px; background:#111; border-right:1px solid var(--line); box-shadow:18px 0 50px #0008; transform:translateX(-105%); transition:transform .24s ease; overscroll-behavior:contain; }
+  .menu-panel.open { max-height:none; transform:translateX(0); }
+  .menu-inner { display:flex; flex-direction:column; flex-wrap:nowrap; gap:7px; padding:8px 0 18px; }
+  .menu-drawer-head { display:flex; align-items:center; justify-content:space-between; padding:4px 4px 16px; margin-bottom:8px; border-bottom:1px solid var(--line); font-size:18px; font-weight:800; }
+  .menu-drawer-close { width:38px; height:38px; border:1px solid var(--line); border-radius:10px; background:#1b1b1b; color:var(--text); font-size:17px; }
+  .menu-overlay { position:fixed; inset:0; z-index:1190; background:rgba(0,0,0,.62); opacity:0; visibility:hidden; transition:opacity .22s,visibility .22s; }
+  .menu-overlay.open { opacity:1; visibility:visible; }
+  body.main-menu-open { overflow:hidden; }
+  .menu-panel .nav-item { display:flex; align-items:center; min-height:45px; padding:10px 12px; border-radius:10px; background:transparent; } 
+  .menu-panel .nav-item.active { background:var(--accent); color:#000; font-weight:800; }
   .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
   .nav-item { background:#111; border:1px solid var(--line); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px; transition:.2s; user-select:none; }
   .nav-item:hover { border-color:#555; }
@@ -322,7 +330,7 @@
     .balance-row { font-size:12px; }
     .bonus-row { font-size:10px; }
     .burger { flex:0 0 38px; width:38px; height:38px; }
-    .menu-inner { padding:10px 12px; gap:6px; }
+    .menu-inner { padding:8px 0 18px; gap:7px; }
     .nav-item-disabled { opacity:.7; white-space:normal; overflow-wrap:anywhere; cursor:default; font-size:12px; }
   .nav-item { padding:9px 10px; font-size:12px; }
     .card { padding:12px; }
@@ -492,7 +500,9 @@
     <button class="burger" onclick="toggleMenu()">☰</button>
   </header>
 
-  <nav class="menu-panel" id="menu-panel">
+  <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu(false)"></div>
+  <nav class="menu-panel" id="menu-panel" aria-label="Основное меню">
+    <div class="menu-drawer-head"><span>ZombixUP</span><button class="menu-drawer-close" type="button" onclick="toggleMenu(false)" aria-label="Закрыть меню">✕</button></div>
     <div class="menu-inner">
       <a class="nav-item active" data-tab="home"     onclick="go('home')">🏠 Главная</a>
       <a class="nav-item" data-tab="games" onclick="go('games')">🎮 Игры</a>
@@ -672,7 +682,7 @@ let CUR_ICON = '', CUR_DRAFT = '';
 let CURRENT_TAB = 'home', adminSub = 'items', draft = null;
 let ticketSubTab = 'open', OPEN_TICKET_ID = null, profileTicketTab = 'open', ticketSearch = '', ticketSearchDraft = '';
 let PROFILE_FOLDS={referrals:true,tickets:true};
-function toggleProfileFold(key){if(!Object.prototype.hasOwnProperty.call(PROFILE_FOLDS,key))return;PROFILE_FOLDS[key]=!PROFILE_FOLDS[key];rerender();}
+function toggleProfileFold(key){if(!Object.prototype.hasOwnProperty.call(PROFILE_FOLDS,key))return;PROFILE_FOLDS[key]=!PROFILE_FOLDS[key];if(key==='tickets'&&CURRENT_TAB==='profile')activateWindowData('profile');rerender();}
 let adminUserSearch = '', adminUserSearchDraft = '', PLAYER_ADMIN_ID = null;
 let ADMIN_LOG_ITEMS = [], ADMIN_LOG_OFFSET = 0, ADMIN_LOG_HAS_MORE = false, ADMIN_LOG_LOADING = false, ADMIN_LOG_REFRESH_TIMER = null, ADMIN_LOG_REFRESH_BUSY = false;
 const getAdminLogToday = () => new Date(Date.now()+3*60*60*1000).toISOString().slice(0,10);
@@ -732,7 +742,13 @@ function toast(msg) {
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 2400);
 }
-function toggleMenu() { document.getElementById('menu-panel').classList.toggle('open'); }
+function toggleMenu(force) {
+  const panel=document.getElementById('menu-panel'), overlay=document.getElementById('menu-overlay');
+  if(!panel||!overlay)return;
+  const open=typeof force==='boolean'?force:!panel.classList.contains('open');
+  panel.classList.toggle('open',open); overlay.classList.toggle('open',open);
+  document.body.classList.toggle('main-menu-open',open);
+}
 function isAdmin() { return (profile && profile.is_admin === true) || CURRENT_ID === ADMIN_ID || ROLES[CURRENT_ID] === 'admin'; }
 function isStaff() { return isAdmin() || ROLES[CURRENT_ID] === 'moderator'; }
 function fmtTime(ts) {
@@ -851,7 +867,9 @@ async function doTestAuth() {
   const button = document.getElementById('test-login-btn');
   if (button) { button.disabled = true; button.textContent = 'Проверка…'; }
   try {
-    const cred = auth.currentUser ? {user:auth.currentUser} : await auth.signInAnonymously();
+    // Тестовый вход получает отдельную анонимную Firebase-сессию, чтобы не переиспользовать UID другого аккаунта.
+    if (auth.currentUser) await auth.signOut();
+    const cred = await auth.signInAnonymously();
     const idToken = await cred.user.getIdToken(true);
     const response = await fetch(WORKER_URL + '/api/test-session', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -901,6 +919,133 @@ async function doAuth() {
     await enterApp(id);
   } catch (e) { aMsg('Ошибка входа: ' + (e?.message || 'Неизвестная ошибка') + (e instanceof TypeError ? ' [код: NETWORK_OR_CORS_ERROR]' : ''), 'err'); }
 }
+/* ---------- ЗАГРУЗКА ДАННЫХ ТОЛЬКО ДЛЯ ОТКРЫТОГО ОКНА ---------- */
+let WINDOW_DATA_SUBSCRIPTIONS = [];
+// Кэш снимков хранится в памяти вкладки браузера: при возврате на уже открытое окно
+// данные отображаются сразу, а активная Firebase-подписка затем обновляет их в фоне.
+// Ключ включает ID игрока и область запроса, чтобы данные разных аккаунтов не смешивались.
+const WINDOW_DATA_CACHE = new Map();
+function clearWindowDataSubscriptions() {
+  for (const entry of WINDOW_DATA_SUBSCRIPTIONS) {
+    try { entry.ref.off('value', entry.callback); } catch (_) {}
+  }
+  WINDOW_DATA_SUBSCRIPTIONS = [];
+}
+function listenWindowData(path, callback, queryBuilder=null, cacheScope='all') {
+  let ref=db.ref(path);
+  if(typeof queryBuilder==='function') ref=queryBuilder(ref);
+  const cacheKey=`${CURRENT_ID}::${path}::${cacheScope}`;
+  const cached=WINDOW_DATA_CACHE.get(cacheKey);
+  // Мгновенно восстанавливаем последнее значение, не ожидая сетевого ответа Firebase.
+  if(cached) callback({val:()=>cached.value, exists:()=>cached.value!==null&&cached.value!==undefined});
+  const wrapped=s=>{
+    const value=s.val();
+    WINDOW_DATA_CACHE.set(cacheKey,{value,updatedAt:Date.now()});
+    callback(s);
+  };
+  ref.on('value',wrapped);
+  WINDOW_DATA_SUBSCRIPTIONS.push({ref,callback:wrapped});
+}
+function activateWindowData(tab=CURRENT_TAB) {
+  if(!CURRENT_ID)return;
+  // Не разрешаем даже прямым вызовом навигации подписывать обычного игрока
+  // на данные админ-панели или общей очереди тикетов сотрудников.
+  if(tab==='admin'&&!isAdmin()) tab='home';
+  if(tab==='tickets'&&!isStaff()) tab='home';
+  clearWindowDataSubscriptions();
+  // Небольшие общие настройки нужны оболочке приложения на любом экране.
+  listenWindowData('config/maintenance', s => {
+    const next=s.val()||{enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'};
+    if(MAINTENANCE_NOTIF_READY && next.enabled!==!!MAINTENANCE?.enabled) {
+      if(next.enabled)toast(`Технический перерыв: ${next.message||'Ведутся технические работы.'}`);
+      else toast('Технический перерыв окончен. Приложение снова доступно.');
+    }
+    MAINTENANCE=next; MAINTENANCE_NOTIF_READY=true; updateMaintenanceScreen();
+    if(CURRENT_TAB==='admin'&&adminSub==='system')drawAdminBody();
+  });
+  listenWindowData('config/uiVisibility', s => {
+    const value=s.val()||{};
+    UI_VISIBILITY={...UI_VISIBILITY_DEFAULTS,...value};
+    UI_VISIBILITY_MESSAGES={...(value.messages||{})};
+    applyUIVisibility();
+    if(CURRENT_TAB==='home'){updateHomeAnnouncements();updateHomeWelcome();updateHomeTopSpenders();}
+    if(CURRENT_TAB==='inventory'||CURRENT_TAB==='profile'||CURRENT_TAB==='settings')rerender();
+    if(CURRENT_TAB==='admin'&&adminSub==='visibility')drawAdminBody();
+  });
+  listenWindowData('config/currency', s => {
+    CUR_ICON=s.val()?.icon||'';
+    const el=document.getElementById('cur-icon');
+    if(CUR_ICON){el.src=CUR_ICON;el.style.display='block';}else el.style.display='none';
+    if(CURRENT_TAB==='home')updateHomeTopSpenders();
+  });
+  if(tab==='admin'&&adminSub==='system') listenWindowData('config/buttonSfx',s=>{
+    BUTTON_SFX_CONFIG={enabled:false,dataUrl:'',fileName:'',...(s.val()||{})};
+    BUTTON_SFX_LOADED=true;
+    if(CURRENT_TAB==='admin'&&adminSub==='system')drawAdminBody();
+  });
+
+  const wants = new Set();
+  const add=(...paths)=>paths.forEach(path=>wants.add(path));
+  if(tab==='home') add('users','roles','anns');
+  if(tab==='inventory') add('items');
+  if(tab==='profile') {
+    add('roles','items');
+    // В профиле запрашиваем только собственные обращения и только когда
+    // игрок раскрыл блок «Мои тикеты». Общая очередь сотрудников не загружается.
+    if(PROFILE_FOLDS.tickets===false) add('tickets');
+  }
+  if(tab==='tickets'&&isStaff()) add('tickets','roles','items');
+  if(tab==='admin'&&isAdmin()) {
+    const bySub={
+      items:['items'], users:['users','roles'], anns:['anns','items'], promos:['items'],
+      cur:[], market:[], cosmetics:[], system:[], visibility:[], notifications:[],
+      stats:['users','tickets','roles','items','anns'], logs:[]
+    };
+    add(...(bySub[adminSub]||[]));
+  }
+  if(wants.has('items')) listenWindowData('items',s=>{ITEMS=s.val()||{};if(CURRENT_TAB==='admin'&&['items','anns','stats'].includes(adminSub))drawAdminBody();else rerenderIfDepends();});
+  if(wants.has('users')) listenWindowData('users',s=>{
+    if(!CURRENT_ID)return;
+    USERS=s.val()||{};syncReferralInfoFromLocalData();
+    if(CURRENT_TAB==='home')updateHomeTopSpenders();
+    if(CURRENT_TAB==='admin'&&['users','stats'].includes(adminSub))drawAdminBody();
+  });
+  if(wants.has('roles')) listenWindowData('roles',s=>{
+    ROLES=s.val()||{};syncReferralInfoFromLocalData();updateStaffBtn();
+    if(CURRENT_TAB==='home')updateHomeTopSpenders();
+    if(CURRENT_TAB==='admin'&&['users','stats'].includes(adminSub))drawAdminBody();
+    rerenderIfDepends();
+  });
+  if(wants.has('tickets')) listenWindowData('tickets',s=>{
+    const previous=TICKETS,next=s.val()||{};
+    if(TICKET_NOTIF_READY&&CURRENT_ID)for(const [ticketId,ticket] of Object.entries(next)){
+      const oldTicket=previous[ticketId];
+      if(ticket?.owner===CURRENT_ID&&oldTicket&&oldTicket.status!=='closed'&&ticket.status==='closed')toast(`Тикет #${ticket.num||ticketId} закрыт${ticket.reason?': '+String(ticket.reason).slice(0,110):''}`);
+    }
+    TICKETS=next;TICKET_NOTIF_READY=true;sweepExpired();
+    if(CURRENT_TAB==='home')updateHomeTopSpenders();
+    const active=OPEN_TICKET_ID&&TICKETS[OPEN_TICKET_ID],before=OPEN_TICKET_ID&&previous[OPEN_TICKET_ID];
+    if(active&&before&&['tickets','profile'].includes(CURRENT_TAB)){
+      if(active.status!==before.status||active.takenBy!==before.takenBy)rerender();
+      else updateTicketChat(OPEN_TICKET_ID,active);
+    }else rerenderIfDepends();
+  }, tab==='profile' ? ref=>ref.orderByChild('owner').equalTo(CURRENT_ID) : null, tab==='profile' ? `owner:${CURRENT_ID}` : 'all');
+  if(wants.has('anns')) listenWindowData('anns',s=>{
+    const next=s.val()||{};
+    if(ANN_NOTIF_READY){const added=Object.keys(next).filter(id=>!ANNS[id]);if(added.length)toast(added.length===1?'Появилось новое объявление':`Новых объявлений: ${added.length}`);}
+    ANNS=next;ANN_NOTIF_READY=true;
+    if(CURRENT_TAB==='home')updateHomeAnnouncements();
+    if(CURRENT_TAB==='admin'&&adminSub==='anns')updateAdminAnnList();
+    if(CURRENT_TAB==='admin'&&adminSub==='stats')drawAdminBody();
+  });
+
+  // Каталог косметики и реферальная информация запрашиваются только на экранах, где отображаются.
+  if(tab==='home'||tab==='profile') {
+    loadCosmeticsCatalog(false);
+    loadReferralInfo();
+  }
+}
+
 /* ---------- СТАРТ ---------- */
 async function enterApp(id) {
   try {
@@ -917,6 +1062,8 @@ async function enterApp(id) {
   } else if (id === ADMIN_ID && snap.val().is_admin !== true) {
     // is_admin выставляется только вручную в базе или сервером.
   }
+  // Сразу используем первичный профиль, не ждём первого realtime-события Firebase.
+  profile = snap.exists() ? (snap.val() || {}) : {tgId:id,name:(TG_USER && String(TG_USER.id)===id)?TG_USER.first_name:id,createdAt:Date.now()};
 
   profileRef.on('value', s => {
     profile = s.val() || {};
@@ -933,80 +1080,9 @@ async function enterApp(id) {
     if (sDb && !sDb.textContent.includes('ок')) { sDb.textContent = 'База данных: ок'; sDb.className = 'status ok'; }
   });
 
-  db.ref('items').on('value', s => { ITEMS = s.val() || {}; rerenderIfDepends(); });
-  // Большой раздел users не загружаем в критическом пути запуска.
-  // Он нужен для рейтинга и админской статистики, поэтому подписываемся после показа основного интерфейса.
-  const usersLoadFor = id;
-  window.setTimeout(() => {
-    if (!CURRENT_ID || CURRENT_ID !== usersLoadFor) return;
-    db.ref('users').on('value', s => {
-      USERS = s.val() || {};
-      syncReferralInfoFromLocalData();
-      if (CURRENT_TAB === 'home') updateHomeTopSpenders();
-      if (CURRENT_TAB === 'admin' && ['users','stats'].includes(adminSub)) drawAdminBody();
-    });
-  }, 2500);
-  loadCosmeticsCatalog(true);
-  db.ref('tickets').on('value', s => {
-    const previous = TICKETS;
-    const nextTickets = s.val() || {};
-    if (TICKET_NOTIF_READY && CURRENT_ID) {
-      for (const [ticketId, ticket] of Object.entries(nextTickets)) {
-        const oldTicket = previous[ticketId];
-        if (ticket?.owner === CURRENT_ID && oldTicket && oldTicket.status !== 'closed' && ticket.status === 'closed') {
-          toast(`Тикет #${ticket.num || ticketId} закрыт${ticket.reason ? ': ' + String(ticket.reason).slice(0,110) : ''}`);
-        }
-      }
-    }
-    TICKETS = nextTickets; TICKET_NOTIF_READY = true; sweepExpired();
-    if (CURRENT_TAB === 'home') updateHomeTopSpenders();
-    const activeTicket = OPEN_TICKET_ID && TICKETS[OPEN_TICKET_ID];
-    const previousTicket = OPEN_TICKET_ID && previous[OPEN_TICKET_ID];
-    if (activeTicket && previousTicket && ['tickets','profile'].includes(CURRENT_TAB)) {
-      if (activeTicket.status !== previousTicket.status || activeTicket.takenBy !== previousTicket.takenBy) rerender();
-      else updateTicketChat(OPEN_TICKET_ID, activeTicket);
-    } else rerenderIfDepends();
-  });
-  db.ref('roles').on('value', s => { ROLES = s.val() || {}; syncReferralInfoFromLocalData(); updateStaffBtn(); if (CURRENT_TAB === 'home') updateHomeTopSpenders(); rerenderIfDepends(); });
-  db.ref('anns').on('value', s => {
-    const nextAnns = s.val() || {};
-    if (ANN_NOTIF_READY) {
-      const added = Object.keys(nextAnns).filter(id => !ANNS[id]);
-      if (added.length) toast(added.length === 1 ? 'Появилось новое объявление' : `Новых объявлений: ${added.length}`);
-    }
-    ANNS = nextAnns; ANN_NOTIF_READY = true;
-    if (CURRENT_TAB === 'home') updateHomeAnnouncements();
-    // Список объявлений обновляем отдельно: поля формы создания/редактирования остаются нетронутыми.
-    if (CURRENT_TAB === 'admin' && adminSub === 'anns') updateAdminAnnList();
-    if (CURRENT_TAB === 'admin' && adminSub === 'stats') drawAdminBody();
-  });
-  db.ref('config/maintenance').on('value', s => {
-    const nextMaintenance = s.val() || {enabled:false,message:'Ведутся технические работы. Попробуйте зайти позже.'};
-    if (MAINTENANCE_NOTIF_READY && nextMaintenance.enabled !== !!MAINTENANCE?.enabled) {
-      if (nextMaintenance.enabled) toast(`Технический перерыв: ${nextMaintenance.message || 'Ведутся технические работы.'}`);
-      else toast('Технический перерыв окончен. Приложение снова доступно.');
-    }
-    MAINTENANCE = nextMaintenance; MAINTENANCE_NOTIF_READY = true; updateMaintenanceScreen();
-    // Синхронизируем экран системы у всех администраторов, когда другой админ меняет режим.
-    if (CURRENT_TAB === 'admin' && adminSub === 'system') drawAdminBody();
-  });
-  db.ref('config/uiVisibility').on('value', s => {
-    UI_VISIBILITY = {...UI_VISIBILITY_DEFAULTS, ...(s.val() || {})};
-    UI_VISIBILITY_MESSAGES = {...((s.val() || {}).messages || {})};
-    applyUIVisibility();
-    if (CURRENT_TAB === 'home') { updateHomeAnnouncements(); updateHomeWelcome(); updateHomeTopSpenders(); }
-    // Не перерисовываем форму видимости на фоне: сохраняем ввод и фокус.
-    if (CURRENT_TAB === 'inventory' || CURRENT_TAB === 'profile') rerender();
-  });
-  db.ref('config/currency').on('value', s => {
-    CUR_ICON = s.val()?.icon || '';
-    const el = document.getElementById('cur-icon');
-    if (CUR_ICON) { el.src = CUR_ICON; el.style.display = 'block'; } else el.style.display = 'none';
-    if (CURRENT_TAB === 'home') updateHomeTopSpenders();
-  });
+  // Остальные данные подключаются только для активного окна через activateWindowData().
 
   go('home');
-  loadReferralInfo();
   startLivePanelRefresh();
   APP_BOOTSTRAPPING = false;
   // Даём первичным подпискам Firebase отдать данные, затем плавно открываем интерфейс.
@@ -1147,18 +1223,21 @@ function showAuth() {
 
 /* ---------- НАВИГАЦИЯ ---------- */
 function go(tab) {
+  if(tab==='admin'&&!isAdmin()){toast('Админ-панель доступна только администраторам');tab='home';}
+  if(tab==='tickets'&&!isStaff()){toast('Очередь тикетов доступна только сотрудникам');tab='home';}
   if (MAINTENANCE?.enabled && !isAdmin()) { updateMaintenanceScreen(); return; }
   const visibilityKey = ({inventory:'inventory',profile:'profile',settings:'settings',tickets:'tickets'})[tab];
   if (visibilityKey && !featureVisible(visibilityKey) && !isAdmin()) { toast('Этот раздел временно скрыт'); tab='home'; }
   if(tab!=='admin') stopAdminLogAutoRefresh();
   CURRENT_TAB = tab;
+  activateWindowData(tab);
   // При каждом открытии игры перечитываем серверную сессию: это восстанавливает активный забег после возврата на вкладку.
   if (tab === 'zombie') ZOMBIE_STATE_LOADED_FOR = null;
   if(tab!=='market'&&MARKET_BANNER_TIMER){clearInterval(MARKET_BANNER_TIMER);MARKET_BANNER_TIMER=null;}
   OPEN_TICKET_ID = null;
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
   document.querySelectorAll('.app-bottom-nav [data-bottom-tab]').forEach(n=>n.classList.toggle('active',n.dataset.bottomTab===tab || (tab==='mines'&&n.dataset.bottomTab==='games') || (tab==='pvp'&&n.dataset.bottomTab==='games') || (tab==='zombie'&&n.dataset.bottomTab==='games')));
-  document.getElementById('menu-panel').classList.remove('open');
+  toggleMenu(false);
   document.getElementById('page-title').textContent = TITLES[tab] || tab;
   const c = document.getElementById('content');
   c.classList.remove('tab-anim'); void c.offsetWidth; c.classList.add('tab-anim');
@@ -1208,7 +1287,7 @@ function rerender() {
   if (CURRENT_TAB === 'zombie') renderZombie(c);
   if (CURRENT_TAB === 'profile') renderProfile(c);
   if (CURRENT_TAB === 'tickets') isStaff() ? renderStaffTickets(c) : (c.innerHTML = '<div class="card"><h2>🎫 Тикеты</h2><p class="muted">Нет доступа.</p></div>');
-  if (CURRENT_TAB === 'admin') { if(isAdmin()) { renderAdmin(c); loadAdminNotificationConfig(); } else c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>'; }
+  if (CURRENT_TAB === 'admin') { if(isAdmin()) { renderAdmin(c); if(adminSub==='notifications') loadAdminNotificationConfig(); } else c.innerHTML = '<div class="card"><h2>🛠 Админ-панель</h2><p class="muted" style="color:var(--red)">Нет доступа.</p></div>'; }
   restoreFormState(c, snapshot);
   FORM_STATE_SCOPE = scope;
 }
@@ -2244,7 +2323,7 @@ function uiTake(id) { takeTicket(id).then(rerender); }
 
 /* ---------- АДМИН-ПАНЕЛЬ ---------- */
 function renderAdmin(c) {
-  if(!GAME_CONFIG_LOADING){GAME_CONFIG_LOADING=true;loadHomeGameSettings().finally(()=>GAME_CONFIG_LOADING=false);}
+  if(adminSub==='system'&&!GAME_CONFIG_LOADING){GAME_CONFIG_LOADING=true;loadHomeGameSettings().finally(()=>GAME_CONFIG_LOADING=false);}
   const groups = [
     {title:'Управление',items:[['items','📚','Предметы'],['users','👥','Игроки'],['anns','📢','Объявления'],['promos','🎟️','Промокоды']]},
     {title:'Экономика',items:[['cur','🪙','Валюта'],['market','🛒','Маркет']]},
@@ -2283,6 +2362,7 @@ function toggleAdminMenu(open) {
 function setSub(s) {
   stopAdminLogAutoRefresh();
   adminSub = s;
+  activateWindowData('admin');
   toggleAdminMenu(false);
   const title = document.querySelector('.admin-current b');
   const labels = {items:'📚 Предметы',users:'👥 Игроки',anns:'📢 Объявления',promos:'🎟️ Промокоды',cur:'🪙 Валюта',market:'🛒 Маркет',system:'🛠 Настройки системы',visibility:'👁 Видимость функций',notifications:'🔔 Уведомления бота',cosmetics:'🎨 Рамки и скины',stats:'📊 Статистика',logs:'📜 Логи'};
@@ -2759,9 +2839,18 @@ async function loadAdminNotificationConfig() { try { const r=await workerRequest
 
 /* --- Технический перерыв --- */
 let GAME_CARD_CONFIG={minesName:'Мины',minesIcon:'💣',minesImage:'',pvpName:'PvP-клетки',pvpIcon:'⚔️',pvpImage:'',zombieName:'Зомби-путь',zombieIcon:'🧟',zombieImage:''},GAME_CONFIG_LOADING=false;
-let BUTTON_SFX_CONFIG={enabled:false,dataUrl:'',fileName:''},BUTTON_SFX_DRAFT='';let BUTTON_SFX_AUDIO=null;
-try{db.ref('config/buttonSfx').on('value',snap=>{BUTTON_SFX_CONFIG={enabled:false,dataUrl:'',...(snap.val()||{})};});}catch(_){}
-function playButtonSfx(){if(!BUTTON_SFX_CONFIG?.enabled||!BUTTON_SFX_CONFIG?.dataUrl)return;try{if(BUTTON_SFX_AUDIO){BUTTON_SFX_AUDIO.pause();BUTTON_SFX_AUDIO.currentTime=0;}BUTTON_SFX_AUDIO=new Audio(BUTTON_SFX_CONFIG.dataUrl);BUTTON_SFX_AUDIO.volume=0.65;const p=BUTTON_SFX_AUDIO.play();if(p&&p.catch)p.catch(()=>{});}catch(_){}}
+let BUTTON_SFX_CONFIG={enabled:false,dataUrl:'',fileName:''},BUTTON_SFX_DRAFT='';let BUTTON_SFX_AUDIO=null,BUTTON_SFX_LOADED=false,BUTTON_SFX_LOADING=null;
+async function ensureButtonSfxConfig(){
+  if(BUTTON_SFX_LOADED)return;
+  if(BUTTON_SFX_LOADING)return BUTTON_SFX_LOADING;
+  BUTTON_SFX_LOADING=(async()=>{try{const snap=await db.ref('config/buttonSfx').get();BUTTON_SFX_CONFIG={enabled:false,dataUrl:'',fileName:'',...(snap.val()||{})};}catch(_){}finally{BUTTON_SFX_LOADED=true;BUTTON_SFX_LOADING=null;}})();
+  return BUTTON_SFX_LOADING;
+}
+function playButtonSfx(){
+  if(!BUTTON_SFX_LOADED){ensureButtonSfxConfig().then(()=>{if(BUTTON_SFX_CONFIG?.enabled&&BUTTON_SFX_CONFIG?.dataUrl)playButtonSfx();});return;}
+  if(!BUTTON_SFX_CONFIG?.enabled||!BUTTON_SFX_CONFIG?.dataUrl)return;
+  try{if(BUTTON_SFX_AUDIO){BUTTON_SFX_AUDIO.pause();BUTTON_SFX_AUDIO.currentTime=0;}BUTTON_SFX_AUDIO=new Audio(BUTTON_SFX_CONFIG.dataUrl);BUTTON_SFX_AUDIO.volume=0.65;const p=BUTTON_SFX_AUDIO.play();if(p&&p.catch)p.catch(()=>{});}catch(_){}
+}
 function previewButtonSfxFile(){const f=document.getElementById('admin-button-sfx-file')?.files?.[0];if(!f)return;if(!/^audio\/(mpeg|mp3|wav|x-wav|ogg|mp4|aac|webm)$/i.test(f.type)&&! /\.(mp3|wav|ogg|m4a|aac|webm)$/i.test(f.name)){toast('Выбери аудиофайл MP3, WAV, OGG, M4A или WEBM');return;}if(f.size>350*1024){toast('Размер звука должен быть не больше 350 КБ');return;}const r=new FileReader();r.onerror=()=>toast('Не удалось прочитать аудиофайл');r.onload=()=>{BUTTON_SFX_DRAFT=String(r.result||'');const name=document.getElementById('admin-button-sfx-name');if(name)name.textContent=f.name;const btn=document.getElementById('admin-button-sfx-preview');if(btn)btn.disabled=false;};r.readAsDataURL(f);}
 function previewButtonSfx(){const data=BUTTON_SFX_DRAFT||BUTTON_SFX_CONFIG.dataUrl;if(!data)return toast('Сначала выбери аудиофайл');try{const a=new Audio(data);a.volume=.65;a.play().catch(()=>toast('Браузер не разрешил воспроизвести звук. Нажми ещё раз.'));}catch(_){toast('Не удалось воспроизвести звук');}}
 async function saveButtonSfx(){if(!isAdmin())return toast('Недостаточно прав');const enabled=!!document.getElementById('admin-button-sfx-enabled')?.checked;const dataUrl=BUTTON_SFX_DRAFT||BUTTON_SFX_CONFIG.dataUrl||'';if(enabled&&!dataUrl)return toast('Загрузи аудиофайл или отключи звук');if(dataUrl.length>500000)return toast('Файл слишком большой');try{const next={enabled,dataUrl,fileName:BUTTON_SFX_DRAFT?(document.getElementById('admin-button-sfx-file')?.files?.[0]?.name||'button-sfx'):BUTTON_SFX_CONFIG.fileName||'',updatedAt:Date.now(),updatedBy:CURRENT_ID};await db.ref('config/buttonSfx').set(next);BUTTON_SFX_CONFIG=next;BUTTON_SFX_DRAFT='';toast('Звук кнопок сохранён');drawAdminBody();}catch(e){toast(e.message||'Не удалось сохранить звук. Проверь правила Firebase.')}}
