@@ -1465,7 +1465,7 @@ function crashMultiplierNow(game){
   const startedAt=Number(game.startedAt)||Date.now();
   const elapsed=Math.max(0,(Date.now()+(Number(CRASH_VIEW.serverOffset)||0))-startedAt);
   const raw=Math.exp(crashSafeRate(game)*elapsed*elapsed/1000);
-  return Math.min(10,Math.max(0,crashIsV2(game)?raw-1:raw));
+  return Math.min(10,Math.max(Number(game.multiplierVersion)>=3?0.50:0,Number(game.multiplierVersion)>=3?raw-0.50:(crashIsV2(game)?raw-1:raw)));
 }
 function crashRememberResult(game){
   if(!game||game.status==='active'||!['lost','cashed_out'].includes(game.status))return;
@@ -1509,9 +1509,9 @@ function crashMakeStars(){
   }
 }
 function crashElapsedForMultiplier(game,mult){
-  const rate=crashSafeRate(game),v2=crashIsV2(game);
-  const amount=Math.max(0,Math.min(10,Number(mult)||0));
-  const logarithm=v2?Math.log1p(amount):Math.log(Math.max(1,amount));
+  const rate=crashSafeRate(game),v2=crashIsV2(game),v3=Number(game?.multiplierVersion)>=3;
+  const amount=Math.max(v3?0.50:0,Math.min(10,Number(mult)||0));
+  const logarithm=v3?Math.log(amount+0.50):(v2?Math.log1p(amount):Math.log(Math.max(1,amount)));
   return Math.sqrt(Math.max(0,logarithm)/rate*1000);
 }
 function crashDrawGraph(game,mult){
@@ -1520,20 +1520,20 @@ function crashDrawGraph(game,mult){
   const w=CRASH_VIEW.canvasWidth||canvas.clientWidth||1,h=CRASH_VIEW.canvasHeight||canvas.clientHeight||1;
   ctx.clearRect(0,0,w,h);
   if(!game)return;
-  const rate=crashSafeRate(game),v2=crashIsV2(game),maxLog=v2?Math.log(11):Math.log(10);
+  const rate=crashSafeRate(game),v2=crashIsV2(game),v3=Number(game?.multiplierVersion)>=3,maxLog=v3?Math.log(10.50):(v2?Math.log(11):Math.log(10));
   let elapsed=game.status==='active'?Math.max(0,Date.now()+(Number(CRASH_VIEW.serverOffset)||0)-Number(game.startedAt||Date.now())):crashElapsedForMultiplier(game,mult);
   elapsed=Math.min(elapsed,Math.sqrt(maxLog/rate*1000));
   const padX=22,padY=22,gw=Math.max(1,w-padX*2),gh=Math.max(1,h-padY*2);
   const totalTime=Math.sqrt(maxLog/rate*1000),progress=Math.max(0,Math.min(1,elapsed/totalTime));
   const endX=padX+progress*gw;
-  const shownLog=v2?Math.log1p(Math.max(0,mult)):Math.log(Math.max(1,mult));
+  const shownLog=v3?Math.log(Math.max(0.50,mult)+0.50):(v2?Math.log1p(Math.max(0,mult)):Math.log(Math.max(1,mult)));
   const endY=h-padY-Math.max(0,Math.min(1,shownLog/maxLog))*gh;
   if(progress<=0.0001)return;
   const steps=Math.max(10,Math.min(100,Math.ceil(progress*100)));
   const points=[];
   for(let i=0;i<=steps;i++){
-    const t=elapsed*(i/steps),raw=Math.exp(rate*t*t/1000),m=v2?raw-1:raw;
-    const logValue=v2?Math.log1p(Math.max(0,m)):Math.log(Math.max(1,m));
+    const t=elapsed*(i/steps),raw=Math.exp(rate*t*t/1000),m=v3?raw-0.50:(v2?raw-1:raw);
+    const logValue=v3?Math.log(Math.max(0.50,m)+0.50):(v2?Math.log1p(Math.max(0,m)):Math.log(Math.max(1,m)));
     points.push({x:padX+(t/totalTime)*gw,y:h-padY-Math.max(0,Math.min(1,logValue/maxLog))*gh});
   }
   const gradient=ctx.createLinearGradient(0,h,0,0);gradient.addColorStop(0,'rgba(255,255,255,0)');gradient.addColorStop(1,'rgba(255,255,255,0.13)');
